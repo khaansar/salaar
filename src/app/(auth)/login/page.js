@@ -35,12 +35,13 @@ export default function LoginPage() {
           <div className="mb-10 text-center lg:text-left">
             <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Welcome back</h2>
             <p className="text-slate-500 text-base">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
                 Sign up for free
               </Link>
             </p>
           </div>
+
           <LoginForm />
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '../ui/Input';
 import { PasswordInput } from '../ui/PasswordInput';
@@ -16,6 +17,7 @@ export function LoginForm() {
   const [errors, setErrors] = useState({});
   const dispatch = useAppDispatch();
   const { status, error: serverError } = useAppSelector((state) => state.auth);
+  const router = useRouter();
 
   const validate = () => {
     const newErrors = {};
@@ -38,10 +40,11 @@ export function LoginForm() {
       const resultAction = await dispatch(loginUser({ email, password })).unwrap();
       
       if (resultAction?.role === 'ADMIN') {
-        window.location.href = '/admin-dashboard';
+        router.push('/admin-dashboard');
       } else {
-        window.location.href = '/';
+        router.push('/');
       }
+      router.refresh();
     } catch (err) {
       console.error("Login failed:", err);
     }
