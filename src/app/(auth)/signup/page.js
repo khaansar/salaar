@@ -3,35 +3,52 @@ import Link from 'next/link';
 
 export default function SignupPage() {
   return (
-    <div className="flex-1 flex flex-col w-full max-w-[1440px] mx-auto relative">
-      {/* Top Navigation */}
-      <header className="w-full flex items-center justify-between p-6 sm:px-12 absolute top-0 left-0 right-0">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-slate-900 rounded-[6px] flex items-center justify-center transition-transform group-hover:scale-105">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-          </div>
-          <span className="font-semibold text-lg tracking-tight">PrepHub</span>
-        </Link>
-        <div className="text-sm font-medium text-slate-500">
-          Already have an account?{' '}
-          <Link href="/login" className="text-slate-900 hover:text-indigo-600 transition-colors">
-            Log in
+    <div className="flex w-full min-h-screen bg-white">
+      {/* Left Panel - Brand Showcase */}
+      <div className="hidden lg:flex w-1/2 bg-slate-900 relative overflow-hidden items-center justify-center">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 to-transparent"></div>
+        
+        <div className="relative z-10 p-12 text-white max-w-xl">
+          <Link href="/" className="flex items-center gap-3 mb-16 group inline-flex">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center transition-transform group-hover:-translate-y-1 shadow-xl">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#312e81" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
+            <span className="font-bold text-2xl tracking-tight">PrepHub</span>
           </Link>
+          <h1 className="text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]">
+            Start your journey <br />
+            <span className="text-indigo-400">to the top today.</span>
+          </h1>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-indigo-100 font-medium">
+              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
+              Access hundreds of mock tests
+            </div>
+            <div className="flex items-center gap-3 text-indigo-100 font-medium">
+              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
+              Track progress with detailed analytics
+            </div>
+            <div className="flex items-center gap-3 text-indigo-100 font-medium">
+              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
+              Learn from expert evaluators
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      {/* Centered Form Container */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 mt-16 sm:mt-0">
-        <div className="w-full max-w-[400px]">
-          <div className="mb-8 text-center sm:text-left">
-            <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 mb-2">
-              Create your account
-            </h1>
-            <p className="text-slate-500 text-[15px]">
-              Start your preparation journey today.
+      {/* Right Panel - Form Container */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 relative overflow-y-auto">
+        <div className="w-full max-w-[420px]">
+          <div className="mb-10 text-center lg:text-left">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Create an account</h2>
+            <p className="text-slate-500 text-base">
+              Already have an account?{' '}
+              <Link href="/login" className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
+                Log in instead
+              </Link>
             </p>
           </div>
-          
           <SignupForm />
         </div>
       </div>
