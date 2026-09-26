@@ -6,7 +6,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
-      const data = await apiClient.post('/auth/login', credentials);
+      const data = await apiClient.post('/auth-api/login', credentials);
       
       const role = data?.user?.role || data?.role;
       if (role) {
@@ -24,7 +24,7 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const data = await apiClient.post('/auth/register', userData);
+      const data = await apiClient.post('/auth-api/register', userData);
       
       const role = data?.user?.role || data?.role;
       if (role) {
@@ -42,7 +42,7 @@ export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { rejectWithValue }) => {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post('/auth-api/logout');
     } catch (err) {
       console.error('Logout failed on server', err);
     } finally {
@@ -55,7 +55,7 @@ export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await apiClient.get('/auth/me'); 
+      const data = await apiClient.get('/auth-api/me'); 
       return data;
     } catch (err) {
       return rejectWithValue(err);
