@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -16,12 +15,14 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(emptyForm);
       setErrors({});
     }
-  }, [open]);
+  }
 
   const validate = () => {
     const next = {};
@@ -52,45 +53,16 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="New section"
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} isLoading={saving}>
-            Create section
-          </Button>
-        </>
-      }
-    >
+    <Modal open={open} onClose={onClose} title="New section" footer={
+      <>
+        <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button onClick={handleSubmit} isLoading={saving}>Create section</Button>
+      </>
+    }>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="section-title"
-          label="Title"
-          placeholder="e.g. Quantitative Aptitude"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          error={errors.title}
-        />
-        <Input
-          id="section-duration"
-          label="Duration (minutes)"
-          type="number"
-          min="1"
-          value={form.durationMinutes}
-          onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))}
-          error={errors.durationMinutes}
-        />
-        <Checkbox
-          id="section-shuffle"
-          label="Shuffle questions for each student"
-          checked={form.shuffleQuestions}
-          onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))}
-        />
+        <Input id="section-title" label="Title" placeholder="e.g. Quantitative Aptitude" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
+        <Input id="section-duration" label="Duration (minutes)" type="number" min="1" value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))} error={errors.durationMinutes} />
+        <Checkbox id="section-shuffle" label="Shuffle questions for each student" checked={form.shuffleQuestions} onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))} />
       </form>
     </Modal>
   );

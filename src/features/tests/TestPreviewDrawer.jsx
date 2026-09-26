@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { Drawer } from '@/components/ui/Drawer';
 import { Badge } from '@/components/ui/Badge';
@@ -10,8 +9,6 @@ import { catalogApi } from '@/services/adminService';
 
 function optionsList(optionsJson) {
   if (!optionsJson) return [];
-  // PublicQuestionDto types optionsJson as a generic object; the backend may
-  // serialize it either as an array of {id, text} or as an object map.
   if (Array.isArray(optionsJson)) return optionsJson;
   if (typeof optionsJson === 'object') {
     return Object.entries(optionsJson).map(([id, text]) => ({ id, text: typeof text === 'string' ? text : JSON.stringify(text) }));
@@ -23,48 +20,46 @@ export function TestPreviewDrawer({ open, onClose, testId, testStatus }) {
   const [structure, setStructure] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const notPublished = testStatus && testStatus !== 'PUBLISHED';
 
-  const load = () => {
-    if (notPublished) return;
+  useEffect(() => {
+    if (!open || notPublished) return;
+    let cancelled = false;
     setLoading(true);
     setError(null);
+
     catalogApi
       .structure(testId)
-      .then(setStructure)
-      .catch((err) => setError(err?.message || 'Failed to load preview'))
-      .finally(() => setLoading(false));
-  };
+      .then((data) => {
+        if (!cancelled) setStructure(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message || 'Failed to load preview');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  useEffect(() => {
-    if (open) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, testId, testStatus]);
+    return () => {
+      cancelled = true;
+    };
+  }, [open, testId, notPublished]);
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="Preview as student"
-      description="Rendered from the public catalog structure — correct answers are never included here."
-      width="xl"
-    >
+    <Drawer open={open} onClose={onClose} title="Preview as student" description="Rendered from the public catalog structure   correct answers are never included here." width="xl">
       {notPublished && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          This preview reads from the public catalog, which only serves <strong>published</strong> tests. This test is
-          currently <strong>{testStatus?.toLowerCase()}</strong> — publish it first to preview it here, or use the
-          section cards above to review questions and correct answers directly.
+          This preview reads from the public catalog, which only serves <strong>published</strong> tests. This test is currently <strong>{testStatus?.toLowerCase()}</strong>.
         </div>
       )}
       {!notPublished && loading && <TableSkeleton rows={4} cols={1} />}
-      {!notPublished && !loading && error && <ErrorState message={error} onRetry={load} />}
+      {!notPublished && !loading && error && <ErrorState message={error} onRetry={() => { /* Triggered by reopening drawer or external reload */ }} />}
       {!notPublished && !loading && !error && structure && (
         <div className="space-y-8">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">{structure.title}</h3>
             <p className="text-sm text-slate-500 mt-1">
-              {structure.durationMinutes} minutes · {structure.totalMarks} marks {structure.isFree && '· Free'}
+              {structure.durationMinutes} minutes   {structure.totalMarks} marks {structure.isFree && '  Free'}
             </p>
             {structure.instructions && (
               <div className="mt-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
@@ -72,7 +67,6 @@ export function TestPreviewDrawer({ open, onClose, testId, testStatus }) {
               </div>
             )}
           </div>
-
           {(structure.sections || []).map((section) => (
             <div key={section.sectionId}>
               <div className="flex items-center gap-2 mb-3">

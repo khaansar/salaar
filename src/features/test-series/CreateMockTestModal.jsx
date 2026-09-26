@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -25,12 +24,14 @@ export function CreateMockTestModal({ open, onClose, seriesId, onCreated }) {
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(emptyForm);
       setErrors({});
     }
-  }, [open]);
+  }
 
   const validate = () => {
     const next = {};
@@ -66,73 +67,21 @@ export function CreateMockTestModal({ open, onClose, seriesId, onCreated }) {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="New mock test"
-      description="Configure the base settings. You can build out sections and questions next."
-      width="lg"
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} isLoading={saving}>
-            Create test
-          </Button>
-        </>
-      }
-    >
+    <Modal open={open} onClose={onClose} title="New mock test" description="Configure the base settings. You can build out sections and questions next." width="lg" footer={
+      <>
+        <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button onClick={handleSubmit} isLoading={saving}>Create test</Button>
+      </>
+    }>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="test-title"
-          label="Title"
-          placeholder="e.g. Full Length Mock Test 1"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          error={errors.title}
-        />
-        <Input
-          id="test-duration"
-          label="Duration (minutes)"
-          type="number"
-          min="1"
-          value={form.durationMinutes}
-          onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))}
-          error={errors.durationMinutes}
-        />
-        <Textarea
-          id="test-instructions"
-          label="Instructions"
-          placeholder="Instructions shown to students before starting"
-          value={form.instructions}
-          onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
-        />
+        <Input id="test-title" label="Title" placeholder="e.g. Full Length Mock Test 1" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
+        <Input id="test-duration" label="Duration (minutes)" type="number" min="1" value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))} error={errors.durationMinutes} />
+        <Textarea id="test-instructions" label="Instructions" placeholder="Instructions shown to students before starting" value={form.instructions} onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} />
         <div className="grid grid-cols-2 gap-3 pt-1">
-          <Checkbox
-            id="test-strict-order"
-            label="Strict section order"
-            checked={form.isSectionOrderStrict}
-            onChange={(e) => setForm((f) => ({ ...f, isSectionOrderStrict: e.target.checked }))}
-          />
-          <Checkbox
-            id="test-shuffle-sections"
-            label="Shuffle sections"
-            checked={form.shuffleSections}
-            onChange={(e) => setForm((f) => ({ ...f, shuffleSections: e.target.checked }))}
-          />
-          <Checkbox
-            id="test-negative-marking"
-            label="Negative marking"
-            checked={form.negativeMarkingEnabled}
-            onChange={(e) => setForm((f) => ({ ...f, negativeMarkingEnabled: e.target.checked }))}
-          />
-          <Checkbox
-            id="test-free"
-            label="Free test"
-            checked={form.isFree}
-            onChange={(e) => setForm((f) => ({ ...f, isFree: e.target.checked }))}
-          />
+          <Checkbox id="test-strict-order" label="Strict section order" checked={form.isSectionOrderStrict} onChange={(e) => setForm((f) => ({ ...f, isSectionOrderStrict: e.target.checked }))} />
+          <Checkbox id="test-shuffle-sections" label="Shuffle sections" checked={form.shuffleSections} onChange={(e) => setForm((f) => ({ ...f, shuffleSections: e.target.checked }))} />
+          <Checkbox id="test-negative-marking" label="Negative marking" checked={form.negativeMarkingEnabled} onChange={(e) => setForm((f) => ({ ...f, negativeMarkingEnabled: e.target.checked }))} />
+          <Checkbox id="test-free" label="Free test" checked={form.isFree} onChange={(e) => setForm((f) => ({ ...f, isFree: e.target.checked }))} />
         </div>
       </form>
     </Modal>

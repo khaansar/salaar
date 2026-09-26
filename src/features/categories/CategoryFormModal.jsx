@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -20,7 +19,13 @@ export function CategoryFormModal({ open, onClose, category, onSaved }) {
   const toast = useToast();
   const isEdit = Boolean(category);
 
-  useEffect(() => {
+  // Render-phase state sync for resetting internal state when modal opens
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevCategory, setPrevCategory] = useState(category);
+
+  if (open !== prevOpen || category !== prevCategory) {
+    setPrevOpen(open);
+    setPrevCategory(category);
     if (open) {
       setForm(
         category
@@ -35,12 +40,11 @@ export function CategoryFormModal({ open, onClose, category, onSaved }) {
       setErrors({});
       setLangInput('');
     }
-  }, [open, category]);
+  }
 
   const addLanguage = (code) => {
     const value = code.trim().toLowerCase();
-    if (!value) return;
-    if (form.requiredLanguages.includes(value)) return;
+    if (!value || form.requiredLanguages.includes(value)) return;
     setForm((f) => ({ ...f, requiredLanguages: [...f.requiredLanguages, value] }));
     setLangInput('');
   };
@@ -85,91 +89,36 @@ export function CategoryFormModal({ open, onClose, category, onSaved }) {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? 'Edit category' : 'New category'}
-      description="Categories group related test series together (e.g. by exam or subject)."
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} isLoading={saving}>
-            {isEdit ? 'Save changes' : 'Create category'}
-          </Button>
-        </>
-      }
-    >
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit category' : 'New category'} description="Categories group related test series together." footer={
+      <>
+        <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button onClick={handleSubmit} isLoading={saving}>{isEdit ? 'Save changes' : 'Create category'}</Button>
+      </>
+    }>
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isEdit && (
-          <Input
-            id="cat-id"
-            label="Category ID"
-            placeholder="e.g. ssc-cgl"
-            value={form.id}
-            onChange={(e) => setForm((f) => ({ ...f, id: e.target.value }))}
-            error={errors.id}
-          />
+          <Input id="cat-id" label="Category ID" placeholder="e.g. ssc-cgl" value={form.id} onChange={(e) => setForm((f) => ({ ...f, id: e.target.value }))} error={errors.id} />
         )}
-        <Input
-          id="cat-name"
-          label="Name"
-          placeholder="e.g. SSC CGL"
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          error={errors.name}
-        />
-        <Textarea
-          id="cat-desc"
-          label="Description"
-          placeholder="Short description shown to admins"
-          value={form.description}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-        />
+        <Input id="cat-name" label="Name" placeholder="e.g. SSC CGL" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} error={errors.name} />
+        <Textarea id="cat-desc" label="Description" placeholder="Short description shown to admins" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Required languages</label>
           <div className="flex flex-wrap gap-2 mb-2">
             {form.requiredLanguages.map((code) => (
-              <span
-                key={code}
-                className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-medium px-2.5 py-1"
-              >
+              <span key={code} className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-medium px-2.5 py-1">
                 {code}
-                <button type="button" onClick={() => removeLanguage(code)} className="hover:text-indigo-900">
-                  <X size={12} />
-                </button>
+                <button type="button" onClick={() => removeLanguage(code)} className="hover:text-indigo-900"><X size={12} /></button>
               </span>
             ))}
           </div>
           <div className="flex flex-wrap gap-2 mb-2">
             {COMMON_LANGUAGES.filter((l) => !form.requiredLanguages.includes(l.value)).map((l) => (
-              <button
-                type="button"
-                key={l.value}
-                onClick={() => addLanguage(l.value)}
-                className="text-xs px-2 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
-              >
-                + {l.label}
-              </button>
+              <button type="button" key={l.value} onClick={() => addLanguage(l.value)} className="text-xs px-2 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600">+ {l.label}</button>
             ))}
           </div>
           <div className="flex gap-2">
-            <Input
-              id="lang-code"
-              placeholder="custom code, e.g. gu"
-              value={langInput}
-              onChange={(e) => setLangInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addLanguage(langInput);
-                }
-              }}
-            />
-            <Button type="button" variant="outline" onClick={() => addLanguage(langInput)}>
-              <Plus size={16} />
-            </Button>
+            <Input id="lang-code" placeholder="custom code, e.g. gu" value={langInput} onChange={(e) => setLangInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLanguage(langInput); } }} />
+            <Button type="button" variant="outline" onClick={() => addLanguage(langInput)}><Plus size={16} /></Button>
           </div>
         </div>
       </form>

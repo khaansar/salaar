@@ -1,13 +1,9 @@
 'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Generic data-fetching hook for admin list pages backed by paginated
- * endpoints that return `{ items, meta }` (see `adminService.js`).
- *
- * @param {(params: object) => Promise<{items: any[], meta: any}>} fetcher
- * @param {object} params - filters/page/limit, re-fetches whenever this changes
+ * endpoints that return `{ items, meta }`.
  */
 export function usePaginatedFetch(fetcher, params) {
   const [items, setItems] = useState([]);
@@ -22,8 +18,10 @@ export function usePaginatedFetch(fetcher, params) {
     const currentRequest = ++requestId.current;
     setLoading(true);
     setError(null);
+
     try {
-      const result = await fetcher(params);
+      const parsedParams = JSON.parse(paramsKey);
+      const result = await fetcher(parsedParams);
       if (currentRequest !== requestId.current) return;
       setItems(result.items);
       setMeta(result.meta);
@@ -35,8 +33,7 @@ export function usePaginatedFetch(fetcher, params) {
     } finally {
       if (currentRequest === requestId.current) setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey]);
+  }, [fetcher, paramsKey]);
 
   useEffect(() => {
     refetch();

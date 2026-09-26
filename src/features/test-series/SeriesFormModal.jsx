@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,7 +16,12 @@ export function SeriesFormModal({ open, onClose, series, categories = [], onSave
   const toast = useToast();
   const isEdit = Boolean(series);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevSeries, setPrevSeries] = useState(series);
+
+  if (open !== prevOpen || series !== prevSeries) {
+    setPrevOpen(open);
+    setPrevSeries(series);
     if (open) {
       setForm(
         series
@@ -30,7 +34,7 @@ export function SeriesFormModal({ open, onClose, series, categories = [], onSave
       );
       setErrors({});
     }
-  }, [open, series]);
+  }
 
   const validate = () => {
     const next = {};
@@ -70,56 +74,18 @@ export function SeriesFormModal({ open, onClose, series, categories = [], onSave
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? 'Edit test series' : 'New test series'}
-      description="A test series is a collection of mock tests (e.g. a full course or exam pack)."
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} isLoading={saving}>
-            {isEdit ? 'Save changes' : 'Create series'}
-          </Button>
-        </>
-      }
-    >
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit test series' : 'New test series'} description="A test series is a collection of mock tests (e.g. a full course or exam pack)." footer={
+      <>
+        <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button onClick={handleSubmit} isLoading={saving}>{isEdit ? 'Save changes' : 'Create series'}</Button>
+      </>
+    }>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="series-title"
-          label="Title"
-          placeholder="e.g. SSC CGL 2026 Complete Test Pack"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          error={errors.title}
-        />
-        <Select
-          id="series-category"
-          label="Category"
-          placeholder="Select a category"
-          value={form.categoryId}
-          onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-          error={errors.categoryId}
-        >
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+        <Input id="series-title" label="Title" placeholder="e.g. SSC CGL 2026 Complete Test Pack" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
+        <Select id="series-category" label="Category" placeholder="Select a category" value={form.categoryId} onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))} error={errors.categoryId}>
+          {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
         </Select>
-        <Input
-          id="series-price"
-          label="Base price"
-          type="number"
-          min="0"
-          step="0.01"
-          placeholder="0.00"
-          value={form.basePrice}
-          onChange={(e) => setForm((f) => ({ ...f, basePrice: e.target.value }))}
-          error={errors.basePrice}
-        />
+        <Input id="series-price" label="Base price" type="number" min="0" step="0.01" placeholder="0.00" value={form.basePrice} onChange={(e) => setForm((f) => ({ ...f, basePrice: e.target.value }))} error={errors.basePrice} />
       </form>
     </Modal>
   );
