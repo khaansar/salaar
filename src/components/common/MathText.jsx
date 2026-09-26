@@ -55,7 +55,6 @@ export function MathText({ text, className = '' }) {
             <div
               key={i}
               className="my-2 overflow-x-auto"
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: renderLatex(seg.value, true) }}
             />
           );
@@ -64,7 +63,6 @@ export function MathText({ text, className = '' }) {
           return (
             <span
               key={i}
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: renderLatex(seg.value, false) }}
             />
           );
