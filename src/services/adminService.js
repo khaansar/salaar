@@ -4,7 +4,7 @@ import apiClient, { apiClientRaw } from '@/lib/apiClient';
 // test-service OpenAPI spec, whose server url is `.../api/tests`. This
 // matches the existing convention in `src/services/testService.js`
 // (e.g. `/tests/public/series`).
-const BASE = '/tests';
+const BASE = '/tests-api';
 
 /**
  * Unwraps the raw ApiResponse envelope from `apiClientRaw` into
