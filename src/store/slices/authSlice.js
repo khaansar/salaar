@@ -51,11 +51,15 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// `/auth-api/users/me` returns the authenticated admin's profile
+// (id, firstName, lastName, email, role, avatarUrl, isActive, timestamps)
+// wrapped in the standard ApiResponse envelope; `apiClient` already
+// unwraps `.data` for us. Used to populate the dashboard's profile menu.
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await apiClient.get('/auth-api/me'); 
+      const data = await apiClient.get('/auth-api/users/me');
       return data;
     } catch (err) {
       return rejectWithValue(err);

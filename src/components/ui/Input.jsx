@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-export const Input = forwardRef(({ className = '', variant = 'outline', error, label, id, leftIcon, rightIcon, ...props }, ref) => {
+export const Input = forwardRef(({ className = '', variant = 'outline', error, label, id, leftIcon, rightIcon, helpText, ...props }, ref) => {
   const isFlushed = variant === 'flushed';
   
   return (
@@ -30,6 +30,7 @@ export const Input = forwardRef(({ className = '', variant = 'outline', error, l
       </div>
       
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {helpText && !error && <p className="mt-1.5 text-xs text-slate-500">{helpText}</p>}
     </div>
   );
 });

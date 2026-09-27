@@ -8,13 +8,13 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
-  timeout: 10000,
 });
 
 const normalizeError = (error) => {
   const status = error.response?.status || 500;
   const message = error.response?.data?.message || error.message || 'An unexpected network error occurred';
-  return Promise.reject({ message, status });
+  const errors = error.response?.data?.errors || [];
+  return Promise.reject({ message, status, errors });
 };
 
 apiClient.interceptors.response.use(
@@ -30,7 +30,6 @@ export const apiClientRaw = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
-  timeout: 10000,
 });
 
 apiClientRaw.interceptors.response.use(

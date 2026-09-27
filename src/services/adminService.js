@@ -81,6 +81,11 @@ const ORDER_KEY = 'order';
 
 export const sectionsApi = {
   create: (testId, payload) => apiClient.post(`${BASE}/admin/mock-tests/${testId}/sections`, payload),
+  // NOTE: `PUT /admin/sections/{sectionId}` is not present in the OpenAPI
+  // spec generated for this project — this method mirrors what the
+  // SectionSettingsModal edit flow sends, in anticipation of that endpoint
+  // being added on the backend. Verify the exact path/payload once it lands.
+  update: (sectionId, payload) => apiClient.put(`${BASE}/admin/sections/${sectionId}`, payload),
   reorderSections: (testId, orderedSectionIds) =>
     apiClient.put(`${BASE}/admin/mock-tests/${testId}/sections/reorder`, { [ORDER_KEY]: orderedSectionIds }),
   attachQuestions: (sectionId, payload) => apiClient.post(`${BASE}/admin/sections/${sectionId}/questions`, payload),

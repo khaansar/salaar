@@ -11,7 +11,6 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SeriesFormModal } from '@/features/test-series/SeriesFormModal';
-import { CreateMockTestModal } from '@/features/test-series/CreateMockTestModal';
 import { categoriesApi, seriesApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 import { STATUS_BADGE_STYLES } from '@/constants/enums';
@@ -28,7 +27,6 @@ export default function SeriesDetailPage({ params }) {
   const [error, setError] = useState(null);
 
   const [editOpen, setEditOpen] = useState(false);
-  const [createTestOpen, setCreateTestOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -134,7 +132,7 @@ export default function SeriesDetailPage({ params }) {
             <h2 className="font-semibold text-slate-900">Mock tests</h2>
             <p className="text-sm text-slate-500 mt-0.5">Build out sections and questions for each test.</p>
           </div>
-          <Button onClick={() => setCreateTestOpen(true)}>
+          <Button onClick={() => router.push(`/admin-dashboard/series/${id}/tests/new`)}>
             <Plus size={16} className="mr-2" />
             New mock test
           </Button>
@@ -145,7 +143,7 @@ export default function SeriesDetailPage({ params }) {
             title="No mock tests yet"
             description="Create your first mock test to start building sections and questions."
             actionLabel="New mock test"
-            onAction={() => setCreateTestOpen(true)}
+            onAction={() => router.push(`/admin-dashboard/series/${id}/tests/new`)}
           />
         ) : (
           <div className="divide-y divide-slate-100">
@@ -177,13 +175,6 @@ export default function SeriesDetailPage({ params }) {
         series={series}
         categories={categories}
         onSaved={load}
-      />
-
-      <CreateMockTestModal
-        open={createTestOpen}
-        onClose={() => setCreateTestOpen(false)}
-        seriesId={id}
-        onCreated={(created) => router.push(`/admin-dashboard/tests/${created.id}`)}
       />
 
       <ConfirmDialog

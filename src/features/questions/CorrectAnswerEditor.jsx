@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 
@@ -11,6 +11,11 @@ import { Textarea } from '@/components/ui/Textarea';
  * @param {(next: object) => void} onChange
  */
 export function CorrectAnswerEditor({ questionType, options = [], value = {}, onChange, disabled }) {
+  // Scope the MCQ radio group's `name` to this editor instance so two
+  // CorrectAnswerEditors rendered on the same page (e.g. bulk-create) never
+  // get grouped together by the browser.
+  const uniqueId = useId();
+
   if (questionType === 'MCQ') {
     // Reads either key gracefully to ensure the radio button reflects the UI state
     const currentSelection = value.key || value.correctOptionId;
@@ -24,7 +29,7 @@ export function CorrectAnswerEditor({ questionType, options = [], value = {}, on
             <label key={opt.id} className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="radio"
-                name="correct-option"
+                name={`correct-option-${uniqueId}`}
                 disabled={disabled}
                 checked={currentSelection === opt.id}
                 onChange={() => onChange({ key: opt.id, correctOptionId: opt.id })}

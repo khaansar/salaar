@@ -1,27 +1,63 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { FolderTree, Library, HelpCircle, ArrowRight } from 'lucide-react';
-import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
+import {
+  FolderTree,
+  Library,
+  HelpCircle,
+  Lock,
+  ArrowRight,
+  FileText,
+  Languages,
+} from 'lucide-react';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { DonutChart, DonutLegend } from '@/components/common/DonutChart';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import { categoriesApi, seriesApi, questionsApi } from '@/services/adminService';
+import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS } from '@/constants/enums';
 
-function StatCard({ icon: Icon, label, value, loading, href }) {
+const TYPE_COLORS = {
+  MCQ: '#4F46E5',
+  MULTI_CORRECT: '#8B5CF6',
+  NUMERICAL: '#06B6D4',
+  SUBJECTIVE: '#94A3B8',
+};
+
+const DIFFICULTY_COLORS = {
+  EASY: '#10B981',
+  MEDIUM: '#F59E0B',
+  HARD: '#F43F5E',
+};
+
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function StatCard({ icon: Icon, label, value, loading, href, tone = 'indigo' }) {
+  const toneClasses = {
+    indigo: 'bg-indigo-50 text-indigo-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    amber: 'bg-amber-50 text-amber-600',
+    rose: 'bg-rose-50 text-rose-600',
+  };
   return (
     <Link href={href}>
-      <Card className="hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer">
+      <Card className="hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer h-full">
         <CardBody className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             {loading ? (
               <Skeleton className="h-7 w-16 mt-2" />
             ) : (
-              <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
+              <p className="mt-1 text-2xl font-bold text-slate-900">{value ?? 0}</p>
             )}
           </div>
-          <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${toneClasses[tone]}`}>
             <Icon size={20} />
           </div>
         </CardBody>
@@ -30,83 +66,312 @@ function StatCard({ icon: Icon, label, value, loading, href }) {
   );
 }
 
-const SHORTCUTS = [
+const QUICK_CREATE = [
   {
-    href: '/admin-dashboard/categories',
+    href: '/admin-dashboard/categories/new',
     icon: FolderTree,
-    title: 'Manage categories',
-    description: 'Group test series by exam or subject, and set required translation languages.',
+    label: 'Create Exam Category',
+    tone: 'bg-indigo-50 text-indigo-600',
+  },
+  {
+    href: '/admin-dashboard/series?create=1',
+    icon: Library,
+    label: 'Create Test Series',
+    tone: 'bg-emerald-50 text-emerald-600',
   },
   {
     href: '/admin-dashboard/series',
-    icon: Library,
-    title: 'Build a test series',
-    description: 'Create a series, then add mock tests, sections, and questions to it.',
+    icon: FileText,
+    label: 'Create Mock Test',
+    tone: 'bg-amber-50 text-amber-600',
   },
   {
-    href: '/admin-dashboard/questions',
+    href: '/admin-dashboard/questions/new',
     icon: HelpCircle,
-    title: 'Author questions',
-    description: 'Add reusable questions with LaTeX, multiple languages, and answer keys.',
+    label: 'Add Question',
+    tone: 'bg-rose-50 text-rose-600',
   },
 ];
 
+// Fetches the total_records count for a filtered list without pulling any
+// rows, by asking for limit=1 and reading the pagination meta.
+async function countWith(fetcher, params) {
+  try {
+    const { meta } = await fetcher({ ...params, page: 1, limit: 1 });
+    return meta?.pagination?.total_records ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function AdminOverviewPage() {
-  const [stats, setStats] = useState({ categories: null, series: null, questions: null });
+  const { user } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [categorySeriesCounts, setCategorySeriesCounts] = useState({});
+  const [counts, setCounts] = useState({ categories: 0, series: 0, questions: 0, lockedQuestions: 0 });
+  const [typeBreakdown, setTypeBreakdown] = useState([]);
+  const [difficultyBreakdown, setDifficultyBreakdown] = useState([]);
+  const [recentQuestions, setRecentQuestions] = useState([]);
+  const [recentSeries, setRecentSeries] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
+      setLoading(true);
       try {
-        const [categories, seriesResult, questionsResult] = await Promise.all([
-          categoriesApi.list().catch(() => []),
-          seriesApi.list({ page: 1, limit: 1 }).catch(() => ({ meta: null })),
-          questionsApi.list({ page: 1, limit: 1 }).catch(() => ({ meta: null })),
-        ]);
+        const [categoriesList, seriesCount, questionsCount, lockedCount, typeCounts, difficultyCounts, recentQ, recentS] =
+          await Promise.all([
+            categoriesApi.list().catch(() => []),
+            countWith(seriesApi.list, {}),
+            countWith(questionsApi.list, {}),
+            countWith(questionsApi.list, { isLocked: true }),
+            Promise.all(QUESTION_TYPE_OPTIONS.map((o) => countWith(questionsApi.list, { type: o.value }))),
+            Promise.all(DIFFICULTY_OPTIONS.map((o) => countWith(questionsApi.list, { difficulty: o.value }))),
+            questionsApi.list({ page: 1, limit: 5 }).catch(() => ({ items: [] })),
+            seriesApi.list({ page: 1, limit: 5 }).catch(() => ({ items: [] })),
+          ]);
+
         if (cancelled) return;
-        setStats({
-          categories: categories.length,
-          series: seriesResult.meta?.pagination?.total_records ?? 0,
-          questions: questionsResult.meta?.pagination?.total_records ?? 0,
+
+        setCategories(categoriesList);
+        setCounts({
+          categories: categoriesList.length,
+          series: seriesCount,
+          questions: questionsCount,
+          lockedQuestions: lockedCount,
         });
+        setTypeBreakdown(
+          QUESTION_TYPE_OPTIONS.map((o, i) => ({ label: o.label, value: typeCounts[i], color: TYPE_COLORS[o.value] }))
+        );
+        setDifficultyBreakdown(
+          DIFFICULTY_OPTIONS.map((o, i) => ({ label: o.label, value: difficultyCounts[i], color: DIFFICULTY_COLORS[o.value] }))
+        );
+        setRecentQuestions(
+          [...(recentQ.items || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5)
+        );
+        setRecentSeries(
+          [...(recentS.items || [])].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 5)
+        );
+
+        // Bound the number of extra calls: only look up a per-category series
+        // count for the handful of categories we actually display in the table.
+        const shown = categoriesList.slice(0, 5);
+        const pairs = await Promise.all(
+          shown.map(async (c) => [c.id, await countWith(seriesApi.list, { categoryId: c.id })])
+        );
+        if (!cancelled) setCategorySeriesCounts(Object.fromEntries(pairs));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return (
-    <div className="max-w-5xl mx-auto">
-      <PageHeader title="Overview" subtitle="A quick snapshot of your testing platform." />
+  const totalQuestionsForDonut = typeBreakdown.reduce((sum, s) => sum + s.value, 0);
+  const firstName = user?.firstName || 'Admin';
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard icon={FolderTree} label="Categories" value={stats.categories} loading={loading} href="/admin-dashboard/categories" />
-        <StatCard icon={Library} label="Test series" value={stats.series} loading={loading} href="/admin-dashboard/series" />
-        <StatCard icon={HelpCircle} label="Questions" value={stats.questions} loading={loading} href="/admin-dashboard/questions" />
+  const recentActivity = useMemo(() => {
+    const qItems = recentQuestions.map((q) => ({
+      key: `q-${q.id}`,
+      icon: HelpCircle,
+      tone: 'bg-rose-50 text-rose-600',
+      title: q.shortText || 'New question added',
+      subtitle: `${q.questionType} · ${q.difficulty}`,
+      date: q.createdAt,
+      href: `/admin-dashboard/questions/${q.id}`,
+    }));
+    const sItems = recentSeries.map((s) => ({
+      key: `s-${s.id}`,
+      icon: Library,
+      tone: 'bg-emerald-50 text-emerald-600',
+      title: s.title,
+      subtitle: `${s.categoryName || 'Uncategorized'} · ${s.status}`,
+      date: s.updatedAt,
+      href: `/admin-dashboard/series/${s.id}`,
+    }));
+    return [...qItems, ...sItems].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 6);
+  }, [recentQuestions, recentSeries]);
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          {greeting()}, {firstName} 👋
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">Manage your exams, mock tests, sections and questions.</p>
       </div>
 
-      <h2 className="text-lg font-semibold text-slate-900 mb-4">Get started</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {SHORTCUTS.map((s) => (
-          <Link key={s.href} href={s.href}>
-            <Card className="h-full hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer">
-              <CardBody>
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
-                  <s.icon size={20} />
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard icon={FolderTree} label="Exam Categories" value={counts.categories} loading={loading} href="/admin-dashboard/categories" tone="indigo" />
+        <StatCard icon={Library} label="Test Series" value={counts.series} loading={loading} href="/admin-dashboard/series" tone="emerald" />
+        <StatCard icon={HelpCircle} label="Questions" value={counts.questions} loading={loading} href="/admin-dashboard/questions" tone="amber" />
+        <StatCard icon={Lock} label="Locked Questions" value={counts.lockedQuestions} loading={loading} href="/admin-dashboard/questions" tone="rose" />
+      </div>
+
+      {/* Quick create */}
+      <Card className="mb-6">
+        <CardBody>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-semibold text-slate-900">Quick Create</h2>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">Add new content to your platform</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {QUICK_CREATE.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="group flex flex-col items-start gap-3 rounded-xl border border-slate-200 p-4 hover:border-indigo-300 hover:shadow-sm transition-all"
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${item.tone}`}>
+                  <item.icon size={20} />
                 </div>
-                <h3 className="font-semibold text-slate-900 flex items-center gap-1.5">
-                  {s.title}
-                  <ArrowRight size={14} className="text-slate-400" />
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">{s.description}</p>
+                <span className="text-sm font-semibold text-slate-800 flex items-center gap-1">
+                  {item.label}
+                  <ArrowRight size={13} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Left: Exam categories + recent activity */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Exam Categories</h2>
+              <Link href="/admin-dashboard/categories" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                View all
+              </Link>
+            </CardHeader>
+            {loading ? (
+              <CardBody className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
               </CardBody>
-            </Card>
-          </Link>
-        ))}
+            ) : categories.length === 0 ? (
+              <CardBody className="text-center py-8 text-sm text-slate-500">
+                No categories yet. <Link href="/admin-dashboard/categories/new" className="text-indigo-600 font-medium">Create one</Link>.
+              </CardBody>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {categories.slice(0, 5).map((c) => (
+                  <Link
+                    key={c.id}
+                    href="/admin-dashboard/categories"
+                    className="flex items-center justify-between gap-4 px-6 py-3.5 hover:bg-slate-50/60 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{c.name}</p>
+                      {c.description && <p className="text-xs text-slate-500 truncate max-w-md">{c.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-xs text-slate-500 inline-flex items-center gap-1">
+                        <Library size={12} /> {categorySeriesCounts[c.id] ?? '—'} series
+                      </span>
+                      {(c.requiredLanguages || []).length > 0 && (
+                        <span className="text-xs text-slate-500 inline-flex items-center gap-1">
+                          <Languages size={12} /> {c.requiredLanguages.length}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold text-slate-900">Recent Activity</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Latest questions and test series updates.</p>
+            </CardHeader>
+            {loading ? (
+              <CardBody className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </CardBody>
+            ) : recentActivity.length === 0 ? (
+              <CardBody className="text-center py-8 text-sm text-slate-500">No activity yet.</CardBody>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {recentActivity.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50/60 transition-colors"
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${item.tone}`}>
+                      <item.icon size={16} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900 truncate">{item.title}</p>
+                      <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
+                    </div>
+                    <span className="text-xs text-slate-400 shrink-0">
+                      {item.date ? new Date(item.date).toLocaleDateString() : ''}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Right: donut + question types */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Difficulty Overview</h2>
+            </CardHeader>
+            <CardBody>
+              {loading ? (
+                <div className="flex justify-center py-6">
+                  <Skeleton className="h-40 w-40 rounded-full" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-center mb-5">
+                    <DonutChart segments={difficultyBreakdown} centerValue={totalQuestionsForDonut} centerLabel="Questions" />
+                  </div>
+                  <DonutLegend segments={difficultyBreakdown} />
+                </>
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold text-slate-900">Question Types</h2>
+            </CardHeader>
+            <CardBody className="grid grid-cols-2 gap-3">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+                : typeBreakdown.map((t) => {
+                    const pct = totalQuestionsForDonut > 0 ? Math.round((t.value / totalQuestionsForDonut) * 100) : 0;
+                    return (
+                      <div key={t.label} className="rounded-lg border border-slate-200 p-3">
+                        <p className="text-xs font-medium text-slate-500 truncate">{t.label}</p>
+                        <p className="mt-1 text-lg font-bold text-slate-900">{t.value}</p>
+                        <div className="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: t.color }} />
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-400">{pct}%</p>
+                      </div>
+                    );
+                  })}
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </div>
   );

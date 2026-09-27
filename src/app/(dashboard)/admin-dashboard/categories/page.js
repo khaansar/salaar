@@ -1,21 +1,20 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Pencil, FolderTree, Languages } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
-import { CategoryFormModal } from '@/features/categories/CategoryFormModal';
 import { categoriesApi } from '@/services/adminService';
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,16 +33,6 @@ export default function CategoriesPage() {
     load();
   }, [load]);
 
-  const openCreate = () => {
-    setEditingCategory(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (category) => {
-    setEditingCategory(category);
-    setModalOpen(true);
-  };
-
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
@@ -51,7 +40,7 @@ export default function CategoriesPage() {
         title="Categories"
         subtitle="Group test series by exam, subject, or program."
         actions={
-          <Button onClick={openCreate}>
+          <Button onClick={() => router.push('/admin-dashboard/categories/new')}>
             <Plus size={16} className="mr-2" />
             New category
           </Button>
@@ -69,7 +58,7 @@ export default function CategoriesPage() {
           emptyTitle="No categories yet"
           emptyDescription="Create your first category to start organizing test series."
           emptyActionLabel="New category"
-          onEmptyAction={openCreate}
+          onEmptyAction={() => router.push('/admin-dashboard/categories/new')}
           columns={[
             {
               key: 'name',
@@ -105,7 +94,7 @@ export default function CategoriesPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openEdit(row);
+                    router.push(`/admin-dashboard/categories/${row.id}/edit`);
                   }}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
                 >
@@ -116,13 +105,6 @@ export default function CategoriesPage() {
           ]}
         />
       </Card>
-
-      <CategoryFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        category={editingCategory}
-        onSaved={load}
-      />
     </div>
   );
 }

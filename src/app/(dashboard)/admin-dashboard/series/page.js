@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Pencil, Trash2, Library, Search } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -20,8 +20,9 @@ import { TEST_STATUS_OPTIONS, STATUS_BADGE_STYLES } from '@/constants/enums';
 
 const PAGE_SIZE = 10;
 
-export default function SeriesListPage() {
+function SeriesListPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
@@ -37,6 +38,17 @@ export default function SeriesListPage() {
   useEffect(() => {
     categoriesApi.list().then(setCategories).catch(() => {});
   }, []);
+
+  // Supports the dashboard's "Create Test Series" quick-create shortcut,
+  // which deep-links here with ?create=1 to open the form immediately.
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      setEditingSeries(null);
+      setModalOpen(true);
+      router.replace('/admin-dashboard/series');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const params = useMemo(
     () => ({ search: debouncedSearch, status, categoryId, page, limit: PAGE_SIZE }),
@@ -125,5 +137,13 @@ export default function SeriesListPage() {
       <SeriesFormModal open={modalOpen} onClose={() => setModalOpen(false)} series={editingSeries} categories={categories} onSaved={refetch} />
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={deleting} title="Delete test series?" description={`This will permanently delete "${deleteTarget?.title}" and cannot be undone.`} confirmLabel="Delete" />
     </div>
+  );
+}
+export default function SeriesListPage() {
+  // useSearchParams requires a Suspense boundary during static prerendering.
+  return (
+    <Suspense fallback={null}>
+      <SeriesListPageInner />
+    </Suspense>
   );
 }

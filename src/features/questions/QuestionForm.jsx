@@ -2,15 +2,15 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, Eye, AlertTriangle, Save } from 'lucide-react';
+import { Plus, X, AlertTriangle, Save, HelpCircle, ListChecks, Lightbulb, Tag } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
 import { Input } from '@/components/ui/Input';
 import { OptionsEditor, newOptionId } from './OptionsEditor';
 import { CorrectAnswerEditor } from './CorrectAnswerEditor';
-import { QuestionPreviewDrawer } from './QuestionPreviewDrawer';
+import { QuestionPreviewContent } from './QuestionPreviewDrawer';
+import { MathTextarea } from './MathTextarea';
 import { questionsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, COMMON_LANGUAGES } from '@/constants/enums';
@@ -92,7 +92,6 @@ export function QuestionForm({ question }) {
   const [activeLang, setActiveLang] = useState(form.translations[0]?.language || 'en');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   const activeTranslation = form.translations.find((t) => t.language === activeLang) || form.translations[0];
   const primaryTranslation = form.translations[0];
@@ -236,8 +235,27 @@ export function QuestionForm({ question }) {
     }
   };
 
+
+  const STEPS = [
+    { id: 'details', label: 'Question Details', hint: 'Content and basic settings', icon: HelpCircle },
+    ...(withOptions ? [{ id: 'options', label: 'Options', hint: 'Add answer options', icon: ListChecks }] : [{ id: 'answer', label: 'Correct Answer', hint: 'Define the correct answer', icon: ListChecks }]),
+    { id: 'explanation', label: 'Explanation', hint: 'Add solution and explanation', icon: Lightbulb },
+    { id: 'metadata', label: 'Difficulty & Marks', hint: 'Classify and grade this question', icon: Tag },
+  ];
+
+  const previewQuestion = {
+    questionType: form.questionType,
+    translations: form.translations.map((t) => ({
+      language: t.language,
+      questionText: t.questionText,
+      optionsJson: withOptions ? JSON.stringify(Object.fromEntries(t.options.map((o) => [o.id, o.text]))) : undefined,
+    })),
+    correctAnswerJson: form.correctAnswerJson,
+    explanation: form.explanation,
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto pb-24">
+    <form onSubmit={handleSubmit} className="pb-24">
       {question?.isLocked && (
         <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={18} className="shrink-0 mt-0.5" />
@@ -250,119 +268,125 @@ export function QuestionForm({ question }) {
         </div>
       )}
 
-      <Card className="mb-6">
-        <CardHeader>
-          <h2 className="font-semibold text-slate-900">Question details</h2>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Select label="Question type" value={form.questionType} onChange={(e) => setQuestionType(e.target.value)}>
-              {QUESTION_TYPE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-            <Select label="Difficulty" value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
-              {DIFFICULTY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Positive marks"
-              type="number"
-              step="0.5"
-              value={form.positiveMarks}
-              onChange={(e) => setForm((f) => ({ ...f, positiveMarks: e.target.value }))}
-              error={errors.positiveMarks}
-            />
-            <Input
-              label="Negative marks"
-              type="number"
-              step="0.5"
-              min="0"
-              value={form.negativeMarks}
-              onChange={(e) => setForm((f) => ({ ...f, negativeMarks: e.target.value }))}
-            />
-          </div>
-        </CardBody>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_360px] gap-6 items-start">
+        {/* Left: step anchors */}
+        <div className="hidden lg:block sticky top-6 space-y-1">
+          {STEPS.map((step, i) => (
+            <a
+              key={step.id}
+              href={`#step-${step.id}`}
+              className="flex items-start gap-3 rounded-lg px-2 py-2.5 hover:bg-slate-100 transition-colors group"
+            >
+              <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <span>
+                <span className="block text-sm font-semibold text-slate-800 group-hover:text-indigo-700">{step.label}</span>
+                <span className="block text-xs text-slate-500">{step.hint}</span>
+              </span>
+            </a>
+          ))}
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader className="flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">Content &amp; translations</h2>
-          <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
-            <Eye size={16} className="mr-2" />
-            Preview
-          </Button>
-        </CardHeader>
-        <CardBody>
-          <div className="flex flex-wrap items-center gap-2 mb-4 border-b border-slate-100 pb-4">
-            {form.translations.map((t) => (
-              <button
-                type="button"
-                key={t.language}
-                onClick={() => setActiveLang(t.language)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                  activeLang === t.language ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {t.language}
-                {form.translations.length > 1 && (
-                  <span
-                    role="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeLanguage(t.language);
-                    }}
-                    className={activeLang === t.language ? 'text-white/70 hover:text-white' : 'text-slate-400 hover:text-slate-600'}
+        {/* Middle: form content */}
+        <div className="space-y-6 min-w-0">
+          <Card id="step-details">
+            <CardHeader className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <HelpCircle size={18} />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-900">Question Details</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Enter the question content and basic information.</p>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Select label="Question type" value={form.questionType} onChange={(e) => setQuestionType(e.target.value)}>
+                {QUESTION_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                {form.translations.map((t) => (
+                  <button
+                    type="button"
+                    key={t.language}
+                    onClick={() => setActiveLang(t.language)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors mt-3 ${
+                      activeLang === t.language ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
                   >
-                    <X size={12} />
-                  </span>
-                )}
-              </button>
-            ))}
-            {availableLanguages.length > 0 && (
-              <div className="relative group">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
-                >
-                  <Plus size={12} /> Add language
-                </button>
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-                  {availableLanguages.map((l) => (
+                    {t.language}
+                    {form.translations.length > 1 && (
+                      <span
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLanguage(t.language);
+                        }}
+                        className={activeLang === t.language ? 'text-white/70 hover:text-white' : 'text-slate-400 hover:text-slate-600'}
+                      >
+                        <X size={12} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+                {availableLanguages.length > 0 && (
+                  <div className="relative group mt-3">
                     <button
                       type="button"
-                      key={l.value}
-                      onClick={() => addLanguage(l.value)}
-                      className="text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                      className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
                     >
-                      {l.label}
+                      <Plus size={12} /> Add language
                     </button>
-                  ))}
-                </div>
+                    <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                      {availableLanguages.map((l) => (
+                        <button
+                          type="button"
+                          key={l.value}
+                          onClick={() => addLanguage(l.value)}
+                          className="text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                        >
+                          {l.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {activeTranslation && (
-            <div className="space-y-4">
-              <Textarea
-                label="Question text"
-                placeholder="Use $...$ for inline math and $$...$$ for block math, e.g. $x^2 + y^2 = z^2$"
-                rows={4}
-                value={activeTranslation.questionText}
-                onChange={(e) => updateTranslation(activeTranslation.language, { questionText: e.target.value })}
-                error={errors[`text_${activeTranslation.language}`]}
-              />
-              {withOptions && (
+              {activeTranslation && (
+                <MathTextarea
+                  id={`qtext-${activeTranslation.language}`}
+                  label="Question Text"
+                  rows={4}
+                  placeholder="Use $...$ for inline math and $$...$$ for block math, e.g. $x^2 + y^2 = z^2$"
+                  value={activeTranslation.questionText}
+                  onChange={(text) => updateTranslation(activeTranslation.language, { questionText: text })}
+                  error={errors[`text_${activeTranslation.language}`]}
+                />
+              )}
+            </CardBody>
+          </Card>
+
+          <Card id={withOptions ? 'step-options' : 'step-answer'}>
+            <CardHeader className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <ListChecks size={18} />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-900">{withOptions ? 'Options' : 'Correct Answer'}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  {withOptions ? 'Add answer options and mark the correct one(s).' : 'Define the correct answer for this question.'}
+                </p>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              {withOptions && activeTranslation && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Options</label>
                   <OptionsEditor
                     value={activeTranslation.options}
                     onChange={(options) => updateTranslation(activeTranslation.language, { options })}
@@ -377,63 +401,101 @@ export function QuestionForm({ question }) {
                   )}
                 </div>
               )}
-            </div>
-          )}
-        </CardBody>
-      </Card>
+              <div className={withOptions ? 'pt-4 border-t border-slate-100' : ''}>
+                {withOptions && <p className="text-sm font-medium text-slate-700 mb-2">Correct answer</p>}
+                <CorrectAnswerEditor
+                  questionType={form.questionType}
+                  options={withOptions ? primaryTranslation.options : []}
+                  value={form.correctAnswerJson}
+                  onChange={handleCorrectAnswerChange}
+                />
+                {errors.correctAnswer && <p className="mt-2 text-xs text-red-500">{errors.correctAnswer}</p>}
+              </div>
+            </CardBody>
+          </Card>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <h2 className="font-semibold text-slate-900">Correct answer</h2>
-        </CardHeader>
-        <CardBody>
-          <CorrectAnswerEditor
-            questionType={form.questionType}
-            options={withOptions ? primaryTranslation.options : []}
-            value={form.correctAnswerJson}
-            onChange={handleCorrectAnswerChange}
-          />
-          {errors.correctAnswer && <p className="mt-2 text-xs text-red-500">{errors.correctAnswer}</p>}
-        </CardBody>
-      </Card>
+          <Card id="step-explanation">
+            <CardHeader className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Lightbulb size={18} />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-900">Explanation</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Shown to students after they submit the question.</p>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <MathTextarea
+                id="explanation"
+                rows={4}
+                placeholder="Explain the solution step by step. Supports $...$ math and images."
+                value={form.explanation}
+                onChange={(text) => setForm((f) => ({ ...f, explanation: text }))}
+              />
+            </CardBody>
+          </Card>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <h2 className="font-semibold text-slate-900">Explanation</h2>
-        </CardHeader>
-        <CardBody>
-          <Textarea
-            placeholder="Shown to students after they attempt the question. Supports $...$ math."
-            value={form.explanation}
-            onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))}
-          />
-        </CardBody>
-      </Card>
+          <Card id="step-metadata">
+            <CardHeader className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Tag size={18} />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-900">Difficulty &amp; Marks</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Classify and grade this question.</p>
+              </div>
+            </CardHeader>
+            <CardBody className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Select label="Difficulty" value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
+                {DIFFICULTY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label="Positive marks"
+                type="number"
+                step="0.5"
+                value={form.positiveMarks}
+                onChange={(e) => setForm((f) => ({ ...f, positiveMarks: e.target.value }))}
+                error={errors.positiveMarks}
+              />
+              <Input
+                label="Negative marks"
+                type="number"
+                step="0.5"
+                min="0"
+                value={form.negativeMarks}
+                onChange={(e) => setForm((f) => ({ ...f, negativeMarks: e.target.value }))}
+              />
+            </CardBody>
+          </Card>
 
-      <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-end gap-3 z-20">
-        <Button type="button" variant="outline" onClick={() => router.push('/admin-dashboard/questions')} disabled={saving}>
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={saving}>
-          <Save size={16} className="mr-2" />
-          {isEdit ? 'Save changes' : 'Create question'}
-        </Button>
+          <div className="flex items-center justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => router.push('/admin-dashboard/questions')} disabled={saving}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={saving}>
+              <Save size={16} className="mr-2" />
+              {isEdit ? 'Save changes' : 'Create question'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Right: live preview + quick settings, sticky on desktop */}
+        <div className="space-y-6 lg:sticky lg:top-6">
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold text-slate-900">Question Preview</h2>
+              <p className="text-sm text-slate-500 mt-0.5">This is how the question will appear to students.</p>
+            </CardHeader>
+            <CardBody>
+              <QuestionPreviewContent question={previewQuestion} />
+            </CardBody>
+          </Card>
+        </div>
       </div>
-
-      <QuestionPreviewDrawer
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        question={{
-          questionType: form.questionType,
-          translations: form.translations.map((t) => ({
-            language: t.language,
-            questionText: t.questionText,
-            optionsJson: withOptions ? JSON.stringify(Object.fromEntries(t.options.map((o) => [o.id, o.text]))) : undefined,
-          })),
-          correctAnswerJson: form.correctAnswerJson,
-          explanation: form.explanation,
-        }}
-      />
     </form>
   );
 }
