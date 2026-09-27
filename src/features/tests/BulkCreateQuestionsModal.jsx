@@ -67,7 +67,7 @@ function parsePastedRows(raw) {
         negativeMarks: 0,
         questionText: text,
         options,
-        correctAnswerJson: { correctOptionId: options[correctIndex].id },
+        correctAnswerJson: { key: options[correctIndex].id, correctOptionId: options[correctIndex].id },
         explanation: '',
       });
     });

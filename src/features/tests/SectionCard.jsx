@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronUp, ChevronDown, Plus, X, Pencil, Check, Shuffle, Clock } from 'lucide-react';
+import { ChevronUp, ChevronDown, Plus, X, Pencil, Check, Shuffle, Clock, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { AttachQuestionsDrawer } from './AttachQuestionsDrawer';
 import { BulkCreateQuestionsModal } from './BulkCreateQuestionsModal';
+import { SectionSettingsModal } from './SectionSettingsModal';
 import { MathText } from '@/components/common/MathText';
 import { sectionsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
@@ -83,6 +84,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
   const toast = useToast();
   const [attachOpen, setAttachOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [reordering, setReordering] = useState(false);
@@ -151,6 +153,10 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={() => setSettingsOpen(true)}>
+            <Settings size={14} className="mr-1.5" />
+            Settings
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
             <Pencil size={14} className="mr-1.5" />
             Create questions
@@ -197,6 +203,13 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         onClose={() => setCreateOpen(false)}
         sectionId={section.sectionId}
         onCreated={onChanged}
+      />
+
+      <SectionSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        section={section}
+        onSaved={onChanged}
       />
 
       <AttachQuestionsDrawer

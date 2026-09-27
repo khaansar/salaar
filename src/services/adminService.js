@@ -81,6 +81,7 @@ const ORDER_KEY = 'order';
 
 export const sectionsApi = {
   create: (testId, payload) => apiClient.post(`${BASE}/admin/mock-tests/${testId}/sections`, payload),
+  update: (sectionId, payload) => apiClient.put(`${BASE}/admin/sections/${sectionId}`, payload),
   reorderSections: (testId, orderedSectionIds) =>
     apiClient.put(`${BASE}/admin/mock-tests/${testId}/sections/reorder`, { [ORDER_KEY]: orderedSectionIds }),
   attachQuestions: (sectionId, payload) => apiClient.post(`${BASE}/admin/sections/${sectionId}/questions`, payload),

@@ -97,7 +97,13 @@ export default function TestBuilderPage({ params }) {
       setPublishConfirmOpen(false);
       await load();
     } catch (err) {
-      toast.error(err?.message || 'Failed to publish test');
+      if (err?.errors?.length > 0) {
+        const sample = err.errors.slice(0, 3).map(e => e.issue || e).join('\n• ');
+        const more = err.errors.length > 3 ? `\n...and ${err.errors.length - 3} more issues.` : '';
+        toast.error(`${err.message}\n\n• ${sample}${more}`);
+      } else {
+        toast.error(err?.message || 'Failed to publish test');
+      }
     } finally {
       setActionLoading(false);
     }

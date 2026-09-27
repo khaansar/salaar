@@ -7,10 +7,8 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { sectionsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 
-const emptyForm = { title: '', durationMinutes: 30, shuffleQuestions: false, enableNegativeMarks: false, defaultNegativeMarks: '0.5' };
-
-export function AddSectionModal({ open, onClose, testId, onCreated }) {
-  const [form, setForm] = useState(emptyForm);
+export function SectionSettingsModal({ open, onClose, section, onSaved }) {
+  const [form, setForm] = useState({ title: '', durationMinutes: '', shuffleQuestions: false });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const toast = useToast();
@@ -19,7 +17,13 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
-      setForm(emptyForm);
+      setForm({
+        title: section?.title || '',
+        durationMinutes: section?.durationMinutes || '',
+        shuffleQuestions: section?.shuffleQuestions || false,
+        enableNegativeMarks: section?.defaultNegativeMarks != null,
+        defaultNegativeMarks: section?.defaultNegativeMarks || '0.5',
+      });
       setErrors({});
     }
   }
@@ -40,37 +44,37 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
     if (!validate()) return;
     setSaving(true);
     try {
-      await sectionsApi.create(testId, {
+      await sectionsApi.update(section.sectionId, {
         title: form.title.trim(),
         durationMinutes: Number(form.durationMinutes),
         shuffleQuestions: form.shuffleQuestions,
         defaultNegativeMarks: form.enableNegativeMarks ? Number(form.defaultNegativeMarks) : null,
       });
-      toast.success('Section created');
-      onCreated?.();
+      toast.success('Section updated');
+      onSaved?.();
       onClose();
     } catch (err) {
-      toast.error(err?.message || 'Failed to create section');
+      toast.error(err?.message || 'Failed to update section');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="New section" footer={
+    <Modal open={open} onClose={onClose} title="Section settings" footer={
       <>
         <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button onClick={handleSubmit} isLoading={saving}>Create section</Button>
+        <Button onClick={handleSubmit} isLoading={saving}>Save changes</Button>
       </>
     }>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input id="section-title" label="Title" placeholder="e.g. Quantitative Aptitude" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
-        <Input id="section-duration" label="Duration (minutes)" type="number" min="1" value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))} error={errors.durationMinutes} />
-        <Checkbox id="section-shuffle" label="Shuffle questions for each student" checked={form.shuffleQuestions} onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))} />
+        <Input id={`settings-title-${section?.sectionId}`} label="Title" placeholder="e.g. Quantitative Aptitude" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
+        <Input id={`settings-duration-${section?.sectionId}`} label="Duration (minutes)" type="number" min="1" value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))} error={errors.durationMinutes} />
+        <Checkbox id={`settings-shuffle-${section?.sectionId}`} label="Shuffle questions for each student" checked={form.shuffleQuestions} onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))} />
         
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <Checkbox 
-            id="section-neg-enable" 
+            id={`settings-neg-enable-${section?.sectionId}`} 
             label="Enable default negative marking" 
             checked={form.enableNegativeMarks} 
             onChange={(e) => setForm((f) => ({ ...f, enableNegativeMarks: e.target.checked }))} 
@@ -78,7 +82,7 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
           {form.enableNegativeMarks && (
             <div className="pl-6">
               <Input 
-                id="section-neg-val" 
+                id={`settings-neg-val-${section?.sectionId}`} 
                 label="Negative mark value (deduction)" 
                 type="number" 
                 min="0" 
@@ -87,7 +91,7 @@ export function AddSectionModal({ open, onClose, testId, onCreated }) {
                 value={form.defaultNegativeMarks} 
                 onChange={(e) => setForm((f) => ({ ...f, defaultNegativeMarks: e.target.value.replace('-', '') }))} 
                 error={errors.defaultNegativeMarks} 
-                helpText="This will automatically be applied to all questions added to this section."
+                helpText="This will override the negative marks for all current and future questions in this section."
               />
             </div>
           )}
