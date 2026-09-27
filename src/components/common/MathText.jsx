@@ -20,14 +20,14 @@ function renderLatex(expr, displayMode) {
  */
 function segmentsFor(raw) {
   if (!raw) return [];
-  const pattern = /\$\$([^$]+)\$\$|\$([^$\n]+)\$/g;
+  const pattern = /(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$|(?<!\\)\$([^\n]*?)(?<!\\)\$/g;
   const segments = [];
   let lastIndex = 0;
   let match;
 
   while ((match = pattern.exec(raw)) !== null) {
     if (match.index > lastIndex) {
-      segments.push({ type: 'text', value: raw.slice(lastIndex, match.index) });
+      segments.push({ type: 'text', value: raw.slice(lastIndex, match.index).replace(/\\\$/g, '$') });
     }
     if (match[1] !== undefined) {
       segments.push({ type: 'block', value: match[1] });
@@ -37,7 +37,7 @@ function segmentsFor(raw) {
     lastIndex = pattern.lastIndex;
   }
   if (lastIndex < raw.length) {
-    segments.push({ type: 'text', value: raw.slice(lastIndex) });
+    segments.push({ type: 'text', value: raw.slice(lastIndex).replace(/\\\$/g, '$') });
   }
   return segments;
 }

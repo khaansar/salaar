@@ -50,7 +50,7 @@ export function ToastProvider({ children }) {
             className={`toast-enter pointer-events-auto flex items-start gap-3 rounded-lg border shadow-lg px-4 py-3 text-sm text-slate-800 ${STYLES[t.type]}`}
           >
             {ICONS[t.type]}
-            <span className="flex-1 font-medium">{t.message}</span>
+            <span className="flex-1 font-medium whitespace-pre-wrap">{t.message}</span>
             <button onClick={() => dismiss(t.id)} className="text-slate-400 hover:text-slate-600 shrink-0">
               <X size={14} />
             </button>
