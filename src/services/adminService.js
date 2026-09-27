@@ -114,6 +114,7 @@ export const questionsApi = {
   },
   get: (id) => apiClient.get(`${BASE}/admin/questions/${id}`),
   create: (payload) => apiClient.post(`${BASE}/admin/questions`, payload),
+  bulkCreate: (payload) => apiClient.post(`${BASE}/admin/questions/bulk`, payload),
   update: (id, payload) => apiClient.put(`${BASE}/admin/questions/${id}`, payload),
   remove: (id) => apiClient.delete(`${BASE}/admin/questions/${id}`),
 };
