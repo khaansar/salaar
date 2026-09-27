@@ -1,9 +1,5 @@
 import apiClient, { apiClientRaw } from '@/lib/apiClient';
 
-// All paths are relative to the gateway's `/api` prefix and mirror the
-// test-service OpenAPI spec, whose server url is `.../api/tests`. This
-// matches the existing convention in `src/services/testService.js`
-// (e.g. `/tests/public/series`).
 const BASE = '/tests-api';
 
 /**
@@ -51,13 +47,9 @@ export const mockTestsApi = {
   create: (seriesId, payload) => apiClient.post(`${BASE}/admin/mock-tests/series/${seriesId}/mock-tests`, payload),
   get: (id) => apiClient.get(`${BASE}/admin/mock-tests/${id}`),
   update: (id, payload) => apiClient.put(`${BASE}/admin/mock-tests/${id}`, payload),
-  // `getMockTestAnswerKey` returns the full TestBlueprintDto (sections with
-  // their questions, translations and correct answers). There is no plain
-  // "get sections/questions" endpoint in the spec, so this is the only
-  // documented way to read a test's full authoring structure.
+
   answerKey: (id) => apiClient.get(`${BASE}/admin/mock-tests/${id}/answer-key`),
-  // `If-Match` is a date-time (the test's current `updatedAt`), used for
-  // optimistic-concurrency control on publish.
+
   publish: (id, ifMatch) =>
     apiClient.post(`${BASE}/admin/mock-tests/${id}/publish`, null, {
       headers: { 'If-Match': ifMatch },
@@ -69,19 +61,10 @@ export const mockTestsApi = {
   clone: (id, title) => apiClient.post(`${BASE}/admin/mock-tests/${id}/clone`, title ? { title } : {}),
 };
 
-// ---------------------------------------------------------------------------
-// Sections (nested under a mock test)
-//
-// NOTE on reorder endpoints: the spec types both reorder request bodies as
-// a generic `Map<string, List<UUID>>` rather than a named DTO, so the exact
-// key name isn't documented. We send `{ order: [...uuids in new order] }`.
-// If your backend expects a different key, update `ORDER_KEY` below.
-// ---------------------------------------------------------------------------
 const ORDER_KEY = 'order';
 
 export const sectionsApi = {
   create: (testId, payload) => apiClient.post(`${BASE}/admin/mock-tests/${testId}/sections`, payload),
-
   update: (sectionId, payload) => apiClient.put(`${BASE}/admin/sections/${sectionId}`, payload),
   reorderSections: (testId, orderedSectionIds) =>
     apiClient.put(`${BASE}/admin/mock-tests/${testId}/sections/reorder`, { [ORDER_KEY]: orderedSectionIds }),
@@ -89,7 +72,8 @@ export const sectionsApi = {
   reorderQuestions: (sectionId, orderedQuestionIds) =>
     apiClient.put(`${BASE}/admin/sections/${sectionId}/questions/reorder`, { [ORDER_KEY]: orderedQuestionIds }),
   removeQuestion: (sectionId, questionId) => apiClient.delete(`${BASE}/admin/sections/${sectionId}/questions/${questionId}`),
-
+  // Body is a `Map<string, number>`; we reuse the field names from
+  // `QuestionMappingDto` (`positiveMarksOverride` / `negativeMarksOverride`).
   updateQuestionMarks: (sectionId, questionId, marks) =>
     apiClient.patch(`${BASE}/admin/sections/${sectionId}/questions/${questionId}`, marks),
 };
@@ -119,10 +103,6 @@ export const questionsApi = {
   remove: (id) => apiClient.delete(`${BASE}/admin/questions/${id}`),
 };
 
-// ---------------------------------------------------------------------------
-// Public catalog structure — used for "preview as student" (never exposes
-// correct answers, unlike the admin answer-key endpoint above).
-// ---------------------------------------------------------------------------
 export const catalogApi = {
   structure: (testId) => apiClient.get(`${BASE}/catalog/mock-tests/${testId}/structure`),
 };

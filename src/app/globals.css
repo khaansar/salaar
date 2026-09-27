@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+@custom-variant dark (&:where(.dark .theme-scope, .dark .theme-scope *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -13,11 +15,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.theme-scope.dark,
+.dark .theme-scope {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {

@@ -12,9 +12,9 @@ export function Button({
   
   const variants = {
     primary: "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
-    outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500",
-    ghost: "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500",
+    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
+    outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800",
+    ghost: "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800",
     danger: "bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500",
     dangerOutline: "border border-rose-200 text-rose-600 hover:bg-rose-50 focus:ring-rose-500"
   };

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SeriesFormModal } from '@/features/test-series/SeriesFormModal';
 import { categoriesApi, seriesApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 import { STATUS_BADGE_STYLES } from '@/constants/enums';
@@ -26,7 +25,6 @@ export default function SeriesDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -88,7 +86,7 @@ export default function SeriesDetailPage({ params }) {
         subtitle={series.categoryName}
         actions={
           <>
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" onClick={() => router.push(`/admin-dashboard/series/${id}/edit`)}>
               <Pencil size={16} className="mr-2" />
               Edit
             </Button>
@@ -168,14 +166,6 @@ export default function SeriesDetailPage({ params }) {
           </div>
         )}
       </Card>
-
-      <SeriesFormModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        series={series}
-        categories={categories}
-        onSaved={load}
-      />
 
       <ConfirmDialog
         open={deleteOpen}

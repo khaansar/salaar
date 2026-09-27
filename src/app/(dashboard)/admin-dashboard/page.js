@@ -74,7 +74,7 @@ const QUICK_CREATE = [
     tone: 'bg-indigo-50 text-indigo-600',
   },
   {
-    href: '/admin-dashboard/series?create=1',
+    href: '/admin-dashboard/series/new',
     icon: Library,
     label: 'Create Test Series',
     tone: 'bg-emerald-50 text-emerald-600',

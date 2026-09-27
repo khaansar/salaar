@@ -29,7 +29,6 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
   const [showPreview, setShowPreview] = useState(false);
 
   const insertImage = () => {
-    // eslint-disable-next-line no-alert
     const url = window.prompt('Image URL (there is no file upload yet — paste a hosted image link):');
     if (!url) return;
     insertAtCursor(ref.current, value, onChange, `![figure](${url})`, '', '');
