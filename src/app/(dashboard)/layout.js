@@ -258,7 +258,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="theme-scope flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Sidebar (desktop) */}
       <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:flex flex-col">
         <SidebarContent pathname={pathname} isAdminSection={isAdminSection} />
