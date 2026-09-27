@@ -81,10 +81,7 @@ const ORDER_KEY = 'order';
 
 export const sectionsApi = {
   create: (testId, payload) => apiClient.post(`${BASE}/admin/mock-tests/${testId}/sections`, payload),
-  // NOTE: `PUT /admin/sections/{sectionId}` is not present in the OpenAPI
-  // spec generated for this project — this method mirrors what the
-  // SectionSettingsModal edit flow sends, in anticipation of that endpoint
-  // being added on the backend. Verify the exact path/payload once it lands.
+
   update: (sectionId, payload) => apiClient.put(`${BASE}/admin/sections/${sectionId}`, payload),
   reorderSections: (testId, orderedSectionIds) =>
     apiClient.put(`${BASE}/admin/mock-tests/${testId}/sections/reorder`, { [ORDER_KEY]: orderedSectionIds }),
@@ -92,8 +89,7 @@ export const sectionsApi = {
   reorderQuestions: (sectionId, orderedQuestionIds) =>
     apiClient.put(`${BASE}/admin/sections/${sectionId}/questions/reorder`, { [ORDER_KEY]: orderedQuestionIds }),
   removeQuestion: (sectionId, questionId) => apiClient.delete(`${BASE}/admin/sections/${sectionId}/questions/${questionId}`),
-  // Body is a `Map<string, number>`; we reuse the field names from
-  // `QuestionMappingDto` (`positiveMarksOverride` / `negativeMarksOverride`).
+
   updateQuestionMarks: (sectionId, questionId, marks) =>
     apiClient.patch(`${BASE}/admin/sections/${sectionId}/questions/${questionId}`, marks),
 };

@@ -216,6 +216,12 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         sectionId={section.sectionId}
         onCreated={onChanged}
       />
+      <SectionSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        section={section}
+        onSaved={onChanged}
+      />
 
       <AttachQuestionsDrawer
         open={attachOpen}
