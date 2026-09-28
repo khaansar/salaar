@@ -77,7 +77,16 @@ const initialState = {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    setRoleFromCookie(state, action) {
+      if (!state.user) {
+        state.user = { role: action.payload };
+      } else {
+        state.user.role = action.payload;
+      }
+      state.isInitialized = true;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
@@ -120,12 +129,18 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isInitialized = true;
       })
-      .addCase(fetchCurrentUser.rejected, (state) => {
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.user = null;
+        // Only clear user if the API explicitly rejected with 401/403.
+        // Since /auth-api/users/me doesn't exist yet (returns 404), we shouldn't clear the user
+        // and ruin the optimistic cookie auth.
+        if (action.payload?.status === 401 || action.payload?.status === 403) {
+            state.user = null;
+        }
         state.isInitialized = true;
       });
   },
 });
 
+export const { setRoleFromCookie } = authSlice.actions;
 export default authSlice.reducer;

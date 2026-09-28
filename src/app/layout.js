@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
+import { cookies } from "next/headers";
 import "./globals.css";
 import StoreProvider from "../store/StoreProvider";
 import AuthProvider from "../components/auth/AuthProvider";
@@ -16,7 +17,10 @@ export const metadata = {
   description: "TestHub examination platform",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cookieStore = await cookies();
+  const userRole = cookieStore.get('user_role')?.value;
+
   return (
     <html
       lang="en"
@@ -24,9 +28,8 @@ export default function RootLayout({ children }) {
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <head>
-        <Script
+        <script
           id="theme-script"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
@@ -49,7 +52,7 @@ export default function RootLayout({ children }) {
 
       <body className="min-h-full flex flex-col">
         <StoreProvider>
-          <AuthProvider>
+          <AuthProvider initialRole={userRole}>
             <ToastProvider>
               {children}
             </ToastProvider>

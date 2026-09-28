@@ -10,6 +10,10 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { loginUser } from '../../store/slices/authSlice';
 
+import { useSearchParams } from 'next/navigation';
+
+// ... (in LoginForm component)
+
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +22,7 @@ export function LoginForm() {
   const dispatch = useAppDispatch();
   const { status, error: serverError } = useAppSelector((state) => state.auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const validate = () => {
     const newErrors = {};
@@ -42,7 +47,12 @@ export function LoginForm() {
       if (resultAction?.role === 'ADMIN') {
         router.push('/admin-dashboard');
       } else {
-        router.push('/');
+        const nextUrl = searchParams.get('next');
+        if (nextUrl && nextUrl.startsWith('/')) {
+          router.push(nextUrl);
+        } else {
+          router.push('/');
+        }
       }
       router.refresh();
     } catch (err) {
