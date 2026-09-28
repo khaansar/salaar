@@ -3,10 +3,11 @@ import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { setSaveState } from '../store/attemptSlice';
-import { attemptService } from '../../../services/attemptService';
+import { useSaveResponsesMutation } from '../store/attemptApi';
 
 export function useAutosave(attemptId) {
   const dispatch = useAppDispatch();
+  const [saveResponses] = useSaveResponsesMutation();
   const responses = useAppSelector(state => state.attempt.responses);
   const connection = useAppSelector(state => state.attempt.ui.connection);
   
@@ -39,7 +40,7 @@ export function useAutosave(attemptId) {
     // Debounce/batch save
     const timer = setTimeout(async () => {
       try {
-        await attemptService.saveResponses(attemptId, toSave);
+        await saveResponses({ attemptId, updates: toSave }).unwrap();
         
         // On success, clear queue and update state
         toSave.forEach(update => {

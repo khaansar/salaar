@@ -1,9 +1,9 @@
 'use client';
 import { useEffect } from 'react';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setAttemptData, setConnectionState } from '../store/attemptSlice';
+import { setAttemptData } from '../store/attemptSlice';
 import { MOCK_ATTEMPT_DATA } from '../mock/mockAttempt';
-import { attemptService } from '../../../services/attemptService';
+import { useGetAttemptStateQuery } from '../store/attemptApi';
 import ExamHeader from './ExamHeader';
 import SectionTabs from './SectionTabs';
 import QuestionPanel from './QuestionPanel';
@@ -18,18 +18,27 @@ export default function ExamShell({ attemptId }) {
   useAttemptStream(attemptId);
   useAutosave(attemptId);
 
+  // RTK Query handles deduplication, caching, and loading state automatically!
+  const { data, error, isLoading } = useGetAttemptStateQuery(attemptId);
+
   useEffect(() => {
-    async function loadAttempt() {
-      try {
-        const data = await attemptService.getAttemptState(attemptId);
-        dispatch(setAttemptData(data));
-      } catch (err) {
-        console.error('Failed to load attempt', err);
-        // Handle error (e.g. redirect to history)
-      }
+    if (data) {
+      dispatch(setAttemptData(data));
     }
-    loadAttempt();
-  }, [dispatch, attemptId]);
+  }, [data, dispatch]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-exam-bg text-exam-primary">
+        {/* You can replace this with a proper loading spinner component */}
+        Loading your exam...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="flex h-screen items-center justify-center bg-exam-bg text-exam-error">Failed to load exam. Please refresh.</div>;
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6]">
