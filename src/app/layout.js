@@ -1,26 +1,21 @@
-import { Plus_Jakarta_Sans } from "next/font/google";
-import Script from "next/script";
-import { cookies } from "next/headers";
-import "./globals.css";
-import StoreProvider from "../store/StoreProvider";
-import AuthProvider from "../components/auth/AuthProvider";
-import { ToastProvider } from "../components/common/ToastProvider";
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import './globals.css';
+import StoreProvider from '../store/StoreProvider';
+import AuthProvider from '../components/auth/AuthProvider';
+import { ToastProvider } from '../components/common/ToastProvider';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
 });
 
 export const metadata = {
-  title: "TestHub",
-  description: "TestHub examination platform",
+  title: 'TestHub',
+  description: 'TestHub examination platform',
 };
 
-export default async function RootLayout({ children }) {
-  const cookieStore = await cookies();
-  const userRole = cookieStore.get('user_role')?.value;
-
+export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
@@ -51,7 +46,7 @@ export default async function RootLayout({ children }) {
       </head>
 
       <body className="min-h-full flex flex-col">
-        <StoreProvider initialRole={userRole}>
+        <StoreProvider>
           <AuthProvider>
             <ToastProvider>
               {children}

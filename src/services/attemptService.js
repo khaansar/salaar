@@ -1,106 +1,225 @@
 import apiClient from '../lib/apiClient';
 
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_ATTEMPT_MOCKS === 'true';
+const USE_MOCKS =
+  process.env.NEXT_PUBLIC_USE_ATTEMPT_MOCKS === 'true';
 
 export const attemptService = {
   async getAttemptState(attemptId) {
     if (USE_MOCKS) {
-      return require('../features/attempt/mock/mockAttempt').MOCK_ATTEMPT_DATA;
-    }
-    // 1. Fetch Attempt State from attempt-service
-    const attemptRes = await apiClient.get(`/attempts-api/${attemptId}`);
-    
-    // 2. Fetch Test Structure from test-service
-    const testId = attemptRes.testId;
-    const structureRes = await apiClient.get(`/catalog/mock-tests/${testId}/structure`);
-    const structure = structureRes.data?.data || structureRes.data || structureRes;
+      const {
+        MOCK_ATTEMPT_DATA,
+      } = await import(
+        '../features/attempt/mock/mockAttempt'
+      );
 
-    // 3. Transform into the shape expected by attemptSlice
+      return MOCK_ATTEMPT_DATA;
+    }
+
+    const attemptRes = await apiClient.get(
+      `/attempts-api/${attemptId}`
+    );
+
+    if (!attemptRes) {
+      throw new Error(
+        'Attempt response was empty'
+      );
+    }
+
+    const testId = attemptRes.testId;
+
+    if (!testId) {
+      throw new Error(
+        'Attempt response is missing testId'
+      );
+    }
+
+    const structureRes = await apiClient.get(
+      `/catalog/mock-tests/${testId}/structure`
+    );
+
+    if (!structureRes) {
+      throw new Error(
+        'Test structure response was empty'
+      );
+    }
+
     const sections = [];
     const questions = {};
     const responses = {};
 
-    structure.sections?.forEach(sec => {
-      const qIds = [];
-      sec.questions?.forEach(q => {
-        const id = q.questionId;
-        qIds.push(id);
-        
-        let options = [];
-        if (q.optionsJson && typeof q.optionsJson === 'object') {
-           // Handle map of options to array if needed
-           options = Object.entries(q.optionsJson).map(([key, val]) => ({
-             id: key,
-             text: val
-           }));
+    structureRes.sections?.forEach((section) => {
+      const questionIds = [];
+
+      section.questions?.forEach((question) => {
+        const questionId = question.questionId;
+
+        if (!questionId) {
+          return;
         }
 
-        questions[id] = {
-          id: id,
-          type: q.questionType,
-          text: q.questionText,
-          options: options,
-          marks: q.positiveMarks,
-          negativeMarks: q.negativeMarks,
+        questionIds.push(questionId);
+
+        let options = [];
+
+        if (
+          question.optionsJson &&
+          typeof question.optionsJson === 'object'
+        ) {
+          options = Object.entries(
+            question.optionsJson
+          ).map(([key, value]) => ({
+            id: key,
+            text: value,
+          }));
+        }
+
+        questions[questionId] = {
+          id: questionId,
+          type: question.questionType,
+          text: question.questionText,
+          options,
+          marks: question.positiveMarks,
+          negativeMarks: question.negativeMarks,
         };
       });
+
       sections.push({
-        id: sec.sectionId,
-        name: sec.title,
-        questionIds: qIds
+        id: section.sectionId,
+        name: section.title,
+        questionIds,
       });
     });
 
-    // Populate responses from backend answers map
-    if (attemptRes.answers) {
-      Object.entries(attemptRes.answers).forEach(([qId, ans]) => {
-        const type = questions[qId]?.type;
-        const resObj = { visited: true, marked: false, saveState: 'synced' };
-        if (type === 'NAT') {
-          resObj.numeric = ans;
-        } else if (type === 'MSQ') {
-          resObj.selected = ans.split(','); // Assuming comma-separated
-        } else {
-          resObj.selected = [ans];
+    /*
+     * Restore persisted answers.
+     */
+    if (
+      attemptRes.answers &&
+      typeof attemptRes.answers === 'object'
+    ) {
+      Object.entries(attemptRes.answers).forEach(
+        ([questionId, answer]) => {
+          const type =
+            questions[questionId]?.type;
+
+          const response = {
+            visited: true,
+            marked: false,
+            saveState: 'synced',
+          };
+
+          if (type === 'NAT') {
+            response.numeric = answer;
+          } else if (type === 'MSQ') {
+            response.selected =
+              typeof answer === 'string'
+                ? answer
+                    .split(',')
+                    .map((value) => value.trim())
+                    .filter(Boolean)
+                : Array.isArray(answer)
+                  ? answer
+                  : [];
+          } else {
+            response.selected =
+              answer == null
+                ? []
+                : [answer];
+          }
+
+          responses[questionId] = response;
         }
-        responses[qId] = resObj;
-      });
+      );
     }
+
+    /*
+     * IMPORTANT:
+     *
+     * Prefer a backend-provided remainingSeconds if it
+     * exists. Do NOT overwrite it with the full duration.
+     *
+     * Until Baahubali exposes a server-authoritative
+     * remainingSeconds/expiresAt value, the duration fallback
+     * remains only a temporary compatibility fallback.
+     */
+    const remainingSeconds =
+      Number.isFinite(
+        Number(attemptRes.remainingSeconds)
+      )
+        ? Number(attemptRes.remainingSeconds)
+        : structureRes.durationMinutes * 60;
 
     return {
       attempt: {
-        id: attemptRes.attemptId,
-        testId: attemptRes.testId,
-        title: structure.title,
+        id:
+          attemptRes.attemptId ||
+          attemptId,
+
+        testId,
+
+        title: structureRes.title,
+
         type: 'Mock Test',
+
         status: attemptRes.status,
-        remainingSeconds: structure.durationMinutes * 60, // Fallback until SSE connects
+
+        remainingSeconds,
       },
+
       sections,
       questions,
-      responses
+      responses,
     };
   },
 
-  async saveResponses(attemptId, updates) {
+  async saveResponses(
+    attemptId,
+    updates
+  ) {
     if (USE_MOCKS) {
-      return { success: true };
+      return {
+        success: true,
+      };
     }
-    return await apiClient.patch(`/attempts-api/${attemptId}`, { updates });
+
+    return apiClient.patch(
+      `/attempts-api/${attemptId}`,
+      {
+        updates,
+      }
+    );
   },
 
   async submitAttempt(attemptId) {
     if (USE_MOCKS) {
-      return { success: true };
+      return {
+        success: true,
+      };
     }
-    return await apiClient.post(`/attempts-api/${attemptId}/submit`);
+
+    return apiClient.post(
+      `/attempts-api/${attemptId}/submit`
+    );
   },
 
-  async startAttempt(testId, durationMinutes) {
-    return await apiClient.post(`/attempts-api/`, { testId, durationMinutes });
+  async startAttempt(
+    testId,
+    durationMinutes
+  ) {
+    return apiClient.post(
+      '/attempts-api/',
+      {
+        testId,
+        durationMinutes,
+      }
+    );
   },
-  
+
   getStreamUrl(attemptId) {
-    return `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/attempts-api/${attemptId}/stream`;
-  }
+    const base =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      'http://localhost:8080';
+
+    return `${base}/attempts-api/${attemptId}/stream`;
+  },
 };
