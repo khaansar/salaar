@@ -68,12 +68,12 @@ export function SeriesForm({ series, categories = [] }) {
       <div className="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Library size={18} />
             </div>
             <div>
-              <h2 className="font-semibold text-slate-900">Basic Information</h2>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <h2 className="font-semibold text-slate-900 dark:text-white">Basic Information</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                 A test series is a collection of mock tests (e.g. a full course or exam pack).
               </p>
             </div>
@@ -136,16 +136,16 @@ export function SeriesForm({ series, categories = [] }) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-slate-900">Preview</h2>
+            <h2 className="font-semibold text-slate-900 dark:text-white">Preview</h2>
           </CardHeader>
           <CardBody>
-            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
-              <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-emerald-600 mb-3">
+            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-5">
+              <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
                 <Library size={22} />
               </div>
-              <h3 className="font-semibold text-slate-900">{form.title || 'Series title'}</h3>
-              <p className="text-sm text-slate-600 mt-1">{selectedCategory?.name || 'No category selected'}</p>
-              <p className="text-sm font-medium text-slate-800 mt-3">
+              <h3 className="font-semibold text-slate-900 dark:text-white">{form.title || 'Series title'}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{selectedCategory?.name || 'No category selected'}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-3">
                 {form.basePrice ? `₹${Number(form.basePrice).toFixed(2)}` : 'Free'}
               </p>
             </div>
@@ -153,7 +153,7 @@ export function SeriesForm({ series, categories = [] }) {
         </Card>
 
         <Card>
-          <CardBody className="text-sm text-slate-600">
+          <CardBody className="text-sm text-slate-600 dark:text-slate-400">
             {isEdit
               ? 'Changing the category moves this series (and its mock tests) into the new category immediately.'
               : 'You can add mock tests to this series as soon as it is saved.'}
