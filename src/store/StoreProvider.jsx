@@ -1,12 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState } from 'react';
 import { Provider } from 'react-redux';
 import { makeStore } from './store';
 
 export default function StoreProvider({ children, initialRole }) {
-  const storeRef = useRef(null);
-  if (!storeRef.current) {
+  const [store] = useState(() => {
     const preloadedState = initialRole ? {
       auth: {
         user: { role: initialRole },
@@ -15,7 +14,8 @@ export default function StoreProvider({ children, initialRole }) {
         error: null,
       }
     } : undefined;
-    storeRef.current = makeStore(preloadedState);
-  }
-  return <Provider store={storeRef.current}>{children}</Provider>;
+    return makeStore(preloadedState);
+  });
+
+  return <Provider store={store}>{children}</Provider>;
 }

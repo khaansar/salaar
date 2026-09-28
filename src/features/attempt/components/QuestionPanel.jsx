@@ -9,6 +9,8 @@ export default function QuestionPanel() {
   const currentQuestionId = useAppSelector(state => state.attempt.ui.currentQuestionId);
   const question = useAppSelector(state => state.attempt.questions[currentQuestionId]);
   
+  const sections = useAppSelector(state => state.attempt.sections);
+  
   if (!question) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center text-exam-text-muted">
@@ -18,7 +20,6 @@ export default function QuestionPanel() {
   }
 
   // Determine question index just for display
-  const sections = useAppSelector(state => state.attempt.sections);
   let globalIndex = 0;
   for (const s of sections) {
     const idx = s.questionIds?.indexOf(currentQuestionId);

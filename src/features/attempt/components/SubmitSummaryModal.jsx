@@ -17,7 +17,7 @@ export default function SubmitSummaryModal({ attemptId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Derive overall counts
-  const selectPaletteCounts = useMemo(makeSelectPaletteCounts, []);
+  const selectPaletteCounts = useMemo(() => makeSelectPaletteCounts(), []);
   const overallCounts = useAppSelector(state => selectPaletteCounts(state));
 
   if (!isOpen) return null;
