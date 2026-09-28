@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function proxy(request) {
+export async function middleware(request) {
   const { pathname, searchParams } = request.nextUrl;
   
   const token = request.cookies.get('ACCESS_TOKEN')?.value;
@@ -33,8 +33,8 @@ export async function proxy(request) {
     return NextResponse.next();
   }
 
-  // 3. Student-only routes
-  const studentRoutes = ['/attempts', '/attempt', '/bookmarks', '/performance', '/study-plan'];
+  // 3. Student-only routes (including viewing categories and tests)
+  const studentRoutes = ['/attempts', '/attempt', '/bookmarks', '/performance', '/study-plan', '/categories', '/test-series', '/tests'];
   const isStudentRoute = studentRoutes.some(route => pathname.startsWith(route));
   
   if (isStudentRoute) {

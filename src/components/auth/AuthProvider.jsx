@@ -5,17 +5,9 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchCurrentUser, setRoleFromCookie } from '../../store/slices/authSlice';
 
-export default function AuthProvider({ children, initialRole }) {
+export default function AuthProvider({ children }) {
   const dispatch = useAppDispatch();
   const { isInitialized } = useAppSelector((state) => state.auth);
-  const isFirstRender = useRef(true);
-
-  if (isFirstRender.current) {
-    if (initialRole && !isInitialized) {
-      dispatch(setRoleFromCookie(initialRole));
-    }
-    isFirstRender.current = false;
-  }
 
   useEffect(() => {
     if (!isInitialized) {

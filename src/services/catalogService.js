@@ -7,7 +7,7 @@ import {
 } from '../features/home/mock/homeMocks';
 
 // Set this to false when connecting to real endpoints
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== 'false';
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_CATALOG_MOCKS !== 'false';
 
 // Helper to simulate network delay for mocks
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -18,9 +18,14 @@ export const catalogService = {
       await delay(500);
       return CATEGORIES_MOCK;
     }
-    // TODO: implement real endpoint
-    const response = await apiClient.get('/catalog/categories');
-    return response.data || [];
+    try {
+      console.log('Fetching categories...');
+      const response = await apiClient.get('/tests-api/public/categories');
+      return response;
+    } catch (error) {
+      console.error('getCategories error:', error);
+      return [];
+    }
   },
 
   async getPopularSeries() {
@@ -28,9 +33,14 @@ export const catalogService = {
       await delay(600);
       return POPULAR_SERIES_MOCK;
     }
-    // TODO: implement real endpoint
-    const response = await apiClient.get('/catalog/series/popular');
-    return response.data || [];
+    try {
+      console.log('Fetching popular series...');
+      const response = await apiClient.get('/tests-api/public/series/popular');
+      return response;
+    } catch (error) {
+      console.error('getPopularSeries error:', error);
+      return [];
+    }
   },
 
   async getFeaturedTests() {
@@ -38,9 +48,14 @@ export const catalogService = {
       await delay(700);
       return FEATURED_TESTS_MOCK;
     }
-    // TODO: implement real endpoint
-    const response = await apiClient.get('/catalog/tests/featured');
-    return response.data || [];
+    try {
+      console.log('Fetching featured tests...');
+      const response = await apiClient.get('/tests-api/public/mock-tests/featured');
+      return response;
+    } catch (error) {
+      console.error('getFeaturedTests error:', error);
+      return [];
+    }
   },
 
   async getContinueAttempt() {
@@ -50,7 +65,7 @@ export const catalogService = {
     }
     // TODO: implement real endpoint via attempt-service
     const response = await apiClient.get('/attempts-api/attempts/in-progress');
-    return response.data || null;
+    return response;
   },
 
   async getStreak() {
@@ -59,7 +74,7 @@ export const catalogService = {
       return require('../features/home/mock/homeMocks').STREAK_MOCK;
     }
     // TODO: implement real endpoint via attempt-service
-    const response = await apiClient.get('/attempts-api/streak');
-    return response.data || null;
+    const response = await apiClient.get('/attempts-api/streak/yearly');
+    return response;
   }
 };

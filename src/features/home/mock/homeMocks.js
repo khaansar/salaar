@@ -50,8 +50,8 @@ export const POPULAR_SERIES_MOCK = [
 
 export const FEATURED_TESTS_MOCK = [
   {
-    id: 't1',
-    title: 'Algorithms - Mock 1',
+    id: 'dfc9d8e2-33a2-4f66-b0c7-5c71278616a8',
+    title: 'My Custom Admin Test',
     categoryName: 'Engineering',
     durationMinutes: 180,
     totalMarks: 100,

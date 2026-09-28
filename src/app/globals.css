@@ -18,6 +18,16 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
+  
+  /* Exam Engine Tokens */
+  --color-exam-accent: #1e3a8a; /* Deep blue */
+  --color-exam-accent-light: #eff6ff;
+  --color-exam-accent-border: #bfdbfe;
+  --color-exam-bg: #f8fafc;
+  --color-exam-panel: #ffffff;
+  --color-exam-border: #e2e8f0;
+  --color-exam-text: #334155;
+  --color-exam-text-muted: #64748b;
 }
 
 /*

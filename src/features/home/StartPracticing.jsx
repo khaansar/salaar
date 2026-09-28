@@ -1,18 +1,24 @@
 'use client';
-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Bookmark, Clock, Award, Rocket } from 'lucide-react';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { attemptService } from '../../services/attemptService';
 
 export default function StartPracticing({ tests = [] }) {
   const router = useRouter();
   const requireAuth = useRequireAuth();
 
-  const handleStartTest = requireAuth((testId) => {
-    // Step 5: Will wire to attempt-service start
-    // For now, mock navigate to attempt screen
-    router.push(`/attempt/${testId}`);
+  const handleStartTest = requireAuth(async (testId, durationMinutes) => {
+    try {
+      // Start the attempt on the backend
+      const attempt = await attemptService.startAttempt(testId, durationMinutes || 180);
+      // Navigate to the new attempt ID returned by the server
+      router.push(`/attempt/${attempt.attemptId}`);
+    } catch (err) {
+      console.error('Failed to start test', err);
+      alert('Failed to start test. Please check the console for details.');
+    }
   });
 
   const handleBookmark = requireAuth((testId) => {
@@ -67,7 +73,7 @@ export default function StartPracticing({ tests = [] }) {
             </div>
 
             <button
-              onClick={() => handleStartTest(test.id)}
+              onClick={() => handleStartTest(test.id, test.durationMinutes)}
               className="mt-auto w-full flex items-center justify-center py-2.5 bg-[#5e43f3] hover:bg-[#4d36c6] text-white font-medium rounded-xl transition-colors text-sm"
             >
               Start Test <ArrowRight className="ml-1.5 w-4 h-4" />
