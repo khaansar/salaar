@@ -25,11 +25,11 @@ export function DataTable({
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100 bg-slate-50/60">
+          <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 ${col.headerClassName || ''}`}
+                className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 ${col.headerClassName || ''}`}
               >
                 {col.header}
               </th>
@@ -37,15 +37,15 @@ export function DataTable({
           </tr>
         </thead>
         {!loading && !error && rows.length > 0 && (
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((row) => (
               <tr
                 key={row[rowKey]}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-indigo-50/40' : 'hover:bg-slate-50/60'}`}
+                className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-indigo-50/40 dark:hover:bg-indigo-500/10' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40'}`}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-6 py-4 align-middle text-slate-700 ${col.className || ''}`}>
+                  <td key={col.key} className={`px-6 py-4 align-middle text-slate-700 dark:text-slate-300 ${col.className || ''}`}>
                     {col.render ? col.render(row) : row[col.key]}
                   </td>
                 ))}

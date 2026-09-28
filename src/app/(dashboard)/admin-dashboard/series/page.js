@@ -11,7 +11,6 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SeriesFormModal } from '@/features/test-series/SeriesFormModal';
 import { categoriesApi, seriesApi } from '@/services/adminService';
 import { usePaginatedFetch } from '@/hooks/usePaginatedFetch';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -28,8 +27,6 @@ export default function SeriesListPage() {
   const [status, setStatus] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingSeries, setEditingSeries] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const debouncedSearch = useDebounce(search);
@@ -44,16 +41,6 @@ export default function SeriesListPage() {
   );
 
   const { items, meta, loading, error, refetch } = usePaginatedFetch(seriesApi.list, params);
-
-  const openCreate = () => {
-    setEditingSeries(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (series) => {
-    setEditingSeries(series);
-    setModalOpen(true);
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -72,7 +59,7 @@ export default function SeriesListPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <PageHeader breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Test Series' }]} title="Test Series" subtitle="Manage the series that group your mock tests together." actions={<Button onClick={openCreate}><Plus size={16} className="mr-2" />New series</Button>} />
+      <PageHeader breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Test Series' }]} title="Test Series" subtitle="Manage the series that group your mock tests together." actions={<Button onClick={() => router.push('/admin-dashboard/series/new')}><Plus size={16} className="mr-2" />New series</Button>} />
       <Card>
         <div className="flex flex-wrap items-center gap-3 p-4 border-b border-slate-100">
           <div className="flex-1 min-w-[220px]">
@@ -100,7 +87,7 @@ export default function SeriesListPage() {
           emptyTitle="No test series found"
           emptyDescription="Try adjusting your filters, or create a new series."
           emptyActionLabel="New series"
-          onEmptyAction={openCreate}
+          onEmptyAction={() => router.push('/admin-dashboard/series/new')}
           columns={[
             { key: 'title', header: 'Series', render: (row) => (<div><p className="font-medium text-slate-900">{row.title}</p><p className="text-xs text-slate-500 mt-0.5">{row.categoryName}</p></div>) },
             { key: 'status', header: 'Status', render: (row) => (<Badge className={STATUS_BADGE_STYLES[row.status]}>{row.status}</Badge>) },
@@ -113,7 +100,7 @@ export default function SeriesListPage() {
               className: 'text-right',
               render: (row) => (
                 <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => openEdit(row)} className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"><Pencil size={14} /> Edit</button>
+                  <button onClick={() => router.push(`/admin-dashboard/series/${row.id}/edit`)} className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"><Pencil size={14} /> Edit</button>
                   <button onClick={() => setDeleteTarget(row)} className="inline-flex items-center gap-1 text-sm font-medium text-rose-500 hover:text-rose-700"><Trash2 size={14} /></button>
                 </div>
               ),
@@ -122,7 +109,6 @@ export default function SeriesListPage() {
         />
         {!loading && !error && items.length > 0 && <Pagination meta={meta} onPageChange={setPage} />}
       </Card>
-      <SeriesFormModal open={modalOpen} onClose={() => setModalOpen(false)} series={editingSeries} categories={categories} onSaved={refetch} />
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={deleting} title="Delete test series?" description={`This will permanently delete "${deleteTarget?.title}" and cannot be undone.`} confirmLabel="Delete" />
     </div>
   );

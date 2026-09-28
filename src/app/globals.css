@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+/*
+ * Tailwind v4 class-based dark mode.
+ *
+ * The <html> element receives the "dark" class from useTheme.js.
+ * Therefore every dark:* utility below the html element is activated.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -9,19 +17,248 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plus-jakarta);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * Application theme tokens.
+ */
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+}
+
+/*
+ * ------------------------------------------------------------
+ * DARK MODE COMPATIBILITY LAYER
+ * ------------------------------------------------------------
+ *
+ * A number of the admin-dashboard pages introduced in PR #6
+ * use light-only Tailwind utilities such as:
+ *
+ *   bg-white
+ *   bg-slate-50
+ *   text-slate-900
+ *   text-slate-700
+ *   border-slate-200
+ *
+ * These overrides prevent those older/light-only utilities from
+ * becoming almost invisible when dark mode is enabled.
+ *
+ * Components that explicitly use dark:* utilities will still
+ * take precedence according to Tailwind's generated CSS.
+ */
+
+/* Page / surface backgrounds */
+
+.dark .bg-white {
+  background-color: #0f172a;
+}
+
+.dark .bg-gray-50 {
+  background-color: #0f172a;
+}
+
+.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+
+.dark .bg-slate-200 {
+  background-color: #334155;
+}
+
+/* Slightly transparent surfaces */
+
+.dark .bg-slate-50\/60 {
+  background-color: rgb(30 41 59 / 0.6);
+}
+
+.dark .bg-slate-50\/90 {
+  background-color: rgb(15 23 42 / 0.9);
+}
+
+.dark .bg-white\/70 {
+  background-color: rgb(15 23 42 / 0.7);
+}
+
+/* Text */
+
+.dark .text-gray-900,
+.dark .text-slate-900 {
+  color: #f8fafc;
+}
+
+.dark .text-gray-800,
+.dark .text-slate-800 {
+  color: #f1f5f9;
+}
+
+.dark .text-gray-700,
+.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+
+.dark .text-gray-600,
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+.dark .text-gray-500,
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+
+.dark .text-gray-400,
+.dark .text-slate-400 {
+  color: #64748b;
+}
+
+/*
+ * Accent colors.
+ *
+ * Keep these readable against dark surfaces.
+ */
+
+.dark .text-indigo-600 {
+  color: #818cf8;
+}
+
+.dark .text-indigo-700 {
+  color: #a5b4fc;
+}
+
+.dark .text-indigo-800 {
+  color: #c7d2fe;
+}
+
+.dark .text-emerald-600 {
+  color: #34d399;
+}
+
+.dark .text-emerald-700 {
+  color: #6ee7b7;
+}
+
+.dark .text-amber-600 {
+  color: #fbbf24;
+}
+
+.dark .text-amber-700 {
+  color: #fcd34d;
+}
+
+.dark .text-rose-500 {
+  color: #fb7185;
+}
+
+.dark .text-rose-600 {
+  color: #fb7185;
+}
+
+.dark .text-rose-700 {
+  color: #fda4af;
+}
+
+/* Borders */
+
+.dark .border-gray-100,
+.dark .border-slate-100 {
+  border-color: #1e293b;
+}
+
+.dark .border-gray-200,
+.dark .border-slate-200 {
+  border-color: #334155;
+}
+
+.dark .border-gray-300,
+.dark .border-slate-300 {
+  border-color: #475569;
+}
+
+/* Dividers */
+
+.dark .divide-slate-100 > :not(:last-child) {
+  border-color: #1e293b;
+}
+
+.dark .divide-slate-200 > :not(:last-child) {
+  border-color: #334155;
+}
+
+/*
+ * Light accent surfaces.
+ */
+
+.dark .bg-indigo-50 {
+  background-color: rgb(99 102 241 / 0.15);
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgb(16 185 129 / 0.15);
+}
+
+.dark .bg-amber-50 {
+  background-color: rgb(245 158 11 / 0.15);
+}
+
+.dark .bg-rose-50 {
+  background-color: rgb(244 63 94 / 0.15);
+}
+
+/* Accent borders */
+
+.dark .border-indigo-200 {
+  border-color: rgb(99 102 241 / 0.35);
+}
+
+.dark .border-indigo-300 {
+  border-color: rgb(99 102 241 / 0.5);
+}
+
+.dark .border-emerald-200 {
+  border-color: rgb(16 185 129 / 0.35);
+}
+
+.dark .border-amber-200 {
+  border-color: rgb(245 158 11 / 0.35);
+}
+
+.dark .border-rose-200 {
+  border-color: rgb(244 63 94 / 0.35);
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  color-scheme: dark;
+}
+
+
+.dark option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.dark {
+  scrollbar-color: #475569 #0f172a;
+}
+
+.dark .katex {
+  color: #f8fafc;
 }

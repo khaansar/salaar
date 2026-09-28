@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Plus, Trash2, GripVertical, Sigma } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
@@ -16,6 +16,7 @@ export function newOptionId() {
  * @param {(next: {id:string,text:string}[]) => void} onChange
  */
 export function OptionsEditor({ value = [], onChange, disabled }) {
+  const inputRefs = useRef({});
   const update = (id, text) => onChange(value.map((o) => (o.id === id ? { ...o, text } : o)));
   const remove = (id) => onChange(value.filter((o) => o.id !== id));
   const add = () => onChange([...value, { id: newOptionId(), text: '' }]);
@@ -25,6 +26,22 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
     onChange(next);
+  };
+
+  const insertMath = (opt) => {
+    const el = inputRefs.current[opt.id];
+    const text = opt.text || '';
+    const start = el?.selectionStart ?? text.length;
+    const end = el?.selectionEnd ?? text.length;
+    const selected = text.slice(start, end) || 'x^2';
+    const next = `${text.slice(0, start)}$${selected}$${text.slice(end)}`;
+    update(opt.id, next);
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      const cursor = start + selected.length + 2;
+      el.setSelectionRange(cursor, cursor);
+    });
   };
 
   return (
@@ -39,12 +56,24 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
           <span className="w-6 shrink-0 text-xs font-semibold text-slate-400">{String.fromCharCode(65 + i)}</span>
           <div className="flex-1">
             <Input
-              placeholder={`Option ${String.fromCharCode(65 + i)}`}
+              ref={(el) => {
+                inputRefs.current[opt.id] = el;
+              }}
+              placeholder={`Option ${String.fromCharCode(65 + i)} — use $...$ for math`}
               value={opt.text}
               disabled={disabled}
               onChange={(e) => update(opt.id, e.target.value)}
             />
           </div>
+          <button
+            type="button"
+            title="Wrap selection in math ($...$)"
+            disabled={disabled}
+            onClick={() => insertMath(opt)}
+            className="text-slate-400 hover:text-indigo-600 disabled:opacity-30 shrink-0"
+          >
+            <Sigma size={15} />
+          </button>
           <button
             type="button"
             disabled={disabled || value.length <= 2}

@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Pencil, FolderTree, Languages } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
-import { CategoryFormModal } from '@/features/categories/CategoryFormModal';
 import { categoriesApi } from '@/services/adminService';
+import { colorForKey } from '@/lib/colorHash';
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,16 +34,6 @@ export default function CategoriesPage() {
     load();
   }, [load]);
 
-  const openCreate = () => {
-    setEditingCategory(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (category) => {
-    setEditingCategory(category);
-    setModalOpen(true);
-  };
-
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
@@ -51,7 +41,7 @@ export default function CategoriesPage() {
         title="Categories"
         subtitle="Group test series by exam, subject, or program."
         actions={
-          <Button onClick={openCreate}>
+          <Button onClick={() => router.push('/admin-dashboard/categories/new')}>
             <Plus size={16} className="mr-2" />
             New category
           </Button>
@@ -69,19 +59,30 @@ export default function CategoriesPage() {
           emptyTitle="No categories yet"
           emptyDescription="Create your first category to start organizing test series."
           emptyActionLabel="New category"
-          onEmptyAction={openCreate}
+          onEmptyAction={() => router.push('/admin-dashboard/categories/new')}
           columns={[
             {
               key: 'name',
               header: 'Category',
-              render: (row) => (
-                <div>
-                  <p className="font-medium text-slate-900">{row.name}</p>
-                  {row.description && <p className="text-xs text-slate-500 mt-0.5 max-w-md truncate">{row.description}</p>}
-                </div>
-              ),
+              render: (row) => {
+                const color = colorForKey(row.id);
+                return (
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-semibold text-sm ${color.bg} ${color.text}`}
+                    >
+                      {row.name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 dark:text-white">{row.name}</p>
+                      {row.description && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-md truncate">{row.description}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              },
             },
-            { key: 'id', header: 'ID', render: (row) => <code className="text-xs text-slate-500">{row.id}</code> },
             {
               key: 'requiredLanguages',
               header: 'Languages',
@@ -105,9 +106,9 @@ export default function CategoriesPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openEdit(row);
+                    router.push(`/admin-dashboard/categories/${row.id}/edit`);
                   }}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
                   <Pencil size={14} /> Edit
                 </button>
@@ -116,13 +117,6 @@ export default function CategoriesPage() {
           ]}
         />
       </Card>
-
-      <CategoryFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        category={editingCategory}
-        onSaved={load}
-      />
     </div>
   );
 }

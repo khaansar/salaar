@@ -23,7 +23,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorState, EmptyState } from '@/components/ui/EmptyState';
 import { TestSettingsModal } from '@/features/tests/TestSettingsModal';
-import { AddSectionModal } from '@/features/tests/AddSectionModal';
 import { SectionCard } from '@/features/tests/SectionCard';
 import { TestPreviewDrawer } from '@/features/tests/TestPreviewDrawer';
 import { mockTestsApi, sectionsApi } from '@/services/adminService';
@@ -42,7 +41,6 @@ export default function TestBuilderPage({ params }) {
   const [error, setError] = useState(null);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [cloneOpen, setCloneOpen] = useState(false);
   const [cloneTitle, setCloneTitle] = useState('');
@@ -98,7 +96,7 @@ export default function TestBuilderPage({ params }) {
       await load();
     } catch (err) {
       if (err?.errors?.length > 0) {
-        const sample = err.errors.slice(0, 3).map(e => e.issue || e).join('\n• ');
+        const sample = err.errors.slice(0, 3).map((e) => e.issue || e).join('\n• ');
         const more = err.errors.length > 3 ? `\n...and ${err.errors.length - 3} more issues.` : '';
         toast.error(`${err.message}\n\n• ${sample}${more}`);
       } else {
@@ -236,7 +234,7 @@ export default function TestBuilderPage({ params }) {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-slate-900">Sections</h2>
-        <Button onClick={() => setAddSectionOpen(true)}>
+        <Button onClick={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}>
           <Plus size={16} className="mr-2" />
           Add section
         </Button>
@@ -248,7 +246,7 @@ export default function TestBuilderPage({ params }) {
             title="No sections yet"
             description="Add a section to start attaching questions to this test."
             actionLabel="Add section"
-            onAction={() => setAddSectionOpen(true)}
+            onAction={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}
           />
         </Card>
       ) : (
@@ -269,7 +267,6 @@ export default function TestBuilderPage({ params }) {
       )}
 
       <TestSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} test={test} onSaved={load} />
-      <AddSectionModal open={addSectionOpen} onClose={() => setAddSectionOpen(false)} testId={id} onCreated={load} />
       <TestPreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} testId={id} testStatus={test.status} />
 
       <Modal

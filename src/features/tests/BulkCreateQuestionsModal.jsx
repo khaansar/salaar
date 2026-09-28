@@ -148,61 +148,62 @@ export function BulkCreateQuestionsModal({ open, onClose, sectionId, onCreated }
       return;
     }
     setSubmitting(true);
-    const createdIds = [];
-    const failed = [];
-    for (let i = 0; i < blocks.length; i++) {
-      const b = blocks[i];
-      setProgress({ index: i + 1, total: blocks.length });
-      try {
-        const payload = {
-          questionType: b.questionType,
-          difficulty: b.difficulty,
-          positiveMarks: Number(b.positiveMarks) || 0,
-          negativeMarks: Number(b.negativeMarks) || 0,
-          explanation: b.explanation,
-          translations: [
-            {
-              language: 'en',
-              questionText: b.questionText,
-              ...(HAS_OPTIONS(b.questionType)
-                ? { optionsJson: JSON.stringify(Object.fromEntries(b.options.map((o) => [o.id, o.text]))) }
-                : {}),
-            },
-          ],
-          correctAnswerJson: b.correctAnswerJson,
-        };
-        const created = await questionsApi.create(payload);
-        createdIds.push(created.id);
-      } catch (err) {
-        failed.push({ index: i + 1, message: err?.message });
-      }
-    }
-    setProgress(null);
+    setProgress({ index: 1, total: blocks.length, label: 'Uploading bulk...' });
 
-    if (createdIds.length > 0) {
-      try {
-        await sectionsApi.attachQuestions(sectionId, { questionIds: createdIds });
-      } catch (err) {
-        toast.error(`Created ${createdIds.length} question(s) but failed to attach them: ${err?.message || 'unknown error'}`);
+    const payload = blocks.map((b) => ({
+      questionType: b.questionType,
+      difficulty: b.difficulty,
+      positiveMarks: Number(b.positiveMarks) || 0,
+      negativeMarks: Number(b.negativeMarks) || 0,
+      explanation: b.explanation,
+      translations: [
+        {
+          language: 'en',
+          questionText: b.questionText,
+          ...(HAS_OPTIONS(b.questionType)
+            ? { optionsJson: JSON.stringify(Object.fromEntries(b.options.map((o) => [o.id, o.text]))) }
+            : {}),
+        },
+      ],
+      correctAnswerJson: b.correctAnswerJson,
+    }));
+
+    try {
+      const result = await questionsApi.bulkCreate(payload);
+      const { imported, failed, errors, createdIds } = result;
+
+      setProgress(null);
+
+      if (createdIds && createdIds.length > 0) {
+        try {
+          await sectionsApi.attachQuestions(sectionId, { questionIds: createdIds });
+        } catch (err) {
+          toast.error(`Created ${createdIds.length} question(s) but failed to attach them: ${err?.message || 'unknown error'}`);
+          setSubmitting(false);
+          onCreated?.();
+          return;
+        }
+      }
+
+      if (failed === 0) {
+        toast.success(`Created and added ${imported} question${imported !== 1 ? 's' : ''}`);
+        setSubmitting(false);
+        reset();
+        onCreated?.();
+        onClose();
+      } else {
+        toast.error(`${imported} succeeded, ${failed} failed (see error in row ${errors[0]?.row}: ${errors[0]?.reason})`);
         setSubmitting(false);
         onCreated?.();
-        return;
+        
+        // Keep only the failed blocks open for the admin to retry.
+        const failedRows = new Set(errors.map((e) => e.row - 1));
+        setBlocks((bs) => bs.filter((_, i) => failedRows.has(i)));
       }
-    }
-
-    if (failed.length === 0) {
-      toast.success(`Created and added ${createdIds.length} question${createdIds.length !== 1 ? 's' : ''}`);
+    } catch (err) {
+      toast.error(`Bulk import failed: ${err?.message || 'unknown error'}`);
       setSubmitting(false);
-      reset();
-      onCreated?.();
-      onClose();
-    } else {
-      toast.error(`${createdIds.length} succeeded, ${failed.length} failed (see question ${failed[0].index}: ${failed[0].message || 'error'})`);
-      setSubmitting(false);
-      onCreated?.();
-      // Keep only the failed blocks open for the admin to retry.
-      const failedIndexes = new Set(failed.map((f) => f.index - 1));
-      setBlocks((bs) => bs.filter((_, i) => failedIndexes.has(i)));
+      setProgress(null);
     }
   };
 

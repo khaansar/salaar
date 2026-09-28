@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Search, Eye, Pencil, Trash2, Lock, HelpCircle } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -20,10 +20,12 @@ import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_BADGE_STYLES, 
 
 const PAGE_SIZE = 15;
 
-export default function QuestionsPage() {
+function QuestionsPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
-  const [search, setSearch] = useState('');
+  // Supports deep-links from the topbar search box, e.g. /admin-dashboard/questions?search=...
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [type, setType] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [lockStatus, setLockStatus] = useState('');
@@ -150,5 +152,13 @@ export default function QuestionsPage() {
       <QuestionPreviewDrawer open={Boolean(previewId)} onClose={() => setPreviewId(null)} question={previewQuestion} />
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={deleting} title="Delete question?" description={`This will permanently delete "${deleteTarget?.shortText}". Questions already attached to tests may be affected.`} confirmLabel="Delete" />
     </div>
+  );
+}
+export default function QuestionsPage() {
+  // useSearchParams requires a Suspense boundary during static prerendering.
+  return (
+    <Suspense fallback={null}>
+      <QuestionsPageInner />
+    </Suspense>
   );
 }

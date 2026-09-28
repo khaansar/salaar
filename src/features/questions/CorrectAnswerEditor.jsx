@@ -11,6 +11,9 @@ import { Textarea } from '@/components/ui/Textarea';
  * @param {(next: object) => void} onChange
  */
 export function CorrectAnswerEditor({ questionType, options = [], value = {}, onChange, disabled }) {
+  // Scope the MCQ radio group's `name` to this editor instance so two
+  // CorrectAnswerEditors rendered on the same page (e.g. bulk-create) never
+  // get grouped together by the browser.
   const uniqueId = useId();
 
   if (questionType === 'MCQ') {

@@ -6,25 +6,25 @@ export const Select = forwardRef(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             {label}
           </label>
         )}
         <div
           className={`relative flex items-center w-full h-10 rounded-[6px] border bg-white transition-colors ${
-            error ? 'border-red-500 focus-within:ring-red-500' : 'border-slate-300 focus-within:ring-[#4F46E5]'
-          } focus-within:ring-2 focus-within:ring-offset-0 focus-within:border-transparent shadow-sm`}
+            error ? 'border-red-500 focus-within:ring-red-500' : 'border-slate-300 dark:border-slate-700 focus-within:ring-[#4F46E5]'
+          } focus-within:ring-2 focus-within:ring-offset-0 focus-within:border-transparent shadow-sm bg-white dark:bg-slate-800`}
         >
           <select
             id={id}
             ref={ref}
-            className={`flex-1 w-full h-full bg-transparent px-3 text-[14px] text-slate-900 focus:outline-none appearance-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+            className={`flex-1 w-full h-full bg-transparent px-3 text-[14px] text-slate-900 dark:text-white focus:outline-none appearance-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
             {...props}
           >
             {placeholder && <option value="">{placeholder}</option>}
             {children}
           </select>
-          <ChevronDown size={16} className="pointer-events-none absolute right-3 text-slate-400" />
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 text-slate-400 dark:text-slate-500" />
         </div>
         {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       </div>

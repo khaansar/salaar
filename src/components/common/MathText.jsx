@@ -13,14 +13,9 @@ function renderLatex(expr, displayMode) {
   }
 }
 
-/**
- * Splits `raw` into text / inline-math ($...$) / block-math ($$...$$) segments
- * and renders each appropriately. Falls back gracefully to plain text if the
- * content has no LaTeX in it.
- */
 function segmentsFor(raw) {
   if (!raw) return [];
-  const pattern = /(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$|(?<!\\)\$([^\n]*?)(?<!\\)\$/g;
+  const pattern = /(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$|(?<!\\)\$([^\n]*?)(?<!\\)\$|!\[([^\]]*)\]\(([^)\s]+)\)/g;
   const segments = [];
   let lastIndex = 0;
   let match;
@@ -31,8 +26,10 @@ function segmentsFor(raw) {
     }
     if (match[1] !== undefined) {
       segments.push({ type: 'block', value: match[1] });
-    } else {
+    } else if (match[2] !== undefined) {
       segments.push({ type: 'inline', value: match[2] });
+    } else {
+      segments.push({ type: 'image', alt: match[3], url: match[4] });
     }
     lastIndex = pattern.lastIndex;
   }
@@ -64,6 +61,17 @@ export function MathText({ text, className = '' }) {
             <span
               key={i}
               dangerouslySetInnerHTML={{ __html: renderLatex(seg.value, false) }}
+            />
+          );
+        }
+        if (seg.type === 'image') {
+          return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={seg.url}
+              alt={seg.alt || ''}
+              className="my-2 max-w-full rounded-md border border-slate-200"
             />
           );
         }

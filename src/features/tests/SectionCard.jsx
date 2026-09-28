@@ -146,6 +146,11 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
                   <Shuffle size={12} /> Shuffled
                 </span>
               )}
+              {section.defaultNegativeMarks != null && (
+                <span className="inline-flex items-center gap-1">
+                  Default −{section.defaultNegativeMarks} marks
+                </span>
+              )}
               <span>
                 {questions.length} question{questions.length !== 1 ? 's' : ''} · {totalMarks} marks
               </span>
@@ -198,18 +203,18 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         </div>
       )}
 
-      <BulkCreateQuestionsModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        sectionId={section.sectionId}
-        onCreated={onChanged}
-      />
-
       <SectionSettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         section={section}
         onSaved={onChanged}
+      />
+
+      <BulkCreateQuestionsModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        sectionId={section.sectionId}
+        onCreated={onChanged}
       />
 
       <AttachQuestionsDrawer

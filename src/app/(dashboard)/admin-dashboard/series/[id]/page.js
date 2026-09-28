@@ -10,8 +10,6 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SeriesFormModal } from '@/features/test-series/SeriesFormModal';
-import { CreateMockTestModal } from '@/features/test-series/CreateMockTestModal';
 import { categoriesApi, seriesApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 import { STATUS_BADGE_STYLES } from '@/constants/enums';
@@ -27,14 +25,13 @@ export default function SeriesDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [createTestOpen, setCreateTestOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
       const data = await seriesApi.get(id);
       setSeries(data);
@@ -52,6 +49,7 @@ export default function SeriesDetailPage({ params }) {
 
   const handleDelete = async () => {
     setDeleting(true);
+
     try {
       await seriesApi.remove(id);
       toast.success('Test series deleted');
@@ -73,7 +71,10 @@ export default function SeriesDetailPage({ params }) {
   if (error || !series) {
     return (
       <div className="max-w-5xl mx-auto">
-        <ErrorState message={error || 'Test series not found'} onRetry={load} />
+        <ErrorState
+          message={error || 'Test series not found'}
+          onRetry={load}
+        />
       </div>
     );
   }
@@ -82,18 +83,32 @@ export default function SeriesDetailPage({ params }) {
     <div className="max-w-5xl mx-auto">
       <PageHeader
         breadcrumbs={[
-          { label: 'Admin', href: '/admin-dashboard' },
-          { label: 'Test Series', href: '/admin-dashboard/series' },
-          { label: series.title },
+          {
+            label: 'Admin',
+            href: '/admin-dashboard',
+          },
+          {
+            label: 'Test Series',
+            href: '/admin-dashboard/series',
+          },
+          {
+            label: series.title,
+          },
         ]}
         title={series.title}
         subtitle={series.categoryName}
         actions={
           <>
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                router.push(`/admin-dashboard/series/${id}/edit`)
+              }
+            >
               <Pencil size={16} className="mr-2" />
               Edit
             </Button>
+
             <Button
               variant="dangerOutline"
               onClick={() => setDeleteOpen(true)}
@@ -108,22 +123,41 @@ export default function SeriesDetailPage({ params }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Status</p>
-            <Badge className={`mt-2 ${STATUS_BADGE_STYLES[series.status]}`}>{series.status}</Badge>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Status
+            </p>
+
+            <Badge
+              className={`mt-2 ${STATUS_BADGE_STYLES[series.status]}`}
+            >
+              {series.status}
+            </Badge>
           </CardBody>
         </Card>
+
         <Card>
           <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Base price</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">
-              {series.basePrice ? `₹${series.basePrice}` : 'Free'}
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Base price
+            </p>
+
+            <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+              {series.basePrice
+                ? `₹${series.basePrice}`
+                : 'Free'}
             </p>
           </CardBody>
         </Card>
+
         <Card>
           <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Mock tests</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">{series.mockTests?.length || 0}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Mock tests
+            </p>
+
+            <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+              {series.mockTests?.length || 0}
+            </p>
           </CardBody>
         </Card>
       </div>
@@ -131,60 +165,80 @@ export default function SeriesDetailPage({ params }) {
       <Card>
         <CardHeader className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-slate-900">Mock tests</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Build out sections and questions for each test.</p>
+            <h2 className="font-semibold text-slate-900 dark:text-white">
+              Mock tests
+            </h2>
+
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Build out sections and questions for each test.
+            </p>
           </div>
-          <Button onClick={() => setCreateTestOpen(true)}>
+
+          <Button
+            onClick={() =>
+              router.push(
+                `/admin-dashboard/series/${id}/tests/new`
+              )
+            }
+          >
             <Plus size={16} className="mr-2" />
             New mock test
           </Button>
         </CardHeader>
+
         {(series.mockTests || []).length === 0 ? (
           <EmptyState
             icon={<FileText size={22} />}
             title="No mock tests yet"
             description="Create your first mock test to start building sections and questions."
             actionLabel="New mock test"
-            onAction={() => setCreateTestOpen(true)}
+            onAction={() =>
+              router.push(
+                `/admin-dashboard/series/${id}/tests/new`
+              )
+            }
           />
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {series.mockTests.map((test) => (
               <button
                 key={test.testId}
-                onClick={() => router.push(`/admin-dashboard/tests/${test.testId}`)}
-                className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left hover:bg-slate-50/60 transition-colors"
+                onClick={() =>
+                  router.push(
+                    `/admin-dashboard/tests/${test.testId}`
+                  )
+                }
+                className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
               >
-                <div>
-                  <p className="font-medium text-slate-900">{test.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {test.durationMinutes} min · {test.totalMarks ?? 0} marks {test.isFree && '· Free'}
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900 dark:text-white truncate">
+                    {test.title}
+                  </p>
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {test.durationMinutes} min ·{' '}
+                    {test.totalMarks ?? 0} marks{' '}
+                    {test.isFree && '· Free'}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge className={STATUS_BADGE_STYLES[test.status]}>{test.status}</Badge>
-                  <ArrowRight size={16} className="text-slate-400" />
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <Badge
+                    className={STATUS_BADGE_STYLES[test.status]}
+                  >
+                    {test.status}
+                  </Badge>
+
+                  <ArrowRight
+                    size={16}
+                    className="text-slate-400 dark:text-slate-500"
+                  />
                 </div>
               </button>
             ))}
           </div>
         )}
       </Card>
-
-      <SeriesFormModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        series={series}
-        categories={categories}
-        onSaved={load}
-      />
-
-      <CreateMockTestModal
-        open={createTestOpen}
-        onClose={() => setCreateTestOpen(false)}
-        seriesId={id}
-        onCreated={(created) => router.push(`/admin-dashboard/tests/${created.id}`)}
-      />
 
       <ConfirmDialog
         open={deleteOpen}

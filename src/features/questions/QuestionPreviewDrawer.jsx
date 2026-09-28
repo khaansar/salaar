@@ -20,22 +20,13 @@ function parseOptions(t) {
   }
 }
 
-export function QuestionPreviewDrawer({ open, onClose, question }) {
+/**
+ * The actual preview rendering, shared between the mobile Drawer and the
+ * persistent desktop sidebar panel in QuestionForm.
+ */
+export function QuestionPreviewContent({ question }) {
   const translations = question?.translations || [];
   const [lang, setLang] = useState(translations[0]?.language);
-
-  // Render-phase state sync for external props (replaces useEffect reset)
-  const defaultLang = translations[0]?.language;
-  const [prevOpen, setPrevOpen] = useState(open);
-  const [prevId, setPrevId] = useState(question?.id);
-
-  if (open !== prevOpen || question?.id !== prevId) {
-    setPrevOpen(open);
-    setPrevId(question?.id);
-    if (open) {
-      setLang(defaultLang);
-    }
-  }
 
   const active = translations.find((t) => t.language === lang) || translations[0];
   const options = useMemo(() => parseOptions(active), [active]);
@@ -44,13 +35,14 @@ export function QuestionPreviewDrawer({ open, onClose, question }) {
   if (!question) return null;
 
   return (
-    <Drawer open={open} onClose={onClose} title="Question preview" description="This is how the question will render to students." width="lg">
-      <div className="flex items-center gap-2 mb-5">
+    <>
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
         <Badge className={QUESTION_TYPE_BADGE_STYLES[question.questionType]}>{question.questionType}</Badge>
         {translations.length > 1 &&
           translations.map((t) => (
             <button
               key={t.language}
+              type="button"
               onClick={() => setLang(t.language)}
               className={`text-xs font-semibold uppercase px-2.5 py-1 rounded-full transition-colors ${
                 (lang || translations[0].language) === t.language
@@ -62,10 +54,10 @@ export function QuestionPreviewDrawer({ open, onClose, question }) {
             </button>
           ))}
       </div>
-      {active ? (
+      {active && (active.questionText || options.length > 0) ? (
         <>
           <div className="prose prose-sm max-w-none text-slate-900 font-medium mb-5">
-            <MathText text={active.questionText} />
+            <MathText text={active.questionText || 'Question text will appear here…'} />
           </div>
           {options.length > 0 && (
             <div className="space-y-2 mb-6">
@@ -81,7 +73,7 @@ export function QuestionPreviewDrawer({ open, onClose, question }) {
               })}
             </div>
           )}
-          {question.questionType === 'NUMERICAL' && correct.value !== undefined && (
+          {question.questionType === 'NUMERICAL' && correct.value !== undefined && correct.value !== '' && (
             <div className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
               Correct value: <strong>{correct.value}</strong> {correct.tolerance ? ` (± ${correct.tolerance})` : ''}
             </div>
@@ -100,8 +92,16 @@ export function QuestionPreviewDrawer({ open, onClose, question }) {
           )}
         </>
       ) : (
-        <p className="text-sm text-slate-400">Nothing to preview yet   add question text first.</p>
+        <p className="text-sm text-slate-400">Nothing to preview yet — add question text first.</p>
       )}
+    </>
+  );
+}
+
+export function QuestionPreviewDrawer({ open, onClose, question }) {
+  return (
+    <Drawer open={open} onClose={onClose} title="Question preview" description="This is how the question will render to students." width="lg">
+      <QuestionPreviewContent question={question} />
     </Drawer>
   );
 }
