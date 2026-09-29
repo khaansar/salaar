@@ -44,6 +44,44 @@ export default function StudentShell({
       document.removeEventListener('keydown', onKeyDown);
   }, [mobileNavOpen]);
 
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#fafafc] dark:bg-slate-950 flex flex-col">
+        {/* Skeleton Navbar */}
+        <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div className="h-6 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex gap-6">
+                  <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                  <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                </div>
+                <div className="h-9 w-20 rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Skeleton Content Area */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-7xl animate-pulse">
+            <div className="h-64 w-full rounded-3xl bg-slate-200 dark:bg-slate-800/50 mb-8" />
+            <div className="h-10 w-48 rounded-lg bg-slate-200 dark:bg-slate-800/50 mb-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-48 rounded-2xl bg-slate-200 dark:bg-slate-800/50" />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (isAuthenticated) {
     return (
       <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
