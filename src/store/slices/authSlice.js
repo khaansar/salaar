@@ -1,21 +1,72 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { setCookie, deleteCookie } from 'cookies-next';
 import apiClient from '../../lib/apiClient';
+
+const getErrorMessage = (error, fallback) => {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  // Axios/API error after apiClient processing
+  if (typeof error.message === 'string') {
+    return error.message;
+  }
+
+  // Our API error object
+  if (typeof error.message?.message === 'string') {
+    return error.message.message;
+  }
+
+  if (Array.isArray(error.errors) && error.errors.length > 0) {
+    return error.errors
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item;
+        }
+
+        if (item?.message) {
+          return item.message;
+        }
+
+        return JSON.stringify(item);
+      })
+      .join(', ');
+  }
+
+  if (typeof error.errors === 'object' && error.errors !== null) {
+    return Object.values(error.errors)
+      .flat()
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item;
+        }
+
+        if (item?.message) {
+          return item.message;
+        }
+
+        return String(item);
+      })
+      .join(', ');
+  }
+
+  return fallback;
+};
 
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
       const data = await apiClient.post('/auth-api/login', credentials);
-      
-      const role = data?.user?.role || data?.role;
-      if (role) {
-        setCookie('user_role', role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
-      }
-      
+
       return data?.user || data;
     } catch (err) {
-      return rejectWithValue(err?.message || 'Login failed');
+      return rejectWithValue(
+        getErrorMessage(err, 'Login failed')
+      );
     }
   }
 );
@@ -25,15 +76,12 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const data = await apiClient.post('/auth-api/register', userData);
-      
-      const role = data?.user?.role || data?.role;
-      if (role) {
-        setCookie('user_role', role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
-      }
-      
+
       return data?.user || data;
     } catch (err) {
-      return rejectWithValue(err?.message || 'Registration failed');
+      return rejectWithValue(
+        getErrorMessage(err, 'Registration failed')
+      );
     }
   }
 );
@@ -45,24 +93,25 @@ export const logoutUser = createAsyncThunk(
       await apiClient.post('/auth-api/logout');
     } catch (err) {
       console.error('Logout failed on server', err);
-    } finally {
-      deleteCookie('user_role');
+
+      return rejectWithValue(
+        getErrorMessage(err, 'Logout failed')
+      );
     }
   }
 );
 
-// `/auth-api/users/me` returns the authenticated admin's profile
-// (id, firstName, lastName, email, role, avatarUrl, isActive, timestamps)
-// wrapped in the standard ApiResponse envelope; `apiClient` already
-// unwraps `.data` for us. Used to populate the dashboard's profile menu.
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
       const data = await apiClient.get('/auth-api/users/me');
+
       return data;
     } catch (err) {
-      return rejectWithValue(err);
+      return rejectWithValue(
+        getErrorMessage(err, 'Unable to restore session')
+      );
     }
   }
 );
@@ -77,55 +126,114 @@ const initialState = {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+
+  reducers: {
+    clearAuth(state) {
+      state.user = null;
+      state.status = 'idle';
+      state.error = null;
+      state.isInitialized = true;
+    },
+  },
+
   extraReducers: (builder) => {
     builder
+
+      // --------------------------------------------------
+      // LOGIN
+      // --------------------------------------------------
+
       .addCase(loginUser.pending, (state) => {
         state.status = 'loading';
         state.error = null;
       })
+
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.user = action.payload;
+        state.error = null;
         state.isInitialized = true;
       })
+
       .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Login failed';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : 'Login failed';
       })
+
+      // --------------------------------------------------
+      // REGISTER
+      // --------------------------------------------------
+
       .addCase(registerUser.pending, (state) => {
         state.status = 'loading';
         state.error = null;
       })
+
       .addCase(registerUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.user = action.payload;
+        state.error = null;
         state.isInitialized = true;
       })
+
       .addCase(registerUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Registration failed';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : 'Registration failed';
       })
+
+      // --------------------------------------------------
+      // LOGOUT
+      // --------------------------------------------------
+
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.status = 'idle';
         state.error = null;
         state.isInitialized = true;
       })
+
+      .addCase(logoutUser.rejected, (state) => {
+        // Even if the backend logout fails, the browser should
+        // consider the local session logged out.
+        state.user = null;
+        state.status = 'idle';
+        state.error = null;
+        state.isInitialized = true;
+      })
+
+      // --------------------------------------------------
+      // RESTORE CURRENT USER
+      // --------------------------------------------------
+
       .addCase(fetchCurrentUser.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
+
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.user = action.payload;
+        state.error = null;
         state.isInitialized = true;
       })
+
       .addCase(fetchCurrentUser.rejected, (state) => {
-        state.status = 'failed';
+        state.status = 'idle';
         state.user = null;
+
+        state.error = null;
+
         state.isInitialized = true;
       });
   },
 });
+
+export const { clearAuth } = authSlice.actions;
 
 export default authSlice.reducer;

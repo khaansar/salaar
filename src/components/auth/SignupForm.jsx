@@ -122,7 +122,7 @@ export function SignupForm() {
             id="terms"
             label={
               <span className="text-sm font-medium text-slate-600">
-                I agree to the <a href="#" className="text-indigo-600 hover:text-indigo-800 transition-colors">Terms of Service</a> and <a href="#" className="text-indigo-600 hover:text-indigo-800 transition-colors">Privacy Policy</a>
+                I agree to the <Link href="/terms" target="_blank" className="text-indigo-600 hover:text-indigo-800 transition-colors">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="text-indigo-600 hover:text-indigo-800 transition-colors">Privacy Policy</Link>
               </span>
             }
             checked={termsAccepted}

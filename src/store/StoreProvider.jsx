@@ -1,8 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { makeStore } from './store';
 
 export default function StoreProvider({ children }) {
-  return <Provider store={store}>{children}</Provider>;
+  const [store] = useState(() => makeStore());
+
+  return (
+    <Provider store={store}>
+      {children}
+    </Provider>
+  );
 }

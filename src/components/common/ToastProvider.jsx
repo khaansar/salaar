@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, XCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -34,16 +34,23 @@ export function ToastProvider({ children }) {
     return id;
   }, [dismiss]);
 
-  const toast = {
-    success: (message) => push(message, 'success'),
-    error: (message) => push(message, 'error'),
-    info: (message) => push(message, 'info'),
-  };
+  const toast = useMemo(
+    () => ({
+      success: (message) => push(message, 'success'),
+      error: (message) => push(message, 'error'),
+      info: (message) => push(message, 'info'),
+    }),
+    [push]
+  );
 
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+      <div
+        role="status"
+        aria-live="polite"
+        className="fixed bottom-4 right-4 left-4 sm:left-auto z-[100] flex flex-col gap-2 sm:w-full sm:max-w-sm pointer-events-none"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -51,7 +58,7 @@ export function ToastProvider({ children }) {
           >
             {ICONS[t.type]}
             <span className="flex-1 font-medium whitespace-pre-wrap">{t.message}</span>
-            <button onClick={() => dismiss(t.id)} className="text-slate-400 hover:text-slate-600 shrink-0">
+            <button type="button" aria-label="Dismiss notification" onClick={() => dismiss(t.id)} className="text-slate-400 hover:text-slate-600 shrink-0">
               <X size={14} />
             </button>
           </div>

@@ -1,20 +1,36 @@
-import { Plus_Jakarta_Sans } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import StoreProvider from "../store/StoreProvider";
-import AuthProvider from "../components/auth/AuthProvider";
-import { ToastProvider } from "../components/common/ToastProvider";
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
+import StoreProvider from '../store/StoreProvider';
+import AuthProvider from '../components/auth/AuthProvider';
+import { ToastProvider } from '../components/common/ToastProvider';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
 });
 
 export const metadata = {
-  title: "TestHub",
-  description: "TestHub examination platform",
+  title: 'TestHub',
+  description: 'TestHub examination platform',
 };
+
+const themeScript = `
+  (function () {
+    try {
+      var theme = localStorage.getItem('theme');
+
+      if (
+        theme === 'dark' ||
+        (!theme &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+`;
 
 export default function RootLayout({ children }) {
   return (
@@ -23,31 +39,11 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
-      <head>
-        <Script
-          id="theme-script"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                try {
-                  var theme = localStorage.getItem('theme');
-
-                  if (
-                    theme === 'dark' ||
-                    (!theme &&
-                      window.matchMedia('(prefers-color-scheme: dark)').matches)
-                  ) {
-                    document.documentElement.classList.add('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
-
       <body className="min-h-full flex flex-col">
+        <Script id="theme-script" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+
         <StoreProvider>
           <AuthProvider>
             <ToastProvider>
