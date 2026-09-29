@@ -17,29 +17,12 @@ export default function StartTestButton({
   const toast = useToast();
   const [starting, setStarting] = useState(false);
 
-  const handleStart = requireAuth(async () => {
-    if (starting) return;
-
-    setStarting(true);
-
-    try {
-      const attempt = await attemptService.startAttempt(
-        testId,
-        durationMinutes || 180
-      );
-
-      if (!attempt?.attemptId) {
-        throw new Error('The server did not return an attempt ID.');
-      }
-
-      router.push(`/attempt/${attempt.attemptId}`);
-    } catch (error) {
-      toast.error(
-        error?.message ||
-          'Unable to start the test. Please try again.'
-      );
-      setStarting(false);
-    }
+  const handleStart = requireAuth(() => {
+    // Open instructions page in a new clean window
+    const url = `/tests/${testId}/instructions`;
+    const features = 'popup=1,width=1200,height=800,left=100,top=100,resizable=yes,scrollbars=yes';
+    
+    window.open(url, '_blank', features);
   });
 
   return (

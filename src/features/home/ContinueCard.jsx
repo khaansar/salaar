@@ -104,7 +104,10 @@ export default function ContinueCard() {
       </div>
       
       <button
-        onClick={() => router.push(`/attempt/${attemptId}`)}
+        onClick={() => {
+          const url = `/tests/${attempt.testId}/instructions`;
+          window.open(url, '_blank', 'popup=1,width=1200,height=800,left=100,top=100,resizable=yes,scrollbars=yes');
+        }}
         className="w-full sm:w-auto px-4 py-1.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center shrink-0 group-hover:scale-[1.02] active:scale-95"
       >
         Resume <ArrowRight size={14} className="ml-1.5" />
