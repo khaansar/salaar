@@ -14,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
+  ChevronDown,
+  LoaderCircle,
 } from 'lucide-react';
 
 import { usersApi } from '@/services/userService';
@@ -21,6 +23,7 @@ import { usersApi } from '@/services/userService';
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState('');
 
   // Backend pagination
@@ -28,13 +31,19 @@ export default function UsersPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
 
-  // Frontend filters
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  // Filters are sent to the users API so they apply across all pages.
+  const [filters, setFilters] = useState({
+    search: '', firstName: '', lastName: '', email: '', role: '',
+    isActive: '', isDeleted: '', minTestsAttemptedCount: '', maxTestsAttemptedCount: '',
+    createdAfter: '', createdBefore: '', updatedAfter: '', updatedBefore: '',
+    deletedAfter: '', deletedBefore: '',
+  });
+  const [appliedFilters, setAppliedFilters] = useState(filters);
+  const updateFilter = (key, value) => setFilters((current) => ({ ...current, [key]: value }));
 
   // Selected user for drawer
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const pageSize = 20;
 
@@ -42,64 +51,57 @@ export default function UsersPage() {
   // Fetch users
   // --------------------------------------------------
   useEffect(() => {
+    const timer = setTimeout(() => setAppliedFilters(filters), 300);
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  useEffect(() => {
+    let cancelled = false;
     const fetchUsers = async () => {
       try {
         setLoading(true);
         setError('');
 
+        const requestFilters = { ...appliedFilters };
+        const searchTerms = requestFilters.search.trim().split(/\s+/);
+        if (searchTerms.length > 1 && !requestFilters.firstName && !requestFilters.lastName && !requestFilters.email) {
+          requestFilters.search = '';
+          requestFilters.firstName = searchTerms[0];
+          requestFilters.lastName = searchTerms.slice(1).join(' ');
+        }
+
         const response = await usersApi.list({
           page,
           size: pageSize,
+          ...requestFilters,
         });
 
+        if (cancelled) return;
         setUsers(response?.content || []);
         setTotalPages(response?.totalPages || 0);
         setTotalUsers(response?.totalElements || 0);
       } catch (err) {
+        if (cancelled) return;
         console.error('Failed to fetch users:', err);
         setError(
           err?.message || 'Failed to load users. Please try again.'
         );
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setHasLoadedOnce(true);
+        }
       }
     };
 
     fetchUsers();
-  }, [page]);
+    return () => { cancelled = true; };
+  }, [page, appliedFilters]);
 
   // --------------------------------------------------
-  // Frontend filtering
+  // The API already returns the filtered page.
   // --------------------------------------------------
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      // Search by name or email
-      const fullName = `${user.firstName || ''} ${
-        user.lastName || ''
-      }`.trim();
-
-      const searchValue = search.toLowerCase().trim();
-
-      const matchesSearch =
-        !searchValue ||
-        fullName.toLowerCase().includes(searchValue) ||
-        user.email?.toLowerCase().includes(searchValue);
-
-      // Role filter
-      const matchesRole =
-        roleFilter === 'ALL' ||
-        user.role?.toUpperCase() === roleFilter;
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === 'ALL' ||
-        (statusFilter === 'ACTIVE' && user.isActive === true) ||
-        (statusFilter === 'INACTIVE' && user.isActive === false);
-
-      return matchesSearch && matchesRole && matchesStatus;
-    });
-  }, [users, search, roleFilter, statusFilter]);
-
+  const filteredUsers = useMemo(() => users, [users]);
   // --------------------------------------------------
   // Helpers
   // --------------------------------------------------
@@ -153,15 +155,23 @@ export default function UsersPage() {
   // Reset filters
   // --------------------------------------------------
   const resetFilters = () => {
-    setSearch('');
-    setRoleFilter('ALL');
-    setStatusFilter('ALL');
+    setFilters({
+      search: '', firstName: '', lastName: '', email: '', role: '',
+      isActive: '', isDeleted: '', minTestsAttemptedCount: '', maxTestsAttemptedCount: '',
+      createdAfter: '', createdBefore: '', updatedAfter: '', updatedBefore: '',
+      deletedAfter: '', deletedBefore: '',
+    });
+    setPage(0);
   };
 
-  const hasActiveFilters =
-    search.trim() !== '' ||
-    roleFilter !== 'ALL' ||
-    statusFilter !== 'ALL';
+  const hasActiveFilters = Object.values(filters).some((value) => value !== '');
+
+  const setFilterAndResetPage = (key, value) => {
+    updateFilter(key, value);
+    setPage(0);
+  };
+
+  const filterInputClass = 'h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
 
   // --------------------------------------------------
   // Pagination
@@ -181,7 +191,7 @@ export default function UsersPage() {
   // --------------------------------------------------
   // Loading
   // --------------------------------------------------
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="min-h-screen bg-[#f8fafc] p-6">
         <div className="animate-pulse space-y-6">
@@ -311,58 +321,77 @@ export default function UsersPage() {
       {/* ==================================================
           FILTER BAR
       ================================================== */}
-      <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
+      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-violet-50 p-2.5 text-violet-600"><SlidersHorizontal className="h-4 w-4" /></div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Filter users</h2>
+              <p className="mt-0.5 text-xs text-gray-500">Find accounts by identity, role, or activity</p>
+            </div>
           </div>
-
-          {/* Role Filter */}
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-gray-400" />
-
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-10 min-w-[140px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="ALL">All Roles</option>
-              <option value="ADMIN">Admin</option>
-              <option value="STUDENT">Student</option>
-            </select>
+            {loading && hasLoadedOnce && <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600"><LoaderCircle className="h-3.5 w-3.5 animate-spin" />Updating results</span>}
+            {hasActiveFilters && <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">{Object.values(filters).filter(Boolean).length} active</span>}
           </div>
-
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 min-w-[140px] rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-          </select>
-
-          {/* Reset */}
-          {hasActiveFilters && (
-            <button
-              onClick={resetFilters}
-              className="flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-            >
-              <X className="h-4 w-4" />
-              Clear
-            </button>
-          )}
         </div>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <label className="relative flex-1">
+            <span className="mb-1.5 block text-xs font-medium text-gray-600">Search</span>
+            <Search className="absolute left-3 top-[2.45rem] h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input className={`${filterInputClass} rounded-xl bg-slate-50/70 pl-9 focus:border-violet-400 focus:ring-violet-100`} placeholder="Name or email..." value={filters.search} onChange={(e) => setFilterAndResetPage('search', e.target.value)} />
+          </label>
+          <label className="lg:w-44">
+            <span className="mb-1.5 block text-xs font-medium text-gray-600">Role</span>
+            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100`} value={filters.role} onChange={(e) => setFilterAndResetPage('role', e.target.value)}>
+              <option value="">All roles</option><option value="STUDENT">Student</option><option value="ADMIN">Admin</option>
+            </select>
+          </label>
+          <label className="lg:w-40">
+            <span className="mb-1.5 block text-xs font-medium text-gray-600">Status</span>
+            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100`} value={filters.isActive} onChange={(e) => setFilterAndResetPage('isActive', e.target.value)}>
+              <option value="">All status</option><option value="true">Active</option><option value="false">Inactive</option>
+            </select>
+          </label>
+          <button type="button" aria-expanded={showMoreFilters} onClick={() => setShowMoreFilters((open) => !open)} className={`flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition ${showMoreFilters ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}>
+            <SlidersHorizontal className="h-4 w-4" />More Filters{hasActiveFilters && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-xs text-violet-700">{Object.values(filters).filter(Boolean).length}</span>}<ChevronDown className={`h-4 w-4 transition-transform ${showMoreFilters ? 'rotate-180' : ''}`} />
+          </button>
+          {hasActiveFilters && <button type="button" onClick={resetFilters} className="flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"><X className="h-4 w-4" />Clear</button>}
+        </div>
+        {showMoreFilters && (
+          <div className="mt-5 rounded-xl border border-slate-200/70 bg-slate-50/70 p-4">
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-600">Additional filters</h3>
+              <p className="mt-1 text-xs text-gray-500">Narrow results by profile details, test activity, and dates.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {['firstName', 'lastName', 'email'].map((field) => (
+                <label key={field}>
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{field === 'firstName' ? 'First name' : field === 'lastName' ? 'Last name' : 'Email'}</span>
+                  <input className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} placeholder={`Filter ${field === 'firstName' ? 'first name' : field === 'lastName' ? 'last name' : 'email'}`} />
+                </label>
+              ))}
+              <label>
+                <span className="mb-1 block text-xs font-medium text-gray-500">Deleted</span>
+                <select className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters.isDeleted} onChange={(e) => setFilterAndResetPage('isDeleted', e.target.value)}>
+                  <option value="">Any</option><option value="true">Deleted</option><option value="false">Not deleted</option>
+                </select>
+              </label>
+              {[
+                ['minTestsAttemptedCount', 'Min tests attempted', 'number'],
+                ['maxTestsAttemptedCount', 'Max tests attempted', 'number'],
+                ['createdAfter', 'Created after', 'date'], ['createdBefore', 'Created before', 'date'],
+                ['updatedAfter', 'Updated after', 'date'], ['updatedBefore', 'Updated before', 'date'],
+                ['deletedAfter', 'Deleted after', 'date'], ['deletedBefore', 'Deleted before', 'date'],
+              ].map(([field, label, type]) => (
+                <label key={field}>
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{label}</span>
+                  <input type={type} min={type === 'number' ? 0 : undefined} className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} />
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ==================================================
