@@ -5,6 +5,7 @@ import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { markSyncedIfUnchanged } from '../store/attemptSlice';
 import { useSaveResponsesMutation } from '../store/attemptApi';
+import { attemptService } from '../../../services/attemptService';
 
 export function useAutosave(attemptId) {
   const dispatch = useAppDispatch();
@@ -18,99 +19,136 @@ export function useAutosave(attemptId) {
     (state) => state.attempt.ui.connection
   );
 
+  const sections = useAppSelector(state => state.attempt.sections);
+  const currentQuestionId = useAppSelector(state => state.attempt.ui.currentQuestionId);
+
+  const attemptVersion = useAppSelector(
+    (state) => state.attempt.attempt?.attemptVersion || 0
+  );
+  
+  const status = useAppSelector(
+    (state) => state.attempt.attempt?.status
+  );
+  const isExpired = useAppSelector(
+    (state) => state.attempt.ui.isExpired
+  );
+
+  const stateRef = useRef({ responses, attemptVersion, sections, currentQuestionId });
+  useEffect(() => {
+    stateRef.current = { responses, attemptVersion, sections, currentQuestionId };
+  }, [responses, attemptVersion, sections, currentQuestionId]);
+
   // Keep track of pending saves to avoid infinite loops
   const pendingQueue = useRef(new Map());
 
-  useEffect(() => {
-    if (!attemptId) {
-      return;
-    }
-
-    if (connection === 'offline') {
-      return;
-    }
-
-    const pendingIds = Object.keys(responses).filter(
-      (qId) =>
-        responses[qId]?.saveState === 'pending'
+  const flushAutosave = async () => {
+    // Collect all pending IDs
+    const { responses: currentResponses } = stateRef.current;
+    const pendingIds = Object.keys(currentResponses).filter(
+      (qId) => currentResponses[qId]?.saveState === 'pending'
     );
+    if (pendingIds.length === 0) return;
 
-    if (pendingIds.length === 0) {
-      return;
+    for (const qId of pendingIds) {
+      await processSave(qId);
+    }
+  };
+
+  const processSave = async (qId) => {
+    if (pendingQueue.current.has(qId)) return;
+    pendingQueue.current.set(qId, true);
+
+    const { responses: currentResponses, attemptVersion: currentVersion, sections: currentSections, currentQuestionId: currentQId } = stateRef.current;
+    const response = currentResponses[qId];
+    
+    // Find currentQuestionIndex based on Redux state
+    let currentIndex = 0;
+    if (currentSections && currentQId) {
+       const allQIds = currentSections.flatMap(sec => sec.questionIds || []);
+       const idx = allQIds.indexOf(currentQId);
+       if (idx !== -1) currentIndex = idx;
     }
 
-    const toSave = [];
+    const payload = {
+      questionId: qId,
+      selectedOption: response.selected ? (Array.isArray(response.selected) ? response.selected.join(',') : response.selected) : (response.numeric || null),
+      currentQuestionIndex: currentIndex,
+      version: currentVersion,
+    };
 
-    pendingIds.forEach((qId) => {
-      if (pendingQueue.current.has(qId)) {
-        return;
+    try {
+      const res = await saveResponses({ attemptId, ...payload }).unwrap();
+      
+      // Update attemptVersion from response
+      if (res?.meta?.attemptVersion) {
+         dispatch({ type: 'attempt/updateAttemptVersion', payload: res.meta.attemptVersion });
       }
 
-      const response = responses[qId];
-
-      pendingQueue.current.set(qId, true);
-
-      toSave.push({
-        questionId: qId,
-        selected: response.selected,
-        numeric: response.numeric,
-        marked: response.marked,
-        timeSpentSeconds: 0,
-      });
-    });
-
-    if (toSave.length === 0) {
-      return;
+      dispatch(
+        markSyncedIfUnchanged({
+          qId,
+          selected: response.selected,
+          numeric: response.numeric,
+          marked: response.marked,
+        })
+      );
+      pendingQueue.current.delete(qId);
+    } catch (error) {
+      pendingQueue.current.delete(qId);
+      const status = error?.status;
+      if (status === 410) {
+        throw new Error('ATTEMPT_EXPIRED');
+      }
+      if (status === 409) {
+        console.warn('Conflict saving answer, reconciling state...');
+        try {
+          const freshState = await attemptService.getAttemptState(attemptId);
+          // Only update the attempt version (and keep local unsaved responses intact)
+          if (freshState?.attempt?.attemptVersion) {
+            dispatch({ type: 'attempt/updateAttemptVersion', payload: freshState.attempt.attemptVersion });
+          }
+          
+          return;
+        } catch (reconcileErr) {
+           console.error('Failed to reconcile attempt state', reconcileErr);
+        }
+        throw new Error('CONFLICT');
+      }
+      throw error;
     }
+  };
 
+  useEffect(() => {
+    if (!attemptId || connection === 'offline') return;
+    if (status && status !== 'IN_PROGRESS') return;
+    if (isExpired) return;
+
+    const pendingIds = Object.keys(responses).filter(
+      (qId) => responses[qId]?.saveState === 'pending'
+    );
+    if (pendingIds.length === 0) return;
+
+    // Process one by one
     const timer = setTimeout(async () => {
       try {
-        await saveResponses({ attemptId, updates: toSave }).unwrap();
-
-        /*
-         * Only mark an answer synced if the current Redux
-         * value is still exactly what we sent.
-         */
-        toSave.forEach((update) => {
-          dispatch(
-            markSyncedIfUnchanged({
-              qId: update.questionId,
-              selected: update.selected,
-              numeric: update.numeric,
-              marked: update.marked,
-            })
-          );
-
-          pendingQueue.current.delete(
-            update.questionId
-          );
-        });
-      } catch (error) {
-        console.error(
-          'Autosave failed',
-          error
-        );
-
-        /*
-         * Keep saveState = pending.
-         *
-         * This means the next state change / reconnect
-         * can retry the update.
-         */
-        toSave.forEach((update) => {
-          pendingQueue.current.delete(
-            update.questionId
-          );
-        });
+         await processSave(pendingIds[0]);
+      } catch (err) {
+         if (err?.status === 404 || err?.status === 410 || err?.message === 'ATTEMPT_EXPIRED') {
+            // Attempt is submitted or gone, silently stop retrying this pending item
+            dispatch(markSyncedIfUnchanged({
+              qId: pendingIds[0],
+              selected: responses[pendingIds[0]].selected,
+              numeric: responses[pendingIds[0]].numeric,
+              marked: responses[pendingIds[0]].marked,
+            }));
+            return;
+         }
+         console.error('Autosave process error', err);
       }
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [
-    responses,
-    connection,
-    attemptId,
-    dispatch,
-    saveResponses
-  ]);
+  }, [responses, connection, attemptId, saveResponses, attemptVersion, status, isExpired]);
+
+  return { flush: flushAutosave };
 }

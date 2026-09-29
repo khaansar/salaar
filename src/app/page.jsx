@@ -2,6 +2,7 @@ import StudentShell from '../components/student/StudentShell';
 import HeroSection from '../features/home/HeroSection';
 import ValueStrip from '../features/home/ValueStrip';
 import CategoryGrid from '../features/home/CategoryGrid';
+import PremiumCalendar from '../features/home/PremiumCalendar';
 import PopularSeries from '../features/home/PopularSeries';
 import StartPracticing from '../features/home/StartPracticing';
 import ContinueCard from '../features/home/ContinueCard';
@@ -48,6 +49,8 @@ export default async function HomePage() {
   return (
     <StudentShell>
       <div className="pb-10">
+        <PremiumCalendar />
+
         <HeroSection />
         <ContinueCard />
         <ValueStrip />

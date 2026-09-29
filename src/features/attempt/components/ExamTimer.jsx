@@ -1,31 +1,44 @@
 'use client';
-
+import { useState, useEffect } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
+import { useAppDispatch } from '../../../hooks/useAppDispatch';
+import { attemptService } from '../../../services/attemptService';
 
 export default function ExamTimer() {
-  const remainingSeconds =
-    useAppSelector(
-      (state) =>
-        state.attempt.attempt
-          ?.remainingSeconds || 0
-    );
+  const attempt = useAppSelector((state) => state.attempt.attempt);
+  const expiresAtStr = attempt?.expiresAt;
+  const status = attempt?.status;
+  const dispatch = useAppDispatch();
+  
+  const [safeRemainingSeconds, setSafeRemainingSeconds] = useState(0);
 
-  const safeRemainingSeconds =
-    Math.max(
-      0,
-      Number(remainingSeconds) || 0
-    );
+  useEffect(() => {
+    if (!expiresAtStr || status !== 'IN_PROGRESS') return;
+    const expiresAt = new Date(expiresAtStr).getTime();
 
-  const hours = Math.floor(
-    safeRemainingSeconds / 3600
-  );
+    const calculate = () => {
+      const remainingMs = expiresAt - Date.now();
+      const remainingSecs = Math.floor(Math.max(0, remainingMs) / 1000);
+      setSafeRemainingSeconds(remainingSecs);
+      
+      if (remainingSecs <= 0) {
+        clearInterval(interval);
+        // Force submit or transition to expired
+        // As per plan, stop at zero and notify attempt flow
+        if (attempt?.id) {
+          dispatch({ type: 'attempt/markExpired' });
+        }
+      }
+    };
 
-  const minutes = Math.floor(
-    (safeRemainingSeconds % 3600) / 60
-  );
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAtStr, status, attempt?.id, dispatch]);
 
-  const seconds =
-    safeRemainingSeconds % 60;
+  const hours = Math.floor(safeRemainingSeconds / 3600);
+  const minutes = Math.floor((safeRemainingSeconds % 3600) / 60);
+  const seconds = safeRemainingSeconds % 60;
 
   const pad = (num) =>
     String(num).padStart(2, '0');

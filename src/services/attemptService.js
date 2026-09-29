@@ -132,38 +132,15 @@ export const attemptService = {
       );
     }
 
-    /*
-     * IMPORTANT:
-     *
-     * Prefer a backend-provided remainingSeconds if it
-     * exists. Do NOT overwrite it with the full duration.
-     *
-     * Until Baahubali exposes a server-authoritative
-     * remainingSeconds/expiresAt value, the duration fallback
-     * remains only a temporary compatibility fallback.
-     */
-    const remainingSeconds =
-      Number.isFinite(
-        Number(attemptRes.remainingSeconds)
-      )
-        ? Number(attemptRes.remainingSeconds)
-        : structureRes.durationMinutes * 60;
-
     return {
       attempt: {
-        id:
-          attemptRes.attemptId ||
-          attemptId,
-
+        id: attemptRes.attemptId || attemptId,
         testId,
-
         title: structureRes.title,
-
         type: 'Mock Test',
-
         status: attemptRes.status,
-
-        remainingSeconds,
+        expiresAt: attemptRes.expiresAt,
+        attemptVersion: attemptRes._meta?.attemptVersion,
       },
 
       sections,
@@ -172,22 +149,11 @@ export const attemptService = {
     };
   },
 
-  async saveResponses(
-    attemptId,
-    updates
-  ) {
+  async saveResponses(attemptId, payload) {
     if (USE_MOCKS) {
-      return {
-        success: true,
-      };
+      return { success: true };
     }
-
-    return apiClient.patch(
-      `/attempts-api/${attemptId}`,
-      {
-        updates,
-      }
-    );
+    return apiClient.patch(`/attempts-api/${attemptId}`, payload);
   },
 
   async submitAttempt(attemptId) {

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { LayoutGrid, X } from 'lucide-react';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
+import { useAppSelector } from '../../../hooks/useAppSelector';
 import { setAttemptData } from '../store/attemptSlice';
-import { useGetAttemptStateQuery } from '../store/attemptApi';
+import { useGetAttemptStateQuery, useSubmitAttemptMutation } from '../store/attemptApi';
 import ExamHeader from './ExamHeader';
 import SectionTabs from './SectionTabs';
 import QuestionPanel from './QuestionPanel';
@@ -28,8 +29,27 @@ export default function ExamShell({ attemptId }) {
     }
   }, [data, dispatch]);
 
+  const isExpired = useAppSelector(state => state.attempt.ui.isExpired);
   useAttemptStream(attemptId, !!data);
-  useAutosave(attemptId);
+  const { flush } = useAutosave(attemptId);
+  const [submitAttempt] = useSubmitAttemptMutation();
+
+  useEffect(() => {
+    if (isExpired) {
+      // Execute the autosubmit flow
+      (async () => {
+        try {
+          if (flush) await flush();
+          await submitAttempt(attemptId).unwrap();
+          window.location.href = `/attempt/${attemptId}/result`;
+        } catch (err) {
+          console.error(err);
+          // Go to result page anyway if it's already expired or errored
+          window.location.href = `/attempt/${attemptId}/result`;
+        }
+      })();
+    }
+  }, [isExpired, attemptId, flush, submitAttempt]);
 
   const [isFullscreen, setIsFullscreen] = useState(true);
 
@@ -201,6 +221,7 @@ export default function ExamShell({ attemptId }) {
 
       <SubmitSummaryModal
         attemptId={attemptId}
+        flushAutosave={flush}
       />
     </div>
   );

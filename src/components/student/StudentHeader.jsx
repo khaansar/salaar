@@ -6,7 +6,9 @@ import {
   Sun,
   LogOut,
   Menu,
+  Hexagon,
 } from 'lucide-react';
+import Link from 'next/link';
 
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -74,8 +76,34 @@ export default function StudentHeader({
 
   return (
     <header className="h-16 border-b border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8">
-      {/* Left side empty for desktop, mobile menu button could go here */}
-      <div className="flex-1"></div>
+      {/* Left side: Logo */}
+      <div className="flex-1 flex items-center gap-4">
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          aria-label="Open menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        <Link
+          href="/"
+          className="flex items-center gap-2"
+        >
+          <div className="flex flex-shrink-0 h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+            <Hexagon
+              size={20}
+              className="fill-current"
+            />
+          </div>
+
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+            TestHub
+          </span>
+        </Link>
+      </div>
 
       {/* Right side actions */}
       <div className="flex items-center gap-4">

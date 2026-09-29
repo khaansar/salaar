@@ -7,6 +7,7 @@ import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import {
   updateRemainingTime,
   setConnectionState,
+  markExpired,
 } from '../store/attemptSlice';
 
 import { MockEventSource } from '../mock/mockStream';
@@ -49,54 +50,23 @@ export function useAttemptStream(
       );
     };
 
-    es.onmessage = (event) => {
+    es.addEventListener('time_warning', (event) => {
       try {
-        const data = JSON.parse(
-          event.data
-        );
-
-        dispatch(
-          setConnectionState('connected')
-        );
-
-        if (
-          data.remainingSeconds !==
-          undefined
-        ) {
-          dispatch(
-            updateRemainingTime(
-              Number(data.remainingSeconds)
-            )
-          );
+        const data = JSON.parse(event.data);
+        dispatch(setConnectionState('connected'));
+        console.warn('Time warning from server:', data);
+        
+        if (data.remainingSeconds <= 0) {
+           dispatch(markExpired());
         }
-
-        /*
-         * Preferred future contract:
-         *
-         * {
-         *   expiresAt: "2026-09-28T..."
-         * }
-         *
-         * The backend should remain authoritative
-         * for expiry.
-         */
       } catch (error) {
-        console.error(
-          'Invalid attempt SSE payload',
-          error
-        );
+        console.error('Invalid time_warning payload', error);
       }
-    };
+    });
 
     es.onerror = (error) => {
-      console.error(
-        'Attempt SSE error',
-        error
-      );
-
-      dispatch(
-        setConnectionState('offline')
-      );
+      console.error('Attempt SSE error', error);
+      dispatch(setConnectionState('offline'));
     };
 
     return () => {
