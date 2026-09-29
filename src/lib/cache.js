@@ -21,6 +21,31 @@ export const CACHE_TAGS = {
 };
 
 /**
+ * Resolve the API base URL for server-side requests.
+ */
+function resolveBaseUrl() {
+  const fromEnv =
+    process.env.INTERNAL_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const baseUrl =
+    fromEnv ||
+    (process.env.NODE_ENV === 'production'
+      ? ''
+      : 'http://localhost:8080');
+
+  if (!baseUrl) {
+    throw new Error(
+      'API base URL is not set. Define NEXT_PUBLIC_API_BASE_URL (or ' +
+        'INTERNAL_API_BASE_URL), or enable NEXT_PUBLIC_USE_CATALOG_MOCKS=true.'
+    );
+  }
+
+  // Avoid double slashes when joined with paths like "/tests-api/..."
+  return baseUrl.trim().replace(/\/+$/, '');
+}
+
+/**
  * Fetch a public API endpoint through Next.js Data Cache.
  *
  * @param {string} url
@@ -36,12 +61,7 @@ export async function fetchWithCache(url, options = {}) {
     ...fetchOptions
   } = options;
 
-  const baseUrl =
-    process.env.INTERNAL_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    'http://localhost:8080';
-
-  const fullUrl = `${baseUrl}${url}`;
+  const fullUrl = `${resolveBaseUrl()}${url}`;
 
   const response = await fetch(fullUrl, {
     ...fetchOptions,
