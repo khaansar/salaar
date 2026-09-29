@@ -20,7 +20,7 @@ export default function HeroSection() {
             Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">{name}</span>! 👋
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
-            Ready to continue your preparation? Let's make today count.
+            Ready to continue your preparation? Let&apos;s make today count.
           </p>
         </div>
       </section>
