@@ -33,7 +33,7 @@ export default function StudentHeader() {
   };
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex items-center justify-between px-4 lg:px-8">
+    <header className="h-16 border-b border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8">
       {/* Left side empty for desktop, mobile menu button could go here */}
       <div className="flex-1"></div>
 

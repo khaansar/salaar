@@ -72,48 +72,43 @@ export default function ContinueCard() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-1 mb-12 shadow-md">
-      <div className="bg-indigo-600 dark:bg-slate-900 rounded-[22px] px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex-1 text-white">
-          <div className="flex items-center gap-2 text-indigo-200 text-sm font-medium mb-1">
-            <Clock size={16} />
-            <span>In Progress Attempt</span>
-          </div>
-
-          <h3 className="text-xl font-bold mb-3">
+    <div className="group bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-md border border-indigo-100 dark:border-indigo-500/20 py-2.5 px-4 mb-8 shadow-sm hover:shadow transition-all flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden">
+      {/* Subtle animated background hint */}
+      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+      
+      <div className="flex items-center gap-3 flex-1 pl-1">
+        <div className="w-8 h-8 rounded bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400">
+          <Clock size={16} />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 flex-1">
+          <h3 className="font-semibold text-slate-900 dark:text-white text-sm truncate max-w-sm">
             {attempt.testTitle}
           </h3>
-
-          <div className="flex items-center gap-4 max-w-sm">
-            <div className="flex-1 h-2 bg-indigo-900/50 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-400 rounded-full"
-                style={{
-                  width: `${attempt.progressPercentage || 0}%`,
-                }}
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 hidden sm:inline-block">•</span>
+            <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded-sm text-nowrap">
+              In Progress
+            </span>
+            <div className="w-20 h-1 bg-slate-100 dark:bg-slate-700 rounded-sm overflow-hidden shrink-0 ml-1">
+              <div 
+                className="h-full bg-emerald-500 rounded-sm"
+                style={{ width: `${attempt.progressPercentage || 0}%` }}
               />
             </div>
-
-            <span className="text-sm font-semibold text-indigo-200">
-              {attempt.progressPercentage || 0}% Complete
+            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              {attempt.progressPercentage || 0}%
             </span>
           </div>
         </div>
-
-        <button
-          onClick={() =>
-            router.push(`/attempt/${attemptId}`)
-          }
-          className="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-white text-indigo-600 hover:bg-slate-50 font-bold rounded-xl transition-colors shrink-0"
-        >
-          <Play
-            size={18}
-            className="mr-2 fill-current"
-          />
-
-          Resume Test
-        </button>
       </div>
+      
+      <button
+        onClick={() => router.push(`/attempt/${attemptId}`)}
+        className="w-full sm:w-auto px-4 py-1.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center shrink-0 group-hover:scale-[1.02] active:scale-95"
+      >
+        Resume <ArrowRight size={14} className="ml-1.5" />
+      </button>
     </div>
   );
 }

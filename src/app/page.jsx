@@ -23,8 +23,8 @@ export default async function HomePage() {
   return (
     <StudentShell>
       <div className="pb-10">
-        <ContinueCard />
         <HeroSection />
+        <ContinueCard />
         <ValueStrip />
         <CategoryGrid categories={categories} />
         <PopularSeries series={popularSeries} />

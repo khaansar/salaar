@@ -1,6 +1,14 @@
+'use client';
+
 import { CheckCircle, BarChart2, BookOpen, Zap } from 'lucide-react';
+import { useAppSelector } from '../../hooks/useAppSelector';
 
 export default function ValueStrip() {
+  const { user } = useAppSelector((state) => state.auth);
+  const isAuthenticated = !!user;
+
+  if (isAuthenticated) return null;
+
   const values = [
     { name: 'Real exam experience', icon: CheckCircle, color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-500/10' },
     { name: 'Detailed performance analysis', icon: BarChart2, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-500/10' },
