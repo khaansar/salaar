@@ -54,7 +54,15 @@ export default async function InstructionsPage({ params }) {
             </div>
 
             <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Please read the following instructions carefully:</h3>
+              
+              {testDetails.instructions && (
+                <div className="mb-8 p-6 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Test Specific Instructions</h3>
+                  <div className="whitespace-pre-wrap">{testDetails.instructions}</div>
+                </div>
+              )}
+
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">General Platform Rules:</h3>
               <ul className="list-disc pl-5 space-y-3 mb-8">
                 <li>This test contains multiple sections. You can navigate between sections using the top navigation bar.</li>
                 <li>The clock will be set at the server. The countdown timer in the top right corner will display the remaining time available for you to complete the examination.</li>
