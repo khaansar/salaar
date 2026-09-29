@@ -1,19 +1,51 @@
 import apiClient from '@/lib/apiClient';
-import { fetchWithCache } from '@/lib/cache';
+
+import {
+  fetchWithCache,
+  CACHE_TAGS,
+} from '@/lib/cache';
 
 export const testService = {
-  // Public Catalog: Fetches published test series via Spring Cloud Gateway
-  getPublishedSeries: async (page = 0, size = 10) => {
-    return await fetchWithCache(`/tests-api/public/series?page=${page}&size=${size}`, { revalidate: 300 });
+  getPublishedSeries: async (
+    page = 0,
+    size = 10
+  ) => {
+    return fetchWithCache(
+      `/tests-api/public/series?page=${page}&size=${size}`,
+      {
+        revalidate: 300,
+
+        tags: [
+          CACHE_TAGS.seriesList,
+        ],
+      }
+    );
   },
 
-  // Public Catalog: Fetches details of a single series by ID
   getSeriesById: async (seriesId) => {
-    return await fetchWithCache(`/tests-api/public/series/${seriesId}`, { revalidate: 300 });
+    if (!seriesId) {
+      throw new Error(
+        'seriesId is required'
+      );
+    }
+
+    return fetchWithCache(
+      `/tests-api/public/series/${encodeURIComponent(seriesId)}`,
+      {
+        revalidate: 300,
+
+        tags: [
+          CACHE_TAGS.series(seriesId),
+          CACHE_TAGS.seriesList,
+        ],
+      }
+    );
   },
 
-  // Admin: Create a new test series (requires evaluator/admin role)
   createSeries: async (payload) => {
-    return await apiClient.post('/tests-api/admin/series', payload);
+    return apiClient.post(
+      '/tests-api/admin/series',
+      payload
+    );
   },
 };

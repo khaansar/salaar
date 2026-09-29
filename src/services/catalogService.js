@@ -1,5 +1,10 @@
 import apiClient from '../lib/apiClient';
-import { fetchWithCache } from '../lib/cache';
+
+import {
+  fetchWithCache,
+  CACHE_TAGS,
+} from '../lib/cache';
+
 import {
   CATEGORIES_MOCK,
   POPULAR_SERIES_MOCK,
@@ -19,8 +24,16 @@ export const catalogService = {
       await delay(500);
       return CATEGORIES_MOCK;
     }
-    
-    try { return await fetchWithCache('/tests-api/public/categories', { revalidate: 300 }); } catch (e) { return []; }
+
+    return fetchWithCache(
+      '/tests-api/public/categories',
+      {
+        revalidate: 300,
+        tags: [
+          CACHE_TAGS.categories,
+        ],
+      }
+    );
   },
 
   async getPopularSeries() {
@@ -28,8 +41,17 @@ export const catalogService = {
       await delay(600);
       return POPULAR_SERIES_MOCK;
     }
-    
-    try { return await fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 }); } catch (e) { return []; }
+
+    return fetchWithCache(
+      '/tests-api/public/series/popular',
+      {
+        revalidate: 120,
+        tags: [
+          CACHE_TAGS.popularSeries,
+          CACHE_TAGS.seriesList,
+        ],
+      }
+    );
   },
 
   async getFeaturedTests() {
@@ -37,8 +59,16 @@ export const catalogService = {
       await delay(700);
       return FEATURED_TESTS_MOCK;
     }
-    
-    try { return await fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 }); } catch (e) { return []; }
+
+    return fetchWithCache(
+      '/tests-api/public/mock-tests/featured',
+      {
+        revalidate: 120,
+        tags: [
+          CACHE_TAGS.featuredTests,
+        ],
+      }
+    );
   },
 
   async getContinueAttempt() {
@@ -47,7 +77,9 @@ export const catalogService = {
       return CONTINUE_ATTEMPT_MOCK;
     }
 
-    return apiClient.get('/attempts-api/attempts/in-progress');
+    return apiClient.get(
+      '/attempts-api/attempts/in-progress'
+    );
   },
 
   async getStreak() {
@@ -61,7 +93,8 @@ export const catalogService = {
       return STREAK_MOCK;
     }
 
-    return apiClient.get('/attempts-api/streak/yearly');
+    return apiClient.get(
+      '/attempts-api/streak/yearly'
+    );
   },
 };
-
