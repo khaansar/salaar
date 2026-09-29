@@ -30,15 +30,15 @@ export default function HeroSection() {
         <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
           
           <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
-            <h1 className="text-4xl tracking-tight font-extrabold text-slate-900 dark:text-white sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl mb-6">
+            <h1 className="text-3xl tracking-tight font-bold text-slate-900 dark:text-white sm:text-4xl lg:text-4xl mb-4">
               <span className="block xl:inline">Practice Smarter.</span>{' '}
               <span className="block text-[#5e43f3] dark:text-indigo-400 xl:inline">Score Higher.</span>
             </h1>
-            <p className="mt-3 text-base text-slate-600 dark:text-slate-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 font-medium">
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base sm:max-w-xl sm:mx-auto lg:mx-0 font-medium">
               High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.
             </p>
             
-            <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0 flex flex-col sm:flex-row gap-4">
+            <div className="mt-6 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/test-series"
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-[#5e43f3] hover:bg-[#4d36c6] shadow-sm transition-colors"

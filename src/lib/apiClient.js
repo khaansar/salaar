@@ -4,6 +4,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const apiClient = axios.create({
   baseURL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,6 +13,7 @@ const apiClient = axios.create({
 
 const refreshClient = axios.create({
   baseURL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -58,12 +60,29 @@ const shouldSkipRefresh = (config) => {
   );
 };
 
+const isCredentialSubmission = (config) =>
+  ['/auth-api/login', '/auth-api/register'].some((path) =>
+    config?.url?.includes(path)
+  );
+
 const notifySessionExpired = () => {
   if (typeof window === 'undefined') {
-    return;
+    return false;
   }
 
   window.dispatchEvent(new CustomEvent('auth:session-expired'));
+
+  // Do not redirect while the user is already using an authentication page.
+  // Login/register 401s are handled by their forms so their error messages
+  // remain visible instead of triggering a needless navigation.
+  const { pathname, search } = window.location;
+  if (pathname === '/login' || pathname === '/signup') {
+    return false;
+  }
+
+  const next = `${pathname}${search}`;
+  window.location.replace(`/login?next=${encodeURIComponent(next)}`);
+  return true;
 };
 
 const refreshSession = async () => {
@@ -72,8 +91,9 @@ const refreshSession = async () => {
       .post('/auth-api/refresh')
       .then(() => true)
       .catch((error) => {
-        notifySessionExpired();
-        throw normalizeErrorObject(error);
+        const normalizedError = normalizeErrorObject(error);
+        normalizedError.isAuthRedirect = notifySessionExpired();
+        throw normalizedError;
       })
       .finally(() => {
         refreshPromise = null;
@@ -90,12 +110,27 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (
-      error?.response?.status !== 401 ||
-      !originalRequest ||
-      originalRequest._retry ||
-      shouldSkipRefresh(originalRequest)
-    ) {
+    if (error?.response?.status !== 401 || !originalRequest) {
+      return normalizeError(error);
+    }
+
+    if (shouldSkipRefresh(originalRequest)) {
+      if (!isCredentialSubmission(originalRequest)) {
+        if (notifySessionExpired()) {
+          // Navigation is in progress. Keep the request pending so feature
+          // components cannot render a transient 401 error state first.
+          return new Promise(() => {});
+        }
+      }
+      return normalizeError(error);
+    }
+
+    // A retry that is still unauthorized means the refreshed session cannot
+    // access the resource. Clear the local session and require login again.
+    if (originalRequest._retry) {
+      if (notifySessionExpired()) {
+        return new Promise(() => {});
+      }
       return normalizeError(error);
     }
 
@@ -105,6 +140,9 @@ apiClient.interceptors.response.use(
       await refreshSession();
       return apiClient(originalRequest);
     } catch (refreshError) {
+      if (refreshError?.isAuthRedirect) {
+        return new Promise(() => {});
+      }
       return Promise.reject(refreshError);
     }
   }
@@ -113,6 +151,7 @@ apiClient.interceptors.response.use(
 
 export const apiClientRaw = axios.create({
   baseURL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },

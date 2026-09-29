@@ -48,7 +48,7 @@ export default async function HomePage() {
 
   return (
     <StudentShell>
-      <div className="pb-10">
+      <div className="pt-4 pb-10 md:pt-6">
         <PremiumCalendar />
 
         <HeroSection />

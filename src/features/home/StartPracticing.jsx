@@ -37,13 +37,13 @@ export default function StartPracticing({ tests = [] }) {
   }
 
   return (
-    <section className="mb-16">
-      <div className="mb-8 flex items-center justify-between">
+    <section className="mb-10">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
             <Rocket
               className="text-indigo-600 dark:text-indigo-400"
-              size={24}
+              size={18}
             />
             Start Practicing
           </h2>
@@ -70,7 +70,7 @@ export default function StartPracticing({ tests = [] }) {
           return (
             <div
               key={test.id}
-              className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
+              className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
             >
               <div className="mb-4">
                 <span className="inline-flex max-w-full truncate rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
@@ -79,11 +79,11 @@ export default function StartPracticing({ tests = [] }) {
                 </span>
               </div>
 
-              <h3 className="mb-5 line-clamp-2 min-h-[3rem] font-bold leading-6 text-slate-900 dark:text-white">
+              <h3 className="mb-4 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-slate-900 dark:text-white">
                 {test.title}
               </h3>
 
-              <div className="mb-6 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="mb-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <Clock size={14} />
 

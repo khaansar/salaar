@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
+import { cookies } from 'next/headers';
 import './globals.css';
 import StoreProvider from '../store/StoreProvider';
 import AuthProvider from '../components/auth/AuthProvider';
@@ -32,7 +33,10 @@ const themeScript = `
   })();
 `;
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cookieStore = await cookies();
+  const hasSession = Boolean(cookieStore.get('ACCESS_TOKEN')?.value);
+
   return (
     <html
       lang="en"
@@ -44,8 +48,8 @@ export default function RootLayout({ children }) {
           {themeScript}
         </Script>
 
-        <StoreProvider>
-          <AuthProvider>
+        <StoreProvider hasSession={hasSession}>
+          <AuthProvider hasSession={hasSession}>
             <ToastProvider>
               {children}
             </ToastProvider>

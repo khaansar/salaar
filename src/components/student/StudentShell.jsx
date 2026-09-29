@@ -149,7 +149,7 @@ export default function StudentShell({
     <div className="min-h-screen bg-[#fafafc] dark:bg-slate-950 flex flex-col">
       <PublicNavbar />
 
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
+      <main className="flex-1 px-4 pb-6 pt-6 md:px-6 md:pb-8 md:pt-8 lg:px-8 lg:pb-8 lg:pt-8">
         <div className="mx-auto w-full max-w-7xl">
           {children}
         </div>

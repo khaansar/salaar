@@ -18,7 +18,7 @@ export function SignupForm() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState({});
   const dispatch = useAppDispatch();
-  const { status, error: serverError } = useAppSelector((state) => state.auth);
+  const { registrationStatus, error: serverError } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
   const validate = () => {
@@ -133,10 +133,10 @@ export function SignupForm() {
 
         <button 
           type="submit" 
-          disabled={status === 'loading'}
-          className="w-full bg-slate-900 hover:bg-indigo-600 text-white rounded-lg h-12 text-[15px] font-semibold transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+          disabled={registrationStatus === 'loading'}
+          className="flex h-12 w-full items-center justify-center rounded-lg border-2 border-indigo-600 bg-indigo-600 text-[15px] font-semibold text-white shadow-md transition-all hover:border-indigo-700 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-indigo-400 disabled:bg-indigo-400 disabled:opacity-100 dark:border-indigo-500 dark:bg-indigo-500 dark:hover:border-indigo-400 dark:hover:bg-indigo-400"
         >
-          {status === 'loading' ? (
+          {registrationStatus === 'loading' ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />

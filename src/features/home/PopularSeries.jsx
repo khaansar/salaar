@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   ArrowRight,
   FileText,
@@ -27,16 +26,16 @@ export default function PopularSeries({ series = [] }) {
   }
 
   return (
-    <section className="mb-16">
-      <div className="mb-8 flex items-end justify-between gap-4">
+    <section className="mb-10">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Sparkles
-              size={20}
+              size={18}
               className="text-indigo-600 dark:text-indigo-400"
             />
 
-            <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-950 dark:text-white">
               Popular Test Series
             </h2>
           </div>
@@ -55,48 +54,25 @@ export default function PopularSeries({ series = [] }) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {series.map((item) => (
           <Link
             key={item.id}
             href={`/test-series/${item.id}`}
-            className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
+            className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
           >
-            <div className="relative aspect-[2/1] overflow-hidden bg-slate-100 dark:bg-slate-900">
-              {item.thumbnailUrl ? (
-                <Image
-                  src={item.thumbnailUrl}
-                  alt=""
-                  fill
-                  unoptimized
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 via-violet-100 to-slate-100 dark:from-indigo-950 dark:via-violet-950 dark:to-slate-900">
-                  <div className="flex h-full items-center justify-center">
-                    <FileText
-                      size={38}
-                      className="text-indigo-300 dark:text-indigo-700"
-                    />
-                  </div>
-                </div>
-              )}
-
+            <div className="flex flex-1 flex-col p-4">
               {item.badge && (
-                <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 shadow-sm backdrop-blur dark:bg-slate-950/85 dark:text-indigo-300">
+                <span className="mb-3 inline-flex w-fit items-center rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
                   {item.badge}
                 </span>
               )}
-            </div>
-
-            <div className="flex flex-1 flex-col p-5">
               <h3 className="line-clamp-2 text-base font-semibold leading-6 text-slate-950 dark:text-white">
                 {item.title}
               </h3>
 
-              <div className="mt-auto pt-5">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-4 text-xs font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
+              <div className="mt-auto pt-4">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-slate-100 pt-3 text-xs font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
                   {item.testCount != null && (
                     <span className="inline-flex items-center gap-1.5">
                       <FileText size={14} />
@@ -112,7 +88,7 @@ export default function PopularSeries({ series = [] }) {
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                     View series
                   </span>
