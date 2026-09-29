@@ -68,7 +68,7 @@ export default function HistoryPage() {
         ) : history.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-lg p-8 text-center shadow-sm">
             <h3 className="text-lg font-medium text-slate-900 mb-2">No attempts yet</h3>
-            <p className="text-slate-500 mb-6">You haven't taken any tests yet. Start a mock test to see your history here.</p>
+            <p className="text-slate-500 mb-6">You haven&apos;t taken any tests yet. Start a mock test to see your history here.</p>
             <Link href="/tests" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
               Browse Mock Tests
             </Link>
