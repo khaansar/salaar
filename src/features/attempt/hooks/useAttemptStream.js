@@ -49,54 +49,19 @@ export function useAttemptStream(
       );
     };
 
-    es.onmessage = (event) => {
+    es.addEventListener('time_warning', (event) => {
       try {
-        const data = JSON.parse(
-          event.data
-        );
-
-        dispatch(
-          setConnectionState('connected')
-        );
-
-        if (
-          data.remainingSeconds !==
-          undefined
-        ) {
-          dispatch(
-            updateRemainingTime(
-              Number(data.remainingSeconds)
-            )
-          );
-        }
-
-        /*
-         * Preferred future contract:
-         *
-         * {
-         *   expiresAt: "2026-09-28T..."
-         * }
-         *
-         * The backend should remain authoritative
-         * for expiry.
-         */
+        const data = JSON.parse(event.data);
+        dispatch(setConnectionState('connected'));
+        console.warn('Time warning from server:', data);
       } catch (error) {
-        console.error(
-          'Invalid attempt SSE payload',
-          error
-        );
+        console.error('Invalid time_warning payload', error);
       }
-    };
+    });
 
     es.onerror = (error) => {
-      console.error(
-        'Attempt SSE error',
-        error
-      );
-
-      dispatch(
-        setConnectionState('offline')
-      );
+      console.error('Attempt SSE error', error);
+      dispatch(setConnectionState('offline'));
     };
 
     return () => {

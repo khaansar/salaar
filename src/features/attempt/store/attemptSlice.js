@@ -269,6 +269,12 @@ const attemptSlice = createSlice({
       }
     },
 
+    updateAttemptVersion(state, action) {
+      if (state.attempt) {
+        state.attempt.attemptVersion = action.payload;
+      }
+    },
+
     resetAttemptState() {
       return initialState;
     },
@@ -279,6 +285,7 @@ export const {
   setAttemptData,
   setConnectionState,
   updateRemainingTime,
+  updateAttemptVersion,
   setCurrentQuestion,
   setCurrentSection,
   setPaletteOpen,

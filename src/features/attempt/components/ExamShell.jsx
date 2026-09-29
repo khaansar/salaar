@@ -29,7 +29,7 @@ export default function ExamShell({ attemptId }) {
   }, [data, dispatch]);
 
   useAttemptStream(attemptId, !!data);
-  useAutosave(attemptId);
+  const { flush } = useAutosave(attemptId);
 
   const [isFullscreen, setIsFullscreen] = useState(true);
 
@@ -201,6 +201,7 @@ export default function ExamShell({ attemptId }) {
 
       <SubmitSummaryModal
         attemptId={attemptId}
+        flushAutosave={flush}
       />
     </div>
   );

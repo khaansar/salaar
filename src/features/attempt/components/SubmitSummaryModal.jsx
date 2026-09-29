@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { attemptService } from '../../../services/attemptService';
 
-export default function SubmitSummaryModal({ attemptId }) {
+export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   
@@ -25,12 +25,21 @@ export default function SubmitSummaryModal({ attemptId }) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      if (flushAutosave) {
+         await flushAutosave();
+      }
       await attemptService.submitAttempt(attemptId);
-      router.push(`/attempt/${attemptId}/result`);
+      router.replace(`/attempt/${attemptId}/result`);
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
-      alert('Failed to submit. Please check your connection and try again.');
+      if (err.message === 'ATTEMPT_EXPIRED') {
+        alert('Your attempt has expired and cannot be submitted.');
+      } else if (err.message === 'CONFLICT') {
+        alert('There was a conflict saving your answers. Please try again.');
+      } else {
+        alert('Failed to submit. Please check your connection and try again.');
+      }
     }
   };
 
