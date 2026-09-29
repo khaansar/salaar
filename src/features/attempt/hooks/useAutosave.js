@@ -25,6 +25,13 @@ export function useAutosave(attemptId) {
   const attemptVersion = useAppSelector(
     (state) => state.attempt.attempt?.attemptVersion || 0
   );
+  
+  const status = useAppSelector(
+    (state) => state.attempt.attempt?.status
+  );
+  const isExpired = useAppSelector(
+    (state) => state.attempt.ui.isExpired
+  );
 
   const stateRef = useRef({ responses, attemptVersion, sections, currentQuestionId });
   useEffect(() => {
@@ -113,6 +120,8 @@ export function useAutosave(attemptId) {
 
   useEffect(() => {
     if (!attemptId || connection === 'offline') return;
+    if (status && status !== 'IN_PROGRESS') return;
+    if (isExpired) return;
 
     const pendingIds = Object.keys(responses).filter(
       (qId) => responses[qId]?.saveState === 'pending'
@@ -124,12 +133,22 @@ export function useAutosave(attemptId) {
       try {
          await processSave(pendingIds[0]);
       } catch (err) {
+         if (err?.status === 404 || err?.status === 410 || err?.message === 'ATTEMPT_EXPIRED') {
+            // Attempt is submitted or gone, silently stop retrying this pending item
+            dispatch(markSyncedIfUnchanged({
+              qId: pendingIds[0],
+              selected: responses[pendingIds[0]].selected,
+              numeric: responses[pendingIds[0]].numeric,
+              marked: responses[pendingIds[0]].marked,
+            }));
+            return;
+         }
          console.error('Autosave process error', err);
       }
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [responses, connection, attemptId, saveResponses, attemptVersion]);
+  }, [responses, connection, attemptId, saveResponses, attemptVersion, status, isExpired]);
 
   return { flush: flushAutosave };
 }
