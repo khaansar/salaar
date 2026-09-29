@@ -38,7 +38,9 @@ const CONTENT_MANAGEMENT_NAV = [
 // These groups mirror the reference design's information architecture, but
 // there is no backing API for admin-user management or analytics yet, so the
 // links are shown as disabled "coming soon" entries rather than dead links.
-const USERS_NAV = [{ label: 'Users', icon: Users }];
+const USERS_NAV = [
+  { href: '/admin-dashboard/users', label: 'Users', icon: Users },
+];
 const REPORTS_NAV = [
   { label: 'Analytics', icon: BarChart3 },
   { label: 'Reports', icon: FileBarChart },
@@ -118,9 +120,13 @@ function SidebarContent({ pathname, isAdminSection, onNavigate }) {
               Users
             </div>
             <nav className="px-4 space-y-1">
-              {USERS_NAV.map((item) => (
-                <DisabledNavItem key={item.label} item={item} />
-              ))}
+             {USERS_NAV.map((item) => (
+  <NavLink
+    key={item.href}
+    item={item}
+    active={isActive(item)}
+  />
+))}
             </nav>
 
             <div className="px-6 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
