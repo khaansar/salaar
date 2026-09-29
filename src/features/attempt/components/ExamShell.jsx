@@ -31,6 +31,72 @@ export default function ExamShell({ attemptId }) {
   useAttemptStream(attemptId, !!data);
   useAutosave(attemptId);
 
+  const [isFullscreen, setIsFullscreen] = useState(true);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    // Initial check (in case they load the page directly not in fullscreen)
+    setIsFullscreen(!!document.fullscreenElement);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const requestFullscreen = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn('Could not request fullscreen:', err);
+      });
+    }
+  };
+
+  // Anti-cheat: Disable right-click, copy, PrintScreen, and DevTools
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        navigator.clipboard.writeText('Screenshots are disabled during the examination.').catch(() => {});
+        return;
+      }
+      
+      // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+C (and Mac equivalents)
+      if (
+        e.keyCode === 123 || 
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+        (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67)) || 
+        (e.metaKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+        (e.metaKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67))
+      ) {
+        e.preventDefault();
+      }
+    };
+    
+    const handleCopy = (e) => {
+      e.preventDefault();
+      if (e.clipboardData) {
+        e.clipboardData.setData('text/plain', 'Copying is disabled during the examination.');
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('copy', handleCopy);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('copy', handleCopy);
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-exam-bg text-exam-primary">
@@ -63,7 +129,24 @@ export default function ExamShell({ attemptId }) {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6]">
+    <div className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6] select-none">
+      {!isFullscreen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-exam-bg/90 backdrop-blur-sm">
+          <div className="bg-exam-panel border border-exam-border rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+            <h2 className="text-xl font-bold text-red-600 mb-3">Fullscreen Required</h2>
+            <p className="text-exam-text-muted mb-6">
+              You have exited fullscreen mode. This exam must be taken in fullscreen to prevent cheating. Please return to fullscreen to continue.
+            </p>
+            <button
+              onClick={requestFullscreen}
+              className="w-full bg-exam-accent hover:bg-exam-accent/90 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+            >
+              Return to Fullscreen
+            </button>
+          </div>
+        </div>
+      )}
+
       <ExamHeader />
 
       <SectionTabs />

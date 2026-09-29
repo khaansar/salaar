@@ -24,41 +24,11 @@ export default function StartPracticing({ tests = [] }) {
   const [startingTestId, setStartingTestId] = useState(null);
 
   const handleStartTest = requireAuth(
-    async (testId, durationMinutes) => {
-      if (startingTestId) {
-        return;
-      }
-
-      setStartingTestId(testId);
-
-      try {
-        const attempt = await attemptService.startAttempt(
-          testId,
-          durationMinutes || 180
-        );
-
-        if (!attempt?.attemptId) {
-          throw new Error(
-            'The server did not return an attempt ID.'
-          );
-        }
-
-        router.push(
-          `/attempt/${attempt.attemptId}`
-        );
-      } catch (error) {
-        console.error(
-          'Failed to start test',
-          error
-        );
-
-        toast.error(
-          error?.message ||
-            'Unable to start the test. Please try again.'
-        );
-      } finally {
-        setStartingTestId(null);
-      }
+    (testId, durationMinutes) => {
+      const url = `/tests/${testId}/instructions`;
+      const features = 'popup=1,width=1200,height=800,left=100,top=100,resizable=yes,scrollbars=yes';
+      
+      window.open(url, '_blank', features);
     }
   );
 
