@@ -11,8 +11,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { categoriesApi, seriesApi } from '@/services/adminService';
-import { usePaginatedFetch } from '@/hooks/usePaginatedFetch';
+import { useGetSeriesListQuery, useDeleteSeriesMutation, useGetCategoriesListQuery } from '@/store/adminApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/components/common/ToastProvider';
 import { TEST_STATUS_OPTIONS, STATUS_BADGE_STYLES } from '@/constants/enums';
@@ -22,7 +21,8 @@ const PAGE_SIZE = 10;
 export default function SeriesListPage() {
   const router = useRouter();
   const toast = useToast();
-  const [categories, setCategories] = useState([]);
+  const { data: catData } = useGetCategoriesListQuery({ limit: 100 });
+  const categories = catData?.items || [];
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -31,22 +31,23 @@ export default function SeriesListPage() {
   const [deleting, setDeleting] = useState(false);
   const debouncedSearch = useDebounce(search);
 
-  useEffect(() => {
-    categoriesApi.list().then(setCategories).catch(() => {});
-  }, []);
+
 
   const params = useMemo(
     () => ({ search: debouncedSearch, status, categoryId, page, limit: PAGE_SIZE }),
     [debouncedSearch, status, categoryId, page]
   );
 
-  const { items, meta, loading, error, refetch } = usePaginatedFetch(seriesApi.list, params);
+  const { data, isLoading: loading, error, refetch } = useGetSeriesListQuery(params);
+  const items = data?.items || [];
+  const meta = data?.meta || null;
+  const [deleteSeries] = useDeleteSeriesMutation();
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await seriesApi.remove(deleteTarget.id);
+      await deleteSeries(deleteTarget.id).unwrap();
       toast.success('Test series deleted');
       setDeleteTarget(null);
       refetch();
