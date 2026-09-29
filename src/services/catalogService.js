@@ -1,4 +1,5 @@
 import apiClient from '../lib/apiClient';
+import { fetchWithCache } from '../lib/cache';
 import { 
   CATEGORIES_MOCK, 
   POPULAR_SERIES_MOCK, 
@@ -20,7 +21,7 @@ export const catalogService = {
     }
     try {
       console.log('Fetching categories...');
-      const response = await apiClient.get('/tests-api/public/categories');
+      const response = await fetchWithCache('/tests-api/public/categories', { revalidate: 300 });
       return response;
     } catch (error) {
       console.error('getCategories error:', error);
@@ -35,7 +36,7 @@ export const catalogService = {
     }
     try {
       console.log('Fetching popular series...');
-      const response = await apiClient.get('/tests-api/public/series/popular');
+      const response = await fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 });
       return response;
     } catch (error) {
       console.error('getPopularSeries error:', error);
@@ -50,7 +51,7 @@ export const catalogService = {
     }
     try {
       console.log('Fetching featured tests...');
-      const response = await apiClient.get('/tests-api/public/mock-tests/featured');
+      const response = await fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 });
       return response;
     } catch (error) {
       console.error('getFeaturedTests error:', error);
@@ -78,3 +79,4 @@ export const catalogService = {
     return response;
   }
 };
+
