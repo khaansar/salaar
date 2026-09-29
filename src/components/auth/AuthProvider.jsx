@@ -1,19 +1,33 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { useAppSelector } from '../../hooks/useAppSelector';
-import { fetchCurrentUser, setRoleFromCookie } from '../../store/slices/authSlice';
+import { fetchCurrentUser, clearAuth } from '../../store/slices/authSlice';
 
 export default function AuthProvider({ children }) {
   const dispatch = useAppDispatch();
-  const { isInitialized } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!isInitialized) {
-      dispatch(fetchCurrentUser());
-    }
-  }, [dispatch, isInitialized]);
+    dispatch(fetchCurrentUser());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      dispatch(clearAuth());
+    };
+
+    window.addEventListener(
+      'auth:session-expired',
+      handleSessionExpired
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:session-expired',
+        handleSessionExpired
+      );
+    };
+  }, [dispatch]);
 
   return children;
 }

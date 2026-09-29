@@ -1,62 +1,118 @@
 'use client';
+
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setSaveState } from '../store/attemptSlice';
+import {
+  markSyncedIfUnchanged,
+} from '../store/attemptSlice';
 import { attemptService } from '../../../services/attemptService';
 
 export function useAutosave(attemptId) {
   const dispatch = useAppDispatch();
-  const responses = useAppSelector(state => state.attempt.responses);
-  const connection = useAppSelector(state => state.attempt.ui.connection);
-  
-  // Keep track of pending saves to avoid infinite loops
+
+  const responses = useAppSelector(
+    (state) => state.attempt.responses
+  );
+
+  const connection = useAppSelector(
+    (state) => state.attempt.ui.connection
+  );
+
   const pendingQueue = useRef(new Map());
 
   useEffect(() => {
-    // Find all responses that are 'pending'
-    const pendingIds = Object.keys(responses).filter(qId => responses[qId].saveState === 'pending');
-    
-    if (pendingIds.length === 0 || connection === 'offline') return;
+    if (!attemptId) {
+      return;
+    }
 
-    // Add to local queue ref to avoid re-triggering while saving
+    if (connection === 'offline') {
+      return;
+    }
+
+    const pendingIds = Object.keys(responses).filter(
+      (qId) =>
+        responses[qId]?.saveState === 'pending'
+    );
+
+    if (pendingIds.length === 0) {
+      return;
+    }
+
     const toSave = [];
-    pendingIds.forEach(qId => {
-      if (!pendingQueue.current.has(qId)) {
-        pendingQueue.current.set(qId, true);
-        toSave.push({
-          questionId: qId,
-          selected: responses[qId].selected,
-          numeric: responses[qId].numeric,
-          marked: responses[qId].marked,
-          timeSpentSeconds: 0 // Mock for now
-        });
+
+    pendingIds.forEach((qId) => {
+      if (pendingQueue.current.has(qId)) {
+        return;
       }
+
+      const response = responses[qId];
+
+      pendingQueue.current.set(qId, true);
+
+      toSave.push({
+        questionId: qId,
+        selected: response.selected,
+        numeric: response.numeric,
+        marked: response.marked,
+        timeSpentSeconds: 0,
+      });
     });
 
-    if (toSave.length === 0) return;
+    if (toSave.length === 0) {
+      return;
+    }
 
-    // Debounce/batch save
     const timer = setTimeout(async () => {
       try {
-        await attemptService.saveResponses(attemptId, toSave);
-        
-        // On success, clear queue and update state
-        toSave.forEach(update => {
-          pendingQueue.current.delete(update.questionId);
-          dispatch(setSaveState({ qId: update.questionId, saveState: 'synced' }));
+        await attemptService.saveResponses(
+          attemptId,
+          toSave
+        );
+
+        /*
+         * Only mark an answer synced if the current Redux
+         * value is still exactly what we sent.
+         */
+        toSave.forEach((update) => {
+          dispatch(
+            markSyncedIfUnchanged({
+              qId: update.questionId,
+              selected: update.selected,
+              numeric: update.numeric,
+              marked: update.marked,
+            })
+          );
+
+          pendingQueue.current.delete(
+            update.questionId
+          );
         });
-        
-      } catch (err) {
-        console.error('Autosave failed', err);
-        // On fail, let them remain pending. Queue ref can be cleared to retry later
-        toSave.forEach(update => {
-          pendingQueue.current.delete(update.questionId);
+      } catch (error) {
+        console.error(
+          'Autosave failed',
+          error
+        );
+
+        /*
+         * Keep saveState = pending.
+         *
+         * This means the next state change / reconnect
+         * can retry the update.
+         */
+        toSave.forEach((update) => {
+          pendingQueue.current.delete(
+            update.questionId
+          );
         });
       }
-    }, 1000); // 1 second debounce/batch window
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [responses, connection, attemptId, dispatch]);
-
+  }, [
+    responses,
+    connection,
+    attemptId,
+    dispatch,
+  ]);
 }

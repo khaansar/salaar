@@ -1,17 +1,17 @@
 import apiClient from '../lib/apiClient';
 import { fetchWithCache } from '../lib/cache';
-import { 
-  CATEGORIES_MOCK, 
-  POPULAR_SERIES_MOCK, 
-  FEATURED_TESTS_MOCK, 
-  CONTINUE_ATTEMPT_MOCK 
+import {
+  CATEGORIES_MOCK,
+  POPULAR_SERIES_MOCK,
+  FEATURED_TESTS_MOCK,
+  CONTINUE_ATTEMPT_MOCK,
 } from '../features/home/mock/homeMocks';
 
-// Set this to false when connecting to real endpoints
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_CATALOG_MOCKS !== 'false';
+const USE_MOCKS =
+  process.env.NEXT_PUBLIC_USE_CATALOG_MOCKS === 'true';
 
-// Helper to simulate network delay for mocks
-const delay = (ms) => new Promise(res => setTimeout(res, ms));
+const delay = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export const catalogService = {
   async getCategories() {
@@ -19,14 +19,8 @@ export const catalogService = {
       await delay(500);
       return CATEGORIES_MOCK;
     }
-    try {
-      console.log('Fetching categories...');
-      const response = await fetchWithCache('/tests-api/public/categories', { revalidate: 300 });
-      return response;
-    } catch (error) {
-      console.error('getCategories error:', error);
-      return [];
-    }
+    
+    return fetchWithCache('/tests-api/public/categories', { revalidate: 300 });
   },
 
   async getPopularSeries() {
@@ -34,14 +28,8 @@ export const catalogService = {
       await delay(600);
       return POPULAR_SERIES_MOCK;
     }
-    try {
-      console.log('Fetching popular series...');
-      const response = await fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 });
-      return response;
-    } catch (error) {
-      console.error('getPopularSeries error:', error);
-      return [];
-    }
+    
+    return fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 });
   },
 
   async getFeaturedTests() {
@@ -49,34 +37,30 @@ export const catalogService = {
       await delay(700);
       return FEATURED_TESTS_MOCK;
     }
-    try {
-      console.log('Fetching featured tests...');
-      const response = await fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 });
-      return response;
-    } catch (error) {
-      console.error('getFeaturedTests error:', error);
-      return [];
-    }
+    
+    return fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 });
   },
 
   async getContinueAttempt() {
     if (USE_MOCKS) {
       await delay(300);
-      return CONTINUE_ATTEMPT_MOCK; 
+      return CONTINUE_ATTEMPT_MOCK;
     }
-    // TODO: implement real endpoint via attempt-service
-    const response = await apiClient.get('/attempts-api/attempts/in-progress');
-    return response;
+
+    return apiClient.get('/attempts-api/attempts/in-progress');
   },
 
   async getStreak() {
     if (USE_MOCKS) {
       await delay(400);
-      return require('../features/home/mock/homeMocks').STREAK_MOCK;
-    }
-    // TODO: implement real endpoint via attempt-service
-    const response = await apiClient.get('/attempts-api/streak/yearly');
-    return response;
-  }
-};
 
+      const { STREAK_MOCK } = await import(
+        '../features/home/mock/homeMocks'
+      );
+
+      return STREAK_MOCK;
+    }
+
+    return apiClient.get('/attempts-api/streak/yearly');
+  },
+};
