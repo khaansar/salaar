@@ -7,6 +7,7 @@ import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import {
   updateRemainingTime,
   setConnectionState,
+  markExpired,
 } from '../store/attemptSlice';
 
 import { MockEventSource } from '../mock/mockStream';
@@ -54,6 +55,10 @@ export function useAttemptStream(
         const data = JSON.parse(event.data);
         dispatch(setConnectionState('connected'));
         console.warn('Time warning from server:', data);
+        
+        if (data.remainingSeconds <= 0) {
+           dispatch(markExpired());
+        }
       } catch (error) {
         console.error('Invalid time_warning payload', error);
       }

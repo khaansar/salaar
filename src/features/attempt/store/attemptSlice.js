@@ -12,6 +12,7 @@ const initialState = {
     paletteOpen: false,
     submitModalOpen: false,
     connection: 'offline',
+    isExpired: false,
   },
 
   status: 'idle',
@@ -275,6 +276,10 @@ const attemptSlice = createSlice({
       }
     },
 
+    markExpired(state) {
+      state.ui.isExpired = true;
+    },
+
     resetAttemptState() {
       return initialState;
     },
@@ -286,6 +291,7 @@ export const {
   setConnectionState,
   updateRemainingTime,
   updateAttemptVersion,
+  markExpired,
   setCurrentQuestion,
   setCurrentSection,
   setPaletteOpen,

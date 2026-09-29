@@ -26,12 +26,7 @@ export default function ExamTimer() {
         // Force submit or transition to expired
         // As per plan, stop at zero and notify attempt flow
         if (attempt?.id) {
-          attemptService.submitAttempt(attempt.id).then(() => {
-             window.location.href = `/attempt/${attempt.id}/result`;
-          }).catch(() => {
-             alert('Your attempt has expired.');
-             window.location.href = `/attempt/${attempt.id}/result`;
-          });
+          dispatch({ type: 'attempt/markExpired' });
         }
       }
     };
