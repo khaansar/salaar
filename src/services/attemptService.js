@@ -34,7 +34,7 @@ export const attemptService = {
     }
 
     const structureRes = await apiClient.get(
-      `/catalog/mock-tests/${testId}/structure`
+      `/tests-api/catalog/mock-tests/${testId}/structure`
     );
 
     if (!structureRes) {

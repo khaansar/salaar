@@ -342,17 +342,19 @@ export function QuestionForm({ question }) {
                     >
                       <Plus size={12} /> Add language
                     </button>
-                    <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-                      {availableLanguages.map((l) => (
-                        <button
-                          type="button"
-                          key={l.value}
-                          onClick={() => addLanguage(l.value)}
-                          className="text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
-                        >
-                          {l.label}
-                        </button>
-                      ))}
+                    <div className="absolute left-0 top-full z-10 hidden pt-1 group-hover:block group-focus-within:block">
+                      <div className="flex min-w-[140px] flex-col rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                        {availableLanguages.map((l) => (
+                          <button
+                            type="button"
+                            key={l.value}
+                            onClick={() => addLanguage(l.value)}
+                            className="text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                          >
+                            {l.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

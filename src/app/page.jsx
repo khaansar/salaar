@@ -9,26 +9,62 @@ import { catalogService } from '../services/catalogService';
 
 export const metadata = {
   title: 'TestHub | Practice Smarter, Score Higher',
-  description: 'High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.',
+  description:
+    'High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.',
 };
 
-export default async function HomePage() {
-  // Parallel fetching for performance
-  const [categories, popularSeries, featuredTests] = await Promise.all([
+async function loadCatalog() {
+  const results = await Promise.allSettled([
     catalogService.getCategories(),
     catalogService.getPopularSeries(),
     catalogService.getFeaturedTests(),
   ]);
 
+  return {
+    categories:
+      results[0].status === 'fulfilled'
+        ? results[0].value
+        : [],
+
+    popularSeries:
+      results[1].status === 'fulfilled'
+        ? results[1].value
+        : [],
+
+    featuredTests:
+      results[2].status === 'fulfilled'
+        ? results[2].value
+        : [],
+  };
+}
+
+export default async function HomePage() {
+  const {
+    categories,
+    popularSeries,
+    featuredTests,
+  } = await loadCatalog();
+
   return (
     <StudentShell>
       <div className="pb-10">
-        <ContinueCard />
         <HeroSection />
+
+        <ContinueCard />
+
         <ValueStrip />
-        <CategoryGrid categories={categories} />
-        <PopularSeries series={popularSeries} />
-        <StartPracticing tests={featuredTests} />
+
+        <CategoryGrid
+          categories={categories}
+        />
+
+        <PopularSeries
+          series={popularSeries}
+        />
+
+        <StartPracticing
+          tests={featuredTests}
+        />
       </div>
     </StudentShell>
   );

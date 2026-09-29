@@ -1,85 +1,164 @@
 'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Bookmark, Clock, Award, Rocket } from 'lucide-react';
+import {
+  ArrowRight,
+  Clock,
+  Award,
+  Rocket,
+  Loader2,
+} from 'lucide-react';
+import { useState } from 'react';
+
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { attemptService } from '../../services/attemptService';
+import { formatDuration } from '../../utils/format';
+import { useToast } from '../../components/common/ToastProvider';
 
 export default function StartPracticing({ tests = [] }) {
   const router = useRouter();
   const requireAuth = useRequireAuth();
+  const toast = useToast();
 
-  const handleStartTest = requireAuth(async (testId, durationMinutes) => {
-    try {
-      // Start the attempt on the backend
-      const attempt = await attemptService.startAttempt(testId, durationMinutes || 180);
-      // Navigate to the new attempt ID returned by the server
-      router.push(`/attempt/${attempt.attemptId}`);
-    } catch (err) {
-      console.error('Failed to start test', err);
-      alert('Failed to start test. Please check the console for details.');
+  const [startingTestId, setStartingTestId] = useState(null);
+
+  const handleStartTest = requireAuth(
+    async (testId, durationMinutes) => {
+      if (startingTestId) {
+        return;
+      }
+
+      setStartingTestId(testId);
+
+      try {
+        const attempt = await attemptService.startAttempt(
+          testId,
+          durationMinutes || 180
+        );
+
+        if (!attempt?.attemptId) {
+          throw new Error(
+            'The server did not return an attempt ID.'
+          );
+        }
+
+        router.push(
+          `/attempt/${attempt.attemptId}`
+        );
+      } catch (error) {
+        console.error(
+          'Failed to start test',
+          error
+        );
+
+        toast.error(
+          error?.message ||
+            'Unable to start the test. Please try again.'
+        );
+      } finally {
+        setStartingTestId(null);
+      }
     }
-  });
+  );
 
-  const handleBookmark = requireAuth((testId) => {
-    // TODO: implement bookmarking
-    console.log('Bookmarking test', testId);
-    alert(`Bookmarked test ${testId}!`);
-  });
-
-  if (!tests || tests.length === 0) return null;
+  if (!Array.isArray(tests) || tests.length === 0) {
+    return null;
+  }
 
   return (
     <section className="mb-16">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Rocket className="text-indigo-600 dark:text-indigo-400" size={24} />
+          <h2 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
+            <Rocket
+              className="text-indigo-600 dark:text-indigo-400"
+              size={24}
+            />
             Start Practicing
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Handpicked mock tests to get you started.</p>
+
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Handpicked mock tests to get you started.
+          </p>
         </div>
-        <Link href="/tests" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1">
-          View All <ArrowRight size={16} />
+
+        <Link
+          href="/tests"
+          className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+        >
+          View All
+          <ArrowRight size={16} />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {tests.map((test) => (
-          <div
-            key={test.id}
-            className="flex flex-col bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded">
-                {test.categoryName}
-              </span>
-              <button 
-                onClick={() => handleBookmark(test.id)}
-                className="text-slate-400 hover:text-indigo-600 transition-colors"
-                aria-label="Bookmark test"
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {tests.map((test) => {
+          const isStarting =
+            startingTestId === test.id;
+
+          return (
+            <div
+              key={test.id}
+              className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
+            >
+              <div className="mb-4">
+                <span className="inline-flex max-w-full truncate rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                  {test.categoryName ||
+                    'Mock Test'}
+                </span>
+              </div>
+
+              <h3 className="mb-5 line-clamp-2 min-h-[3rem] font-bold leading-6 text-slate-900 dark:text-white">
+                {test.title}
+              </h3>
+
+              <div className="mb-6 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Clock size={14} />
+
+                  {formatDuration(test.durationMinutes) ||
+                    '0 min'}
+                </span>
+
+                <span className="flex items-center gap-1.5">
+                  <Award size={14} />
+                  {test.totalMarks ?? 0} marks
+                </span>
+              </div>
+
+              <button
+                type="button"
+                disabled={isStarting}
+                onClick={() =>
+                  handleStartTest(
+                    test.id,
+                    test.durationMinutes
+                  )
+                }
+                className="mt-auto flex w-full items-center justify-center rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Bookmark size={18} />
+                {isStarting ? (
+                  <>
+                    <Loader2
+                      size={16}
+                      className="mr-2 animate-spin"
+                    />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    Start Test
+                    <ArrowRight
+                      className="ml-1.5"
+                      size={16}
+                    />
+                  </>
+                )}
               </button>
             </div>
-            
-            <h3 className="font-bold text-slate-900 dark:text-white mb-4 line-clamp-2">
-              {test.title}
-            </h3>
-            
-            <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
-              <span className="flex items-center gap-1.5"><Clock size={14} /> {test.durationMinutes > 60 ? `${test.durationMinutes / 60} hrs` : `${test.durationMinutes} mins`}</span>
-              <span className="flex items-center gap-1.5"><Award size={14} /> {test.totalMarks} marks</span>
-            </div>
-
-            <button
-              onClick={() => handleStartTest(test.id, test.durationMinutes)}
-              className="mt-auto w-full flex items-center justify-center py-2.5 bg-[#5e43f3] hover:bg-[#4d36c6] text-white font-medium rounded-xl transition-colors text-sm"
-            >
-              Start Test <ArrowRight className="ml-1.5 w-4 h-4" />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

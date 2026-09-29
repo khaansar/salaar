@@ -19,7 +19,7 @@ export const attemptApi = apiSlice.injectEndpoints({
           
           // 2. Fetch Test Structure
           const testId = attemptRes.testId;
-          const structureRes = await apiClient.get(`/catalog/mock-tests/${testId}/structure`);
+          const structureRes = await apiClient.get(`/tests-api/catalog/mock-tests/${testId}/structure`);
           const structure = structureRes.data?.data || structureRes.data || structureRes;
 
           // 3. Transform data (same logic as attemptService)

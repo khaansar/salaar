@@ -6,6 +6,7 @@ import { Input } from '../ui/Input';
 import { PasswordInput } from '../ui/PasswordInput';
 import { Checkbox } from '../ui/Checkbox';
 import { isValidEmail } from '../../utils/validators';
+import { safeNextPath } from '../../utils/redirect';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { loginUser } from '../../store/slices/authSlice';
@@ -47,12 +48,7 @@ export function LoginForm() {
       if (resultAction?.role === 'ADMIN') {
         router.push('/admin-dashboard');
       } else {
-        const nextUrl = searchParams.get('next');
-        if (nextUrl && nextUrl.startsWith('/')) {
-          router.push(nextUrl);
-        } else {
-          router.push('/');
-        }
+        router.push(safeNextPath(searchParams.get('next'), '/'));
       }
       router.refresh();
     } catch (err) {
@@ -138,7 +134,7 @@ export function LoginForm() {
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-4">
-          <button type="button" className="inline-flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-lg bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200">
+          <button type="button" disabled title="Coming soon" aria-label="Coming soon" className="inline-flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-lg bg-white text-sm font-semibold text-slate-700 opacity-60 cursor-not-allowed">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -147,7 +143,7 @@ export function LoginForm() {
             </svg>
             Google
           </button>
-          <button type="button" className="inline-flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-lg bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200">
+          <button type="button" disabled title="Coming soon" aria-label="Coming soon" className="inline-flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-lg bg-white text-sm font-semibold text-slate-700 opacity-60 cursor-not-allowed">
             <svg className="w-5 h-5" viewBox="0 0 21 21">
               <path fill="#f25022" d="M0 0h10v10H0z"/>
               <path fill="#7fba00" d="M11 0h10v10H11z"/>

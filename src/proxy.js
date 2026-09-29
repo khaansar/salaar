@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeNextPath } from './utils/redirect';
 
 export function proxy(request) {
   const { pathname, searchParams } = request.nextUrl;
@@ -7,10 +8,6 @@ export function proxy(request) {
 
   /*
    * Authentication pages are always reachable.
-   *
-   * We intentionally don't inspect user_role here because it
-   * was a client-side convenience cookie and must not be treated
-   * as an authorization source.
    */
   if (pathname === '/login' || pathname === '/signup') {
     return NextResponse.next();
@@ -56,10 +53,7 @@ export function proxy(request) {
   if (isStudentRoute && !accessToken) {
     const nextUrl = searchParams.get('next');
 
-    const destination =
-      nextUrl && nextUrl.startsWith('/')
-        ? nextUrl
-        : pathname;
+    const destination = safeNextPath(nextUrl, pathname);
 
     return NextResponse.redirect(
       new URL(

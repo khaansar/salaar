@@ -44,11 +44,12 @@ const REPORTS_NAV = [
   { label: 'Reports', icon: FileBarChart },
 ];
 
-function NavLink({ item, active }) {
+function NavLink({ item, active, onNavigate }) {
   const Icon = item.icon;
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
         active
           ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300'
@@ -76,7 +77,7 @@ function DisabledNavItem({ item }) {
   );
 }
 
-function SidebarContent({ pathname, isAdminSection }) {
+function SidebarContent({ pathname, isAdminSection, onNavigate }) {
   const isActive = (item) => (item.exact ? pathname === item.href : pathname?.startsWith(item.href));
 
   return (
@@ -98,7 +99,7 @@ function SidebarContent({ pathname, isAdminSection }) {
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-4 space-y-1">
           {CONTENT_NAV.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item)} />
+            <NavLink key={item.href} item={item} active={isActive(item)} onNavigate={onNavigate} />
           ))}
         </nav>
 
@@ -109,7 +110,7 @@ function SidebarContent({ pathname, isAdminSection }) {
             </div>
             <nav className="px-4 space-y-1">
               {CONTENT_MANAGEMENT_NAV.map((item) => (
-                <NavLink key={item.href} item={item} active={isActive(item)} />
+                <NavLink key={item.href} item={item} active={isActive(item)} onNavigate={onNavigate} />
               ))}
             </nav>
 
@@ -270,12 +271,18 @@ export default function DashboardLayout({ children }) {
           <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMobileNavOpen(false)} />
           <aside className="relative w-64 h-full bg-white dark:bg-slate-900 flex flex-col shadow-xl">
             <button
+              type="button"
+              aria-label="Close menu"
               onClick={() => setMobileNavOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X size={20} />
             </button>
-            <SidebarContent pathname={pathname} isAdminSection={isAdminSection} />
+            <SidebarContent
+              pathname={pathname}
+              isAdminSection={isAdminSection}
+              onNavigate={() => setMobileNavOpen(false)}
+            />
           </aside>
         </div>
       )}

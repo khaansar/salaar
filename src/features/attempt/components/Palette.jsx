@@ -138,6 +138,7 @@ export default function Palette() {
       <div className="p-4 border-b border-exam-border bg-exam-panel flex items-center gap-3">
         <div className="w-12 h-12 bg-slate-200 rounded text-slate-500 flex items-center justify-center overflow-hidden shrink-0">
           {user?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatarUrl}
               alt={displayName}

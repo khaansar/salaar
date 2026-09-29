@@ -17,7 +17,7 @@ export const POPULAR_SERIES_MOCK = [
     testCount: 12,
     durationMinutes: 180, // 3 hrs
     avgRating: 4.8,
-    thumbnailUrl: '/images/home/series-gate.webp',
+    thumbnailUrl: null,
   },
   {
     id: 's2',
@@ -26,7 +26,7 @@ export const POPULAR_SERIES_MOCK = [
     testCount: 8,
     durationMinutes: 180,
     avgRating: 4.5,
-    thumbnailUrl: '/images/home/series-cs.webp',
+    thumbnailUrl: null,
   },
   {
     id: 's3',
@@ -35,7 +35,7 @@ export const POPULAR_SERIES_MOCK = [
     testCount: 6,
     durationMinutes: 180,
     avgRating: 4.7,
-    thumbnailUrl: '/images/home/series-os.webp',
+    thumbnailUrl: null,
   },
   {
     id: 's4',
@@ -44,7 +44,7 @@ export const POPULAR_SERIES_MOCK = [
     testCount: 10,
     durationMinutes: 120, // 2 hrs
     avgRating: 4.9,
-    thumbnailUrl: '/images/home/series-ds.webp',
+    thumbnailUrl: null,
   },
 ];
 

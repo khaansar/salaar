@@ -41,21 +41,24 @@ export default function ActionBar() {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         <button 
+          type="button"
+          aria-label="Previous question"
           onClick={handlePrev}
           disabled={!hasPrev}
-          className="h-10 px-4 border border-exam-border bg-white text-exam-text font-semibold rounded hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="h-10 px-3 sm:px-4 border border-exam-border bg-white text-exam-text font-semibold rounded hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <ChevronLeft className="w-4 h-4" />
-          Previous
+          <span className="hidden sm:inline">Previous</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         <button 
+          type="button"
           onClick={handleClear}
-          className="h-10 px-4 bg-white border border-slate-200 text-slate-600 font-semibold rounded hover:bg-slate-50 hover:text-slate-900 transition-colors flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="h-10 px-3 sm:px-4 bg-white border border-slate-200 text-slate-600 font-semibold rounded hover:bg-slate-50 hover:text-slate-900 transition-colors flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <XCircle className="w-4 h-4" />
           <span className="hidden sm:inline">Clear Response</span>
@@ -63,8 +66,9 @@ export default function ActionBar() {
         </button>
 
         <button 
+          type="button"
           onClick={handleMark}
-          className={`h-10 px-4 border font-semibold rounded transition-colors flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400 ${
+          className={`h-10 px-3 sm:px-4 border font-semibold rounded transition-colors flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400 ${
             isMarked 
               ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
               : 'bg-white border-amber-200 text-amber-700 hover:bg-amber-50'
@@ -76,8 +80,9 @@ export default function ActionBar() {
         </button>
 
         <button 
+          type="button"
           onClick={isLast ? () => dispatch(setSubmitModalOpen(true)) : handleNext}
-          className="h-10 px-6 bg-exam-accent hover:bg-exam-accent/90 text-white font-semibold rounded transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-exam-accent flex items-center gap-2"
+          className="h-10 px-3 sm:px-6 bg-exam-accent hover:bg-exam-accent/90 text-white font-semibold rounded transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-exam-accent flex items-center gap-2"
         >
           {isLast ? 'Review & Submit' : 'Save & Next'}
           {!isLast && <ChevronRight className="w-4 h-4" />}
