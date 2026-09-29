@@ -20,7 +20,7 @@ export const catalogService = {
       return CATEGORIES_MOCK;
     }
     
-    return fetchWithCache('/tests-api/public/categories', { revalidate: 300 });
+    try { return await fetchWithCache('/tests-api/public/categories', { revalidate: 300 }); } catch (e) { return []; }
   },
 
   async getPopularSeries() {
@@ -29,7 +29,7 @@ export const catalogService = {
       return POPULAR_SERIES_MOCK;
     }
     
-    return fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 });
+    try { return await fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 }); } catch (e) { return []; }
   },
 
   async getFeaturedTests() {
@@ -38,7 +38,7 @@ export const catalogService = {
       return FEATURED_TESTS_MOCK;
     }
     
-    return fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 });
+    try { return await fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 }); } catch (e) { return []; }
   },
 
   async getContinueAttempt() {
@@ -64,3 +64,4 @@ export const catalogService = {
     return apiClient.get('/attempts-api/streak/yearly');
   },
 };
+
