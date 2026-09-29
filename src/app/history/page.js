@@ -79,7 +79,7 @@ export default function HistoryPage() {
               <thead className="bg-slate-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Test ID</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Mock Test</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Score</th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
@@ -91,10 +91,9 @@ export default function HistoryPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                       {formatDate(attempt.startedAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                      <span className="truncate max-w-[150px] inline-block" title={attempt.testId}>
-                        {attempt.testId.substring(0, 8)}...
-                      </span>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-slate-900">{attempt.testName || 'Unknown Test'}</div>
+                      <div className="text-xs text-slate-500">{attempt.categoryName || 'Unknown Category'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(attempt.status)}
