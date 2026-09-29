@@ -14,14 +14,11 @@ export default function HeroSection() {
 
   if (isAuthenticated) {
     return (
-      <section className="mb-6 mt-4 flex flex-col sm:flex-row items-start justify-between gap-4">
+      <section className="mb-6 -mt-4 flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1 text-slate-900 dark:text-white">
-            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">{name}</span>! 👋
+            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">{name}</span>!
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
-            Ready to continue your preparation? Let&apos;s make today count.
-          </p>
         </div>
       </section>
     );

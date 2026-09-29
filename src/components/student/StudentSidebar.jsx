@@ -65,24 +65,7 @@ export default function StudentSidebar({
   };
 
   return (
-    <div className="flex h-full flex-col px-4 py-6">
-      <Link
-        href="/"
-        onClick={handleNavigation}
-        className="mb-8 flex items-center gap-2 px-2"
-      >
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-          <Hexagon
-            size={20}
-            className="fill-current"
-          />
-        </div>
-
-        <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-          TestHub
-        </span>
-      </Link>
-
+    <div className="flex h-full flex-col px-3 py-6">
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const isActive = item.exact
@@ -96,7 +79,7 @@ export default function StudentSidebar({
               key={item.href}
               href={item.href}
               onClick={handleNavigation}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-[14px] py-2.5 font-medium transition-colors overflow-hidden ${
                 isActive
                   ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'
                   : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200'
@@ -104,20 +87,22 @@ export default function StudentSidebar({
             >
               <Icon
                 size={20}
-                className={
+                className={`flex-shrink-0 ${
                   isActive
                     ? 'text-indigo-600 dark:text-indigo-400'
                     : 'text-slate-400'
-                }
+                }`}
               />
 
-              {item.name}
+              <span className="max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                {item.name}
+              </span>
             </Link>
           );
         })}
 
         <div className="pb-2 pt-6">
-          <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <p className="px-[14px] text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             Analysis & Tools
           </p>
         </div>
@@ -128,14 +113,16 @@ export default function StudentSidebar({
           return (
             <div
               key={item.href}
-              className="flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2.5 font-medium text-slate-400 dark:text-slate-600"
+              className="flex cursor-not-allowed items-center justify-between rounded-lg px-[14px] py-2.5 font-medium text-slate-400 dark:text-slate-600 overflow-hidden"
             >
               <div className="flex items-center gap-3">
-                <Icon size={20} />
-                {item.name}
+                <Icon size={20} className="flex-shrink-0" />
+                <span className="max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                  {item.name}
+                </span>
               </div>
 
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800">
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800 max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                 SOON
               </span>
             </div>
