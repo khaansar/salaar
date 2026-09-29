@@ -36,8 +36,8 @@ export default function StudentSidebar({
       icon: FileText,
     },
     {
-      name: 'Previous Attempts',
-      href: '/attempts',
+      name: 'History',
+      href: '/history',
       icon: Clock,
     },
   ];
