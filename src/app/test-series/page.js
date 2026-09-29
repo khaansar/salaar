@@ -22,14 +22,7 @@ const slugify = (value = '') =>
     .replace(/(^-|-$)/g, '');
 
 function toList(data) {
-  if (Array.isArray(data)) return data;
-
-  return (
-    data?.content ||
-    data?.items ||
-    data?.series ||
-    []
-  );
+  return Array.isArray(data) ? data : [];
 }
 
 function formatPrice(value) {

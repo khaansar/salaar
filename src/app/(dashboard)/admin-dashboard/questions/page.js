@@ -52,8 +52,8 @@ function QuestionsPageInner() {
   );
 
   const { data, isLoading: loading, error, refetch } = useGetQuestionsListQuery(params);
-  const items = data?.items || [];
-  const meta = data?.meta || null;
+  const items = Array.isArray(data) ? data : [];
+  const meta = null;
   const [deleteQuestion] = useDeleteQuestionMutation();
 
   useEffect(() => {

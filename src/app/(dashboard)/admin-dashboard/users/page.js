@@ -77,9 +77,10 @@ export default function UsersPage() {
         });
 
         if (cancelled) return;
-        setUsers(response?.content || []);
-        setTotalPages(response?.totalPages || 0);
-        setTotalUsers(response?.totalElements || 0);
+        const users = Array.isArray(response) ? response : [];
+        setUsers(users);
+        setTotalPages(users.length > 0 ? 1 : 0);
+        setTotalUsers(users.length);
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to fetch users:', err);

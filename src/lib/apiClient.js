@@ -84,13 +84,8 @@ const refreshSession = async () => {
 };
 
 apiClient.interceptors.response.use(
-  (response) => {
-    const data = response.data?.data !== undefined ? response.data.data : response.data;
-    if (response.data?.meta && typeof data === 'object' && !Array.isArray(data) && data !== null) {
-      data._meta = response.data.meta;
-    }
-    return data;
-  },
+  (response) =>
+    response.data?.data !== undefined ? response.data.data : response.data,
 
   async (error) => {
     const originalRequest = error.config;

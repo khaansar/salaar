@@ -140,7 +140,7 @@ export const attemptService = {
         type: 'Mock Test',
         status: attemptRes.status,
         expiresAt: attemptRes.expiresAt,
-        attemptVersion: attemptRes._meta?.attemptVersion,
+        attemptVersion: attemptRes.attemptVersion,
       },
 
       sections,

@@ -62,7 +62,7 @@ export const loginUser = createAsyncThunk(
     try {
       const data = await apiClient.post('/auth-api/login', credentials);
 
-      return data?.user || data;
+      return data;
     } catch (err) {
       return rejectWithValue(
         getErrorMessage(err, 'Login failed')
@@ -77,7 +77,7 @@ export const registerUser = createAsyncThunk(
     try {
       const data = await apiClient.post('/auth-api/register', userData);
 
-      return data?.user || data;
+      return data;
     } catch (err) {
       return rejectWithValue(
         getErrorMessage(err, 'Registration failed')
