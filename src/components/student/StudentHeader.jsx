@@ -73,19 +73,12 @@ export default function StudentHeader({
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950 lg:px-8">
-      <div className="flex items-center">
-        <button
-          type="button"
-          onClick={onMenuClick}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 lg:hidden"
-          aria-label="Open navigation"
-        >
-          <Menu size={21} />
-        </button>
-      </div>
+    <header className="h-16 border-b border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8">
+      {/* Left side empty for desktop, mobile menu button could go here */}
+      <div className="flex-1"></div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* Right side actions */}
+      <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={toggleTheme}

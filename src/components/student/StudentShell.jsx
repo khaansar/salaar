@@ -46,8 +46,9 @@ export default function StudentShell({
 
   if (isAuthenticated) {
     return (
-      <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
-        <div className="hidden w-64 shrink-0 border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:block">
+      <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block w-64 border-r border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 flex-shrink-0">
           <StudentSidebar />
         </div>
 
@@ -92,8 +93,8 @@ export default function StudentShell({
             }
           />
 
-          <main className="flex-1 overflow-y-auto bg-[#fafafc] p-4 dark:bg-slate-900 md:p-6 lg:p-8">
-            <div className="mx-auto w-full max-w-7xl">
+          <main className="flex-1 overflow-y-auto bg-[#fafafc] dark:bg-slate-950 p-4 md:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto w-full">
               {children}
             </div>
           </main>
@@ -103,10 +104,8 @@ export default function StudentShell({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafafc] dark:bg-slate-900">
-      {/* Until the session check finishes, show a neutral bar so signed-in
-          users don't see a flash of "Log in / Sign up" buttons. */}
-      <PublicNavbar minimal={!isInitialized} />
+    <div className="min-h-screen bg-[#fafafc] dark:bg-slate-950 flex flex-col">
+      <PublicNavbar />
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="mx-auto w-full max-w-7xl">

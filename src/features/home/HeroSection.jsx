@@ -12,6 +12,21 @@ export default function HeroSection() {
   // Use user's first name if available, otherwise just 'there'
   const name = user?.firstName || 'there';
 
+  if (isAuthenticated) {
+    return (
+      <section className="mb-6 mt-4 flex flex-col sm:flex-row items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1 text-slate-900 dark:text-white">
+            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">{name}</span>! 👋
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+            Ready to continue your preparation? Let's make today count.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-r from-[#eef2ff] to-[#f3e8ff] dark:from-indigo-950/40 dark:to-purple-900/40 pt-12 pb-16 lg:pt-16 lg:pb-20 rounded-3xl mb-8 border border-white/50 dark:border-white/5">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
@@ -19,14 +34,8 @@ export default function HeroSection() {
           
           <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
             <h1 className="text-4xl tracking-tight font-extrabold text-slate-900 dark:text-white sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl mb-6">
-              {isAuthenticated ? (
-                <span className="block xl:inline">Welcome back, {name}!</span>
-              ) : (
-                <>
-                  <span className="block xl:inline">Practice Smarter.</span>{' '}
-                  <span className="block text-[#5e43f3] dark:text-indigo-400 xl:inline">Score Higher.</span>
-                </>
-              )}
+              <span className="block xl:inline">Practice Smarter.</span>{' '}
+              <span className="block text-[#5e43f3] dark:text-indigo-400 xl:inline">Score Higher.</span>
             </h1>
             <p className="mt-3 text-base text-slate-600 dark:text-slate-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 font-medium">
               High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.
@@ -40,22 +49,12 @@ export default function HeroSection() {
                 Explore Test Series
                 <ArrowRight className="ml-2 -mr-1 w-5 h-5" />
               </Link>
-              {isAuthenticated && (
-                <Link
-                  href="/attempts"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-slate-300 dark:border-slate-700 text-base font-semibold rounded-xl text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors backdrop-blur"
-                >
-                  Previous Attempts
-                </Link>
-              )}
-              {!isAuthenticated && (
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-slate-300 dark:border-slate-700 text-base font-semibold rounded-xl text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors backdrop-blur"
-                >
-                  Sign up free
-                </Link>
-              )}
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center px-6 py-3 border border-slate-300 dark:border-slate-700 text-base font-semibold rounded-xl text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors backdrop-blur"
+              >
+                Sign up free
+              </Link>
             </div>
           </div>
           

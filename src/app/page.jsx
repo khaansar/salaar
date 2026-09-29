@@ -49,9 +49,7 @@ export default async function HomePage() {
     <StudentShell>
       <div className="pb-10">
         <HeroSection />
-
         <ContinueCard />
-
         <ValueStrip />
 
         <CategoryGrid
