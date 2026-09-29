@@ -3,13 +3,12 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import {
-  markSyncedIfUnchanged,
-} from '../store/attemptSlice';
-import { attemptService } from '../../../services/attemptService';
+import { markSyncedIfUnchanged } from '../store/attemptSlice';
+import { useSaveResponsesMutation } from '../store/attemptApi';
 
 export function useAutosave(attemptId) {
   const dispatch = useAppDispatch();
+  const [saveResponses] = useSaveResponsesMutation();
 
   const responses = useAppSelector(
     (state) => state.attempt.responses
@@ -19,6 +18,7 @@ export function useAutosave(attemptId) {
     (state) => state.attempt.ui.connection
   );
 
+  // Keep track of pending saves to avoid infinite loops
   const pendingQueue = useRef(new Map());
 
   useEffect(() => {
@@ -65,10 +65,7 @@ export function useAutosave(attemptId) {
 
     const timer = setTimeout(async () => {
       try {
-        await attemptService.saveResponses(
-          attemptId,
-          toSave
-        );
+        await saveResponses({ attemptId, updates: toSave }).unwrap();
 
         /*
          * Only mark an answer synced if the current Redux
@@ -114,5 +111,6 @@ export function useAutosave(attemptId) {
     connection,
     attemptId,
     dispatch,
+    saveResponses
   ]);
 }

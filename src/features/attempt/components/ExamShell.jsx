@@ -1,17 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
+import { useEffect } from 'react';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-
-import {
-  setAttemptData,
-  setConnectionState,
-  resetAttemptState,
-} from '../store/attemptSlice';
-
-import { attemptService } from '../../../services/attemptService';
-
+import { setAttemptData } from '../store/attemptSlice';
+import { useGetAttemptStateQuery } from '../store/attemptApi';
 import ExamHeader from './ExamHeader';
 import SectionTabs from './SectionTabs';
 import QuestionPanel from './QuestionPanel';
@@ -25,92 +17,37 @@ import { useAutosave } from '../hooks/useAutosave';
 export default function ExamShell({ attemptId }) {
   const dispatch = useAppDispatch();
 
-  const [loadState, setLoadState] =
-    useState('loading');
-
-  const [attemptLoaded, setAttemptLoaded] =
-    useState(false);
+  // RTK Query handles deduplication, caching, and loading state automatically!
+  const { data, error, isLoading } = useGetAttemptStateQuery(attemptId);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadAttempt() {
-      if (!attemptId) {
-        setLoadState('error');
-        return;
-      }
-
-      dispatch(resetAttemptState());
-      setLoadState('loading');
-
-      try {
-        const data =
-          await attemptService.getAttemptState(
-            attemptId
-          );
-
-        if (cancelled) {
-          return;
-        }
-
-        dispatch(setAttemptData(data));
-
-        setAttemptLoaded(true);
-        setLoadState('success');
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-
-        console.error(
-          'Failed to load attempt',
-          error
-        );
-
-        dispatch(setConnectionState('offline'));
-
-        setAttemptLoaded(false);
-        setLoadState('error');
-      }
+    if (data) {
+      dispatch(setAttemptData(data));
     }
+  }, [data, dispatch]);
 
-    loadAttempt();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [attemptId, dispatch]);
-
-  useAttemptStream(
-    attemptId,
-    attemptLoaded
-  );
-
+  useAttemptStream(attemptId, !!data);
   useAutosave(attemptId);
 
-  if (loadState === 'loading') {
+  if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-exam-bg">
-        <div className="text-sm text-exam-text-muted">
-          Loading test...
-        </div>
+      <div className="flex h-screen items-center justify-center bg-exam-bg text-exam-primary">
+        Loading your exam...
       </div>
     );
   }
 
-  if (loadState === 'error') {
+  if (error) {
     return (
       <div className="flex h-screen items-center justify-center bg-exam-bg p-6">
         <div className="w-full max-w-md rounded-xl border border-exam-border bg-exam-panel p-6 text-center">
           <h2 className="text-lg font-bold text-exam-text">
             Unable to load test
           </h2>
-
           <p className="mt-2 text-sm text-exam-text-muted">
             We could not load this attempt. Please refresh
             the page and try again.
           </p>
-
           <button
             type="button"
             onClick={() => window.location.reload()}
