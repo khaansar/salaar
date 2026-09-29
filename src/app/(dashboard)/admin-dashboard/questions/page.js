@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { QuestionPreviewDrawer } from '@/features/questions/QuestionPreviewDrawer';
+import { useGetQuestionsListQuery, useDeleteQuestionMutation } from '@/store/adminApi';
 import { questionsApi } from '@/services/adminService';
-import { usePaginatedFetch } from '@/hooks/usePaginatedFetch';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/components/common/ToastProvider';
 import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_BADGE_STYLES, DIFFICULTY_BADGE_STYLES } from '@/constants/enums';
@@ -51,7 +51,10 @@ function QuestionsPageInner() {
     [debouncedSearch, type, difficulty, lockStatus, unusedOnly, page]
   );
 
-  const { items, meta, loading, error, refetch } = usePaginatedFetch(questionsApi.list, params);
+  const { data, isLoading: loading, error, refetch } = useGetQuestionsListQuery(params);
+  const items = data?.items || [];
+  const meta = data?.meta || null;
+  const [deleteQuestion] = useDeleteQuestionMutation();
 
   useEffect(() => {
     if (!previewId) {
@@ -76,7 +79,7 @@ function QuestionsPageInner() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await questionsApi.remove(deleteTarget.id);
+      await deleteQuestion(deleteTarget.id).unwrap();
       toast.success('Question deleted');
       setDeleteTarget(null);
       refetch();

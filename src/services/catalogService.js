@@ -1,5 +1,5 @@
 import apiClient from '../lib/apiClient';
-
+import { fetchWithCache } from '../lib/cache';
 import {
   CATEGORIES_MOCK,
   POPULAR_SERIES_MOCK,
@@ -19,8 +19,8 @@ export const catalogService = {
       await delay(500);
       return CATEGORIES_MOCK;
     }
-
-    return apiClient.get('/tests-api/public/categories');
+    
+    try { return await fetchWithCache('/tests-api/public/categories', { revalidate: 300 }); } catch (e) { return []; }
   },
 
   async getPopularSeries() {
@@ -28,8 +28,8 @@ export const catalogService = {
       await delay(600);
       return POPULAR_SERIES_MOCK;
     }
-
-    return apiClient.get('/tests-api/public/series/popular');
+    
+    try { return await fetchWithCache('/tests-api/public/series/popular', { revalidate: 120 }); } catch (e) { return []; }
   },
 
   async getFeaturedTests() {
@@ -37,8 +37,8 @@ export const catalogService = {
       await delay(700);
       return FEATURED_TESTS_MOCK;
     }
-
-    return apiClient.get('/tests-api/public/mock-tests/featured');
+    
+    try { return await fetchWithCache('/tests-api/public/mock-tests/featured', { revalidate: 120 }); } catch (e) { return []; }
   },
 
   async getContinueAttempt() {
@@ -64,3 +64,4 @@ export const catalogService = {
     return apiClient.get('/attempts-api/streak/yearly');
   },
 };
+
