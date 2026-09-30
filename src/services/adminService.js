@@ -4,12 +4,12 @@ const BASE = '/tests-api';
 
 /**
  * Unwraps the raw ApiResponse envelope from `apiClientRaw` into
- * `{ items, meta }` so list pages can read pagination info that the
+ * `{ data, meta }` so list pages can read pagination info that the
  * default (data-stripping) `apiClient` would otherwise discard.
  */
 function unwrapList(envelope) {
   return {
-    items: envelope?.data ?? [],
+    data: envelope?.data ?? [],
     meta: envelope?.meta ?? null,
   };
 }

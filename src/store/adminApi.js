@@ -8,9 +8,9 @@ export const adminApi = apiSlice.injectEndpoints({
         params,
       }),
       providesTags: (result) =>
-        result
+        Array.isArray(result)
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Series', id })),
+              ...result.map(({ id }) => ({ type: 'Series', id })),
               { type: 'Series', id: 'LIST' },
             ]
           : [{ type: 'Series', id: 'LIST' }],
@@ -29,9 +29,9 @@ export const adminApi = apiSlice.injectEndpoints({
         params,
       }),
       providesTags: (result) =>
-        result
+        Array.isArray(result)
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Question', id })),
+              ...result.map(({ id }) => ({ type: 'Question', id })),
               { type: 'Question', id: 'LIST' },
             ]
           : [{ type: 'Question', id: 'LIST' }],
@@ -50,9 +50,9 @@ export const adminApi = apiSlice.injectEndpoints({
         params,
       }),
       providesTags: (result) =>
-        result
+        Array.isArray(result)
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Category', id })),
+              ...result.map(({ id }) => ({ type: 'Category', id })),
               { type: 'Category', id: 'LIST' },
             ]
           : [{ type: 'Category', id: 'LIST' }],

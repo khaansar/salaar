@@ -14,15 +14,8 @@ export default function HistoryPage() {
     const fetchHistory = async () => {
       try {
         setIsLoading(true);
-        // The API returns paginated response, apiClient unwraps data.data implicitly 
-        // wait, apiClient unwraps response.data.data. The paginated data is usually in response.data.data.
-        // Let's inspect what apiClient returns: it returns response.data.data
         const res = await apiClient.get('/attempts-api/history?page=1&perPage=50');
-        // Since it's paginated, usually the content array is returned or the whole paginated object
-        // If the backend returned ApiResponse.paginated, the content is in data.data or we might need to handle pagination.
-        // Let's assume res is the array if it was unwrapped, or res.content if Spring Boot pagination is used.
-        const items = Array.isArray(res) ? res : res.content || [];
-        setHistory(items);
+        setHistory(Array.isArray(res) ? res : []);
       } catch (err) {
         setError(err.message || 'Failed to load history');
       } finally {

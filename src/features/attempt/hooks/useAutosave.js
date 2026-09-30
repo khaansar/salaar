@@ -80,8 +80,8 @@ export function useAutosave(attemptId) {
       const res = await saveResponses({ attemptId, ...payload }).unwrap();
       
       // Update attemptVersion from response
-      if (res?.meta?.attemptVersion) {
-         dispatch({ type: 'attempt/updateAttemptVersion', payload: res.meta.attemptVersion });
+      if (res?.attemptVersion) {
+         dispatch({ type: 'attempt/updateAttemptVersion', payload: res.attemptVersion });
       }
 
       dispatch(
@@ -148,6 +148,7 @@ export function useAutosave(attemptId) {
     }, 1000);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responses, connection, attemptId, saveResponses, attemptVersion, status, isExpired]);
 
   return { flush: flushAutosave };

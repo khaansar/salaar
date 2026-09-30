@@ -53,7 +53,7 @@ export function AttachQuestionsDrawer({ open, onClose, sectionId, existingQuesti
     questionsApi
       .list({ search: debouncedSearch, type, page, limit: PAGE_SIZE })
       .then((res) => {
-        setItems(res.items);
+        setItems(res.data);
         setMeta(res.meta);
       })
       .catch((err) => setError(err?.message || 'Failed to load questions'))

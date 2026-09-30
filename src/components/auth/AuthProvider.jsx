@@ -4,12 +4,16 @@ import { useEffect } from 'react';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { fetchCurrentUser, clearAuth } from '../../store/slices/authSlice';
 
-export default function AuthProvider({ children }) {
+export default function AuthProvider({ children, hasSession = false }) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    if (!hasSession) {
+      return;
+    }
+
     dispatch(fetchCurrentUser());
-  }, [dispatch]);
+  }, [dispatch, hasSession]);
 
   useEffect(() => {
     const handleSessionExpired = () => {

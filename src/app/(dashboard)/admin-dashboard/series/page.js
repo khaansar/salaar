@@ -22,7 +22,7 @@ export default function SeriesListPage() {
   const router = useRouter();
   const toast = useToast();
   const { data: catData } = useGetCategoriesListQuery({ limit: 100 });
-  const categories = catData?.items || [];
+  const categories = Array.isArray(catData) ? catData : [];
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -39,8 +39,8 @@ export default function SeriesListPage() {
   );
 
   const { data, isLoading: loading, error, refetch } = useGetSeriesListQuery(params);
-  const items = data?.items || [];
-  const meta = data?.meta || null;
+  const items = Array.isArray(data) ? data : [];
+  const meta = null;
   const [deleteSeries] = useDeleteSeriesMutation();
 
   const handleDelete = async () => {

@@ -203,7 +203,7 @@ export default function AdminOverviewPage() {
               limit: 5,
             })
             .catch(() => ({
-              items: [],
+              data: [],
             })),
 
           seriesApi
@@ -212,7 +212,7 @@ export default function AdminOverviewPage() {
               limit: 5,
             })
             .catch(() => ({
-              items: [],
+              data: [],
             })),
         ]);
 
@@ -244,7 +244,7 @@ export default function AdminOverviewPage() {
         );
 
         setRecentQuestions(
-          [...(recentQ.items || [])]
+          [...(recentQ.data || [])]
             .sort(
               (a, b) =>
                 new Date(b.createdAt || 0) -
@@ -254,7 +254,7 @@ export default function AdminOverviewPage() {
         );
 
         setRecentSeries(
-          [...(recentS.items || [])]
+          [...(recentS.data || [])]
             .sort(
               (a, b) =>
                 new Date(b.updatedAt || 0) -

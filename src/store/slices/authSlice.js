@@ -62,7 +62,7 @@ export const loginUser = createAsyncThunk(
     try {
       const data = await apiClient.post('/auth-api/login', credentials);
 
-      return data?.user || data;
+      return data;
     } catch (err) {
       return rejectWithValue(
         getErrorMessage(err, 'Login failed')
@@ -77,7 +77,7 @@ export const registerUser = createAsyncThunk(
     try {
       const data = await apiClient.post('/auth-api/register', userData);
 
-      return data?.user || data;
+      return data;
     } catch (err) {
       return rejectWithValue(
         getErrorMessage(err, 'Registration failed')
@@ -116,21 +116,27 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-const initialState = {
+export const initialAuthState = {
   user: null,
   status: 'idle',
+  loginStatus: 'idle',
+  registrationStatus: 'idle',
+  isRestoringSession: false,
   isInitialized: false,
   error: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState,
+  initialState: initialAuthState,
 
   reducers: {
     clearAuth(state) {
       state.user = null;
       state.status = 'idle';
+      state.loginStatus = 'idle';
+      state.registrationStatus = 'idle';
+      state.isRestoringSession = false;
       state.error = null;
       state.isInitialized = true;
     },
@@ -145,11 +151,13 @@ const authSlice = createSlice({
 
       .addCase(loginUser.pending, (state) => {
         state.status = 'loading';
+        state.loginStatus = 'loading';
         state.error = null;
       })
 
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
+        state.loginStatus = 'succeeded';
         state.user = action.payload;
         state.error = null;
         state.isInitialized = true;
@@ -157,6 +165,7 @@ const authSlice = createSlice({
 
       .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
+        state.loginStatus = 'failed';
         state.error =
           typeof action.payload === 'string'
             ? action.payload
@@ -169,11 +178,13 @@ const authSlice = createSlice({
 
       .addCase(registerUser.pending, (state) => {
         state.status = 'loading';
+        state.registrationStatus = 'loading';
         state.error = null;
       })
 
       .addCase(registerUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
+        state.registrationStatus = 'succeeded';
         state.user = action.payload;
         state.error = null;
         state.isInitialized = true;
@@ -181,6 +192,7 @@ const authSlice = createSlice({
 
       .addCase(registerUser.rejected, (state, action) => {
         state.status = 'failed';
+        state.registrationStatus = 'failed';
         state.error =
           typeof action.payload === 'string'
             ? action.payload
@@ -194,6 +206,7 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.status = 'idle';
+        state.isRestoringSession = false;
         state.error = null;
         state.isInitialized = true;
       })
@@ -203,6 +216,7 @@ const authSlice = createSlice({
         // consider the local session logged out.
         state.user = null;
         state.status = 'idle';
+        state.isRestoringSession = false;
         state.error = null;
         state.isInitialized = true;
       })
@@ -212,12 +226,13 @@ const authSlice = createSlice({
       // --------------------------------------------------
 
       .addCase(fetchCurrentUser.pending, (state) => {
-        state.status = 'loading';
+        state.isRestoringSession = true;
         state.error = null;
       })
 
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
+        state.isRestoringSession = false;
         state.user = action.payload;
         state.error = null;
         state.isInitialized = true;
@@ -225,6 +240,7 @@ const authSlice = createSlice({
 
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.status = 'idle';
+        state.isRestoringSession = false;
         state.user = null;
 
         state.error = null;
