@@ -3,6 +3,7 @@ import apiClient from '@/lib/apiClient';
 const BASE = '/community-api';
 
 export const faqApi = {
+  listAll: () => apiClient.get(`${BASE}/admins/faq`),
   list: (targetId) =>
     apiClient.get(targetId == null
       ? `${BASE}/public/faq`
