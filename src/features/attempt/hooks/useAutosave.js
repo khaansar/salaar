@@ -148,6 +148,7 @@ export function useAutosave(attemptId) {
     }, 1000);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responses, connection, attemptId, saveResponses, attemptVersion, status, isExpired]);
 
   return { flush: flushAutosave };
