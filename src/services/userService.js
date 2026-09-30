@@ -1,6 +1,20 @@
 import apiClient from '@/lib/apiClient';
 
 export const usersApi = {
+  stats: async () => {
+    const [allUsers, activeUsers, admins] = await Promise.all([
+      usersApi.list({ page: 0, size: 1 }),
+      usersApi.list({ page: 0, size: 1, isActive: true }),
+      usersApi.list({ page: 0, size: 1, role: 'ADMIN' }),
+    ]);
+
+    return {
+      totalUsers: allUsers?.totalElements || 0,
+      activeUsers: activeUsers?.totalElements || 0,
+      adminUsers: admins?.totalElements || 0,
+    };
+  },
+
   list: (filters = {}) => {
     const { page = 0, size = 20, ...filterParams } = filters;
     const dateFields = [
