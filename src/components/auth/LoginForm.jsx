@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '../ui/Input';
 import { PasswordInput } from '../ui/PasswordInput';
@@ -18,6 +18,8 @@ export function LoginForm() {
   const dispatch = useAppDispatch();
   const { loginStatus, error: serverError } = useAppSelector((state) => state.auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get('next');
 
   const validate = () => {
     const newErrors = {};
@@ -39,7 +41,8 @@ export function LoginForm() {
     try {
       await dispatch(loginUser({ email, password })).unwrap();
 
-      router.push('/');
+      const destination = nextParam || '/';
+      router.push(destination);
       router.refresh();
     } catch (err) {
       console.error("Login failed:", err);
