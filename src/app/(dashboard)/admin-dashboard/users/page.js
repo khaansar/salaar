@@ -30,7 +30,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [userStats, setUserStats] = useState({ totalUsers: 0, activeUsers: 0, adminUsers: 0 });
+  const [userStats, setUserStats] = useState({ totalUsers: null, activeUsers: null, adminUsers: null });
 
   // Filters are sent to the users API so they apply across all pages.
   const [filters, setFilters] = useState({
@@ -54,7 +54,10 @@ export default function UsersPage() {
       .then((stats) => {
         if (!cancelled) setUserStats(stats);
       })
-      .catch((err) => console.error('Failed to fetch overall user statistics:', err));
+      .catch((err) => {
+        console.error('Failed to fetch overall user statistics:', err);
+        if (!cancelled) setUserStats({ totalUsers: null, activeUsers: null, adminUsers: null });
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -88,10 +91,16 @@ export default function UsersPage() {
         });
 
         if (cancelled) return;
-        const users = Array.isArray(response) ? response : [];
+        const users = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.content)
+            ? response.content
+            : Array.isArray(response?.data?.content)
+              ? response.data.content
+              : [];
         setUsers(users);
-        setTotalPages(users.length > 0 ? 1 : 0);
-        setTotalUsers(users.length);
+        setTotalPages(response?.totalPages ?? response?.data?.totalPages ?? (users.length > 0 ? 1 : 0));
+        setTotalUsers(response?.totalElements ?? response?.data?.totalElements ?? users.length);
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to fetch users:', err);
@@ -249,7 +258,7 @@ export default function UsersPage() {
 
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
             <Users className="h-4 w-4" />
-            <span>{userStats.totalUsers} Users</span>
+            <span>{userStats.totalUsers ?? '—'} Users</span>
           </div>
         </div>
       </div>
@@ -267,7 +276,7 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.totalUsers}
+                {userStats.totalUsers ?? '—'}
               </p>
             </div>
 
@@ -286,7 +295,7 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.activeUsers}
+                {userStats.activeUsers ?? '—'}
               </p>
             </div>
 
@@ -305,7 +314,7 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.adminUsers}
+                {userStats.adminUsers ?? '—'}
               </p>
             </div>
 
@@ -330,7 +339,6 @@ export default function UsersPage() {
           </div>
           <div className="flex items-center gap-2">
             {loading && hasLoadedOnce && <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600"><LoaderCircle className="h-3.5 w-3.5 animate-spin" />Updating results</span>}
-            {hasActiveFilters && <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">{Object.values(filters).filter(Boolean).length} active</span>}
           </div>
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">

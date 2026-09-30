@@ -1,5 +1,20 @@
 import apiClient from '@/lib/apiClient';
 
+const readTotalElements = (response) => {
+  // Spring Data's Page response can expose the totals at the root, under
+  // `page` (for VIA_DTO serialization), or inside an additional API envelope.
+  const candidates = [
+    response?.totalElements,
+    response?.page?.totalElements,
+    response?.data?.totalElements,
+    response?.data?.page?.totalElements,
+    response?.data?.data?.totalElements,
+    response?.data?.data?.page?.totalElements,
+  ];
+
+  return candidates.find((value) => Number.isFinite(value)) ?? null;
+};
+
 export const usersApi = {
   stats: async () => {
     const [allUsers, activeUsers, admins] = await Promise.all([
@@ -9,9 +24,9 @@ export const usersApi = {
     ]);
 
     return {
-      totalUsers: allUsers?.totalElements || 0,
-      activeUsers: activeUsers?.totalElements || 0,
-      adminUsers: admins?.totalElements || 0,
+      totalUsers: readTotalElements(allUsers),
+      activeUsers: readTotalElements(activeUsers),
+      adminUsers: readTotalElements(admins),
     };
   },
 
