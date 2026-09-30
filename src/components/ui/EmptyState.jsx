@@ -20,13 +20,22 @@ export function EmptyState({ icon, title, description, actionLabel, onAction }) 
 }
 
 export function ErrorState({ message, onRetry }) {
+  const displayMessage =
+    typeof message === 'string'
+      ? message
+      : typeof message?.message === 'string'
+        ? message.message
+        : typeof message?.message?.message === 'string'
+          ? message.message.message
+          : 'Please try again.';
+
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
       <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/15 flex items-center justify-center text-rose-500 mb-4">
         <AlertCircle size={22} />
       </div>
       <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Something went wrong</h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm">{message || 'Please try again.'}</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm">{displayMessage}</p>
       {onRetry && (
         <Button variant="outline" className="mt-5" onClick={onRetry}>
           Retry

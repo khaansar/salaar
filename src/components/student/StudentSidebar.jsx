@@ -11,12 +11,16 @@ import {
   TrendingUp,
   Calendar,
   Hexagon,
+  LayoutDashboard,
 } from 'lucide-react';
+import { useAppSelector } from '@/hooks/useAppSelector';
 
 export default function StudentSidebar({
   onNavigate,
 }) {
   const pathname = usePathname();
+  const { user } = useAppSelector((state) => state.auth);
+  const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
 
   const navItems = [
     {
@@ -40,6 +44,7 @@ export default function StudentSidebar({
       href: '/history',
       icon: Clock,
     },
+    ...(isAdmin ? [{ name: 'Admin dashboard', href: '/admin-dashboard', icon: LayoutDashboard }] : []),
   ];
 
   const comingSoonItems = [
