@@ -30,6 +30,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [userStats, setUserStats] = useState({ totalUsers: 0, activeUsers: 0, adminUsers: 0 });
 
   // Filters are sent to the users API so they apply across all pages.
   const [filters, setFilters] = useState({
@@ -46,6 +47,16 @@ export default function UsersPage() {
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const pageSize = 20;
+
+  useEffect(() => {
+    let cancelled = false;
+    usersApi.stats()
+      .then((stats) => {
+        if (!cancelled) setUserStats(stats);
+      })
+      .catch((err) => console.error('Failed to fetch overall user statistics:', err));
+    return () => { cancelled = true; };
+  }, []);
 
   // --------------------------------------------------
   // Fetch users
@@ -138,20 +149,6 @@ export default function UsersPage() {
   };
 
   // --------------------------------------------------
-  // Counts for current API page
-  // --------------------------------------------------
-  const activeCount = users.filter(
-    (user) => user.isActive === true
-  ).length;
-
-  const inactiveCount = users.filter(
-    (user) => user.isActive === false
-  ).length;
-
-  const adminCount = users.filter(
-    (user) => user.role?.toUpperCase() === 'ADMIN'
-  ).length;
-
   // --------------------------------------------------
   // Reset filters
   // --------------------------------------------------
@@ -172,7 +169,7 @@ export default function UsersPage() {
     setPage(0);
   };
 
-  const filterInputClass = 'h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+  const filterInputClass = 'h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-violet-400 dark:focus:ring-violet-950';
 
   // --------------------------------------------------
   // Pagination
@@ -194,7 +191,7 @@ export default function UsersPage() {
   // --------------------------------------------------
   if (loading && !hasLoadedOnce) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] p-6">
+      <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-gray-200" />
 
@@ -216,7 +213,7 @@ export default function UsersPage() {
   // --------------------------------------------------
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] p-6">
+      <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
           <p className="text-sm font-medium text-red-600">
             {error}
@@ -234,7 +231,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-6">
+    <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
       {/* ==================================================
           HEADER
       ================================================== */}
@@ -250,9 +247,9 @@ export default function UsersPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
             <Users className="h-4 w-4" />
-            <span>{totalUsers} Users</span>
+            <span>{userStats.totalUsers} Users</span>
           </div>
         </div>
       </div>
@@ -270,12 +267,12 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {totalUsers}
+                {userStats.totalUsers}
               </p>
             </div>
 
-            <div className="rounded-lg bg-blue-50 p-3">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-500/10">
+              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
@@ -289,12 +286,12 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {activeCount}
+                {userStats.activeUsers}
               </p>
             </div>
 
-            <div className="rounded-lg bg-green-50 p-3">
-              <UserCheck className="h-5 w-5 text-green-600" />
+            <div className="rounded-lg bg-green-50 p-3 dark:bg-green-500/10">
+              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
@@ -308,12 +305,12 @@ export default function UsersPage() {
               </p>
 
               <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {adminCount}
+                {userStats.adminUsers}
               </p>
             </div>
 
-            <div className="rounded-lg bg-purple-50 p-3">
-              <ShieldCheck className="h-5 w-5 text-purple-600" />
+            <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-500/10">
+              <ShieldCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </div>
@@ -322,7 +319,7 @@ export default function UsersPage() {
       {/* ==================================================
           FILTER BAR
       ================================================== */}
-      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-violet-50 p-2.5 text-violet-600"><SlidersHorizontal className="h-4 w-4" /></div>
@@ -340,17 +337,17 @@ export default function UsersPage() {
           <label className="relative flex-1">
             <span className="mb-1.5 block text-xs font-medium text-gray-600">Search</span>
             <Search className="absolute left-3 top-[2.45rem] h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input className={`${filterInputClass} rounded-xl bg-slate-50/70 pl-9 focus:border-violet-400 focus:ring-violet-100`} placeholder="Name or email..." value={filters.search} onChange={(e) => setFilterAndResetPage('search', e.target.value)} />
+            <input className={`${filterInputClass} rounded-xl bg-slate-50/70 pl-9 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} placeholder="Name or email..." value={filters.search} onChange={(e) => setFilterAndResetPage('search', e.target.value)} />
           </label>
           <label className="lg:w-44">
             <span className="mb-1.5 block text-xs font-medium text-gray-600">Role</span>
-            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100`} value={filters.role} onChange={(e) => setFilterAndResetPage('role', e.target.value)}>
+            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.role} onChange={(e) => setFilterAndResetPage('role', e.target.value)}>
               <option value="">All roles</option><option value="STUDENT">Student</option><option value="ADMIN">Admin</option>
             </select>
           </label>
           <label className="lg:w-40">
             <span className="mb-1.5 block text-xs font-medium text-gray-600">Status</span>
-            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100`} value={filters.isActive} onChange={(e) => setFilterAndResetPage('isActive', e.target.value)}>
+            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.isActive} onChange={(e) => setFilterAndResetPage('isActive', e.target.value)}>
               <option value="">All status</option><option value="true">Active</option><option value="false">Inactive</option>
             </select>
           </label>
@@ -360,7 +357,7 @@ export default function UsersPage() {
           {hasActiveFilters && <button type="button" onClick={resetFilters} className="flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"><X className="h-4 w-4" />Clear</button>}
         </div>
         {showMoreFilters && (
-          <div className="mt-5 rounded-xl border border-slate-200/70 bg-slate-50/70 p-4">
+          <div className="mt-5 rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950">
             <div className="mb-4">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-600">Additional filters</h3>
               <p className="mt-1 text-xs text-gray-500">Narrow results by profile details, test activity, and dates.</p>
@@ -369,12 +366,12 @@ export default function UsersPage() {
               {['firstName', 'lastName', 'email'].map((field) => (
                 <label key={field}>
                   <span className="mb-1 block text-xs font-medium text-gray-500">{field === 'firstName' ? 'First name' : field === 'lastName' ? 'Last name' : 'Email'}</span>
-                  <input className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} placeholder={`Filter ${field === 'firstName' ? 'first name' : field === 'lastName' ? 'last name' : 'email'}`} />
+                  <input className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} placeholder={`Filter ${field === 'firstName' ? 'first name' : field === 'lastName' ? 'last name' : 'email'}`} />
                 </label>
               ))}
               <label>
                 <span className="mb-1 block text-xs font-medium text-gray-500">Deleted</span>
-                <select className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters.isDeleted} onChange={(e) => setFilterAndResetPage('isDeleted', e.target.value)}>
+                <select className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.isDeleted} onChange={(e) => setFilterAndResetPage('isDeleted', e.target.value)}>
                   <option value="">Any</option><option value="true">Deleted</option><option value="false">Not deleted</option>
                 </select>
               </label>
@@ -387,7 +384,7 @@ export default function UsersPage() {
               ].map(([field, label, type]) => (
                 <label key={field}>
                   <span className="mb-1 block text-xs font-medium text-gray-500">{label}</span>
-                  <input type={type} min={type === 'number' ? 0 : undefined} className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} />
+                  <input type={type} min={type === 'number' ? 0 : undefined} className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} />
                 </label>
               ))}
             </div>
@@ -398,11 +395,11 @@ export default function UsersPage() {
       {/* ==================================================
           TABLE
       ================================================== */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/80">
+              <tr className="border-b border-gray-200 bg-gray-50/80 dark:border-slate-800 dark:bg-slate-800/70">
                 <th className="w-16 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   #
                 </th>
@@ -456,7 +453,7 @@ export default function UsersPage() {
                   <tr
                     key={user.id}
                     onClick={() => setSelectedUser(user)}
-                    className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50"
+                    className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
                   >
                     {/* Number */}
                     <td className="px-5 py-4 text-sm text-gray-500">
@@ -546,7 +543,7 @@ export default function UsersPage() {
         {/* ==================================================
             PAGINATION
         ================================================== */}
-        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500">
             Showing{' '}
             <span className="font-medium text-gray-700">
