@@ -13,6 +13,7 @@ import {
   FolderTree,
   Library,
   HelpCircle,
+  MessageCircleQuestion,
   Bell,
   ChevronDown,
   Users,
@@ -33,6 +34,7 @@ const CONTENT_MANAGEMENT_NAV = [
   { href: '/admin-dashboard/categories', label: 'Exam Categories', icon: FolderTree },
   { href: '/admin-dashboard/series', label: 'Test Series', icon: Library },
   { href: '/admin-dashboard/questions', label: 'Question Bank', icon: HelpCircle },
+  { href: '/admin-dashboard/faqs', label: 'FAQs', icon: MessageCircleQuestion },
 ];
 
 // These groups mirror the reference design's information architecture, but
