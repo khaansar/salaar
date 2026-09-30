@@ -49,15 +49,18 @@ export default async function HomePage() {
   return (
     <StudentShell>
       <div className="pt-4 pb-10 md:pt-6">
-        <PremiumCalendar />
-
         <HeroSection />
         <ContinueCard />
         <ValueStrip />
 
-        <CategoryGrid
-          categories={categories}
-        />
+        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-10">
+          <div className="flex-1 min-w-0">
+            <CategoryGrid categories={categories} />
+          </div>
+          <div className="shrink-0 flex flex-col w-full max-w-[310px] mx-auto md:w-auto md:max-w-none">
+            <PremiumCalendar />
+          </div>
+        </div>
 
         <PopularSeries
           series={popularSeries}

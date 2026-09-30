@@ -47,7 +47,7 @@ export default function PopularSeries({ series = [] }) {
 
         <Link
           href="/test-series"
-          className="hidden items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 sm:inline-flex"
+          className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
         >
           View all
           <ArrowRight size={16} />
@@ -102,14 +102,6 @@ export default function PopularSeries({ series = [] }) {
           </Link>
         ))}
       </div>
-
-      <Link
-        href="/test-series"
-        className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 sm:hidden"
-      >
-        View all test series
-        <ArrowRight size={16} />
-      </Link>
     </section>
   );
 }
