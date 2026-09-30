@@ -58,7 +58,7 @@ export default function PopularSeries({ series = [] }) {
         {series.map((item) => (
           <Link
             key={item.id}
-            href={`/test-series/${item.id}`}
+            href={`/test-series/${item.slug}`}
             className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
           >
             <div className="flex flex-1 flex-col p-4">

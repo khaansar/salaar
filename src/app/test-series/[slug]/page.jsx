@@ -37,11 +37,11 @@ function formatDuration(minutes) {
 export async function generateMetadata({
   params,
 }) {
-  const { id } = await params;
+  const { slug } = await params;
 
   try {
     const series =
-      await testService.getSeriesById(id);
+      await testService.getSeriesBySlug(slug);
 
     return {
       title: `${series.title} | TestHub`,
@@ -57,13 +57,13 @@ export async function generateMetadata({
 export default async function TestSeriesPage({
   params,
 }) {
-  const { id } = await params;
+  const { slug } = await params;
 
   let series;
 
   try {
     series =
-      await testService.getSeriesById(id);
+      await testService.getSeriesBySlug(slug);
   } catch (error) {
     if (error?.status === 404) {
       notFound();
@@ -170,7 +170,7 @@ export default async function TestSeriesPage({
                     </div>
 
                     <Link
-                      href={`/tests/${test.testId}`}
+                      href={`/tests/${test.slug}`}
                       className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
                     >
                       <Play size={15} />

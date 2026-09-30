@@ -26,7 +26,7 @@ async function getSuggestions() {
       ]
         .filter(Boolean)
         .join(' • '),
-      href: `/test-series/${item.id}`,
+      href: `/test-series/${item.slug}`,
     }));
   } catch (error) {
     console.error('Failed to load 404 suggestions:', error);

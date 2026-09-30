@@ -7,17 +7,23 @@ export const metadata = {
 };
 
 export default async function InstructionsPage({ params }) {
-  const { id } = await params;
+  const { slug } = await params;
   
   let testDetails = null;
   let hasError = false;
+
+  const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(slug);
 
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('ACCESS_TOKEN')?.value;
 
+    const endpoint = isUuid
+      ? `/tests-api/catalog/mock-tests/${slug}/structure`
+      : `/tests-api/catalog/mock-tests/slug/${slug}/structure`;
+
     const res = await fetchWithCache(
-      `/tests-api/catalog/mock-tests/${id}/structure`,
+      endpoint,
       {
         revalidate: 0, // No cache for authenticated user requests
         headers: token ? { Cookie: `ACCESS_TOKEN=${token}` } : {},
@@ -90,7 +96,7 @@ export default async function InstructionsPage({ params }) {
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shrink-0">
         <div className="max-w-4xl mx-auto">
           <InstructionsClient 
-            testId={id} 
+            testId={testDetails?.id || testDetails?.testId} 
             durationMinutes={testDetails?.durationMinutes || 180} 
             disabled={hasError || !testDetails}
           />

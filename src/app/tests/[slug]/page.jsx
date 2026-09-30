@@ -7,9 +7,9 @@ import StartTestButton from '../../../features/catalog/StartTestButton';
 import { testService } from '../../../services/testService';
 import { formatDuration } from '../../../utils/format';
 
-async function loadTest(id) {
+async function loadTest(slug) {
   try {
-    return await testService.getMockTestStructure(id);
+    return await testService.getMockTestStructureBySlug(slug);
   } catch (error) {
     if (error?.status === 404 || /: 404/.test(error?.message || '')) {
       return null;
@@ -20,8 +20,8 @@ async function loadTest(id) {
 }
 
 export async function generateMetadata({ params }) {
-  const { id } = await params;
-  const test = await loadTest(id).catch(() => null);
+  const { slug } = await params;
+  const test = await loadTest(slug).catch(() => null);
 
   return {
     title: test?.title ? `${test.title} | TestHub` : 'Mock Test | TestHub',
@@ -29,8 +29,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function MockTestPage({ params }) {
-  const { id } = await params;
-  const test = await loadTest(id);
+  const { slug } = await params;
+  const test = await loadTest(slug);
 
   if (!test) {
     notFound();
@@ -109,7 +109,7 @@ export default async function MockTestPage({ params }) {
 
           <div className="mt-8">
             <StartTestButton
-              testId={id}
+              testId={slug}
               durationMinutes={test.durationMinutes}
             />
           </div>

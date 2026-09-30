@@ -134,7 +134,7 @@ export default async function TestSeriesIndexPage({ searchParams }) {
               return (
                 <Link
                   key={item.id}
-                  href={`/test-series/${item.id}`}
+                  href={`/test-series/${item.slug}`}
                   className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
                 >
                   <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">

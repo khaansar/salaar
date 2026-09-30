@@ -37,6 +37,27 @@ export const testService = {
     );
   },
 
+  async getSeriesBySlug(slug) {
+    if (!slug) {
+      throw new Error('slug is required');
+    }
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(slug);
+    if (isUuid) {
+      return this.getSeriesById(slug);
+    }
+
+    return fetchWithCache(
+      `/tests-api/public/series/slug/${encodeURIComponent(slug)}`,
+      {
+        revalidate: 300,
+        tags: [
+          `series-slug-${slug}`,
+          CACHE_TAGS.seriesList,
+        ],
+      }
+    );
+  },
+
   async getMockTestStructure(testId) {
     if (!testId) {
       throw new Error('testId is required');
@@ -48,6 +69,26 @@ export const testService = {
         revalidate: 300,
         tags: [
           CACHE_TAGS.testStructure(testId),
+        ],
+      }
+    );
+  },
+
+  async getMockTestStructureBySlug(slug) {
+    if (!slug) {
+      throw new Error('slug is required');
+    }
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(slug);
+    if (isUuid) {
+      return this.getMockTestStructure(slug);
+    }
+
+    return fetchWithCache(
+      `/tests-api/catalog/mock-tests/slug/${encodeURIComponent(slug)}/structure`,
+      {
+        revalidate: 300,
+        tags: [
+          `test-structure-slug-${slug}`,
         ],
       }
     );
