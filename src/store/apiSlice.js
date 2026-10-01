@@ -30,7 +30,15 @@ export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: axiosBaseQuery(),
   // Define global tag types for caching invalidation
-  tagTypes: ['Attempt', 'Auth', 'Question', 'Series', 'Category', 'UserCalendar'],
+  tagTypes: [
+    'Attempt',
+    'Auth',
+    'Question',
+    'Series',
+    'Category',
+    'UserCalendar',
+    'AuditLog',
+  ],
   // Endpoints are injected in separate files for code splitting
   endpoints: (builder) => ({}),
 });

@@ -22,7 +22,7 @@ export const adminApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Series', id: 'LIST' }],
     }),
-    
+
     getQuestionsList: builder.query({
       query: (params) => ({
         url: '/tests-api/admin/questions',
@@ -64,6 +64,44 @@ export const adminApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Category', id: 'LIST' }],
     }),
+
+    getAuditLogs: builder.query({
+      query: ({
+        actorId,
+        action,
+        resourceType,
+        service,
+        from,
+        to,
+        page = 0,
+        size = 20,
+      } = {}) => ({
+        url: '/auth-api/admin/audit-logs',
+        params: {
+          actorId: actorId || undefined,
+          action: action || undefined,
+          resourceType: resourceType || undefined,
+          service: service || undefined,
+          from: from || undefined,
+          to: to || undefined,
+          page,
+          size,
+        },
+      }),
+      providesTags: (result) => {
+        const logs = result?.content;
+
+        return Array.isArray(logs)
+          ? [
+              ...logs.map(({ eventId }) => ({
+                type: 'AuditLog',
+                id: eventId,
+              })),
+              { type: 'AuditLog', id: 'LIST' },
+            ]
+          : [{ type: 'AuditLog', id: 'LIST' }];
+      },
+    }),
   }),
 });
 
@@ -74,4 +112,5 @@ export const {
   useDeleteQuestionMutation,
   useGetCategoriesListQuery,
   useDeleteCategoryMutation,
+  useGetAuditLogsQuery,
 } = adminApi;
