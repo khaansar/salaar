@@ -1,4 +1,4 @@
-import apiClient from '../lib/apiClient';
+import apiClient, { apiClientRaw } from '../lib/apiClient';
 
 const USE_MOCKS =
   process.env.NEXT_PUBLIC_USE_ATTEMPT_MOCKS === 'true';
@@ -15,15 +15,18 @@ export const attemptService = {
       return MOCK_ATTEMPT_DATA;
     }
 
-    const attemptRes = await apiClient.get(
+    const rawRes = await apiClientRaw.get(
       `/attempts-api/${attemptId}`
     );
 
-    if (!attemptRes) {
+    if (!rawRes || !rawRes.data) {
       throw new Error(
         'Attempt response was empty'
       );
     }
+
+    const attemptRes = rawRes.data;
+    attemptRes.attemptVersion = rawRes.meta?.attemptVersion;
 
     const testId = attemptRes.testId;
 
@@ -112,18 +115,18 @@ export const attemptService = {
             response.numeric = answer;
           } else if (type === 'MSQ') {
             response.selected =
-              typeof answer === 'string'
+              typeof answer === 'string' && answer.length > 0
                 ? answer
                     .split(',')
                     .map((value) => value.trim())
                     .filter(Boolean)
-                : Array.isArray(answer)
+                : Array.isArray(answer) && answer.length > 0
                   ? answer
-                  : [];
+                  : undefined;
           } else {
             response.selected =
-              answer == null
-                ? []
+              answer == null || answer === ''
+                ? undefined
                 : [answer];
           }
 
@@ -141,6 +144,7 @@ export const attemptService = {
         status: attemptRes.status,
         expiresAt: attemptRes.expiresAt,
         attemptVersion: attemptRes.attemptVersion,
+        currentQuestionIndex: attemptRes.currentQuestionIndex,
       },
 
       sections,
@@ -153,7 +157,11 @@ export const attemptService = {
     if (USE_MOCKS) {
       return { success: true };
     }
-    return apiClient.patch(`/attempts-api/${attemptId}`, payload);
+    const rawRes = await apiClientRaw.patch(`/attempts-api/${attemptId}`, payload);
+    return {
+      ...rawRes.data,
+      attemptVersion: rawRes.meta?.attemptVersion
+    };
   },
 
   async submitAttempt(attemptId) {
