@@ -50,6 +50,7 @@ export const apiSlice = createApi({
     'Series',
     'Category',
     'UserCalendar',
+    'AuditLog',
     'UserProfile',
     'UserStreak',
     'AttemptHistory',

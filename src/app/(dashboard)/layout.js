@@ -2,161 +2,425 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { useAppSelector } from '../../hooks/useAppSelector';
-import { useTheme } from '../../hooks/useTheme';
-import { logoutUser } from '../../store/slices/authSlice';
-import { Avatar } from '../../components/ui/Avatar';
+import Link from 'next/link';
 import {
-  LogOut,
   LayoutDashboard,
   FolderTree,
   Library,
   HelpCircle,
   MessageCircleQuestion,
-  Bell,
-  ChevronDown,
   Users,
+  ShieldCheck,
   BarChart3,
   FileBarChart,
+  Bell,
+  ChevronDown,
+  LogOut,
   Menu,
   X,
   Sun,
   Moon,
 } from 'lucide-react';
-import Link from 'next/link';
+
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import { useTheme } from '../../hooks/useTheme';
+import { logoutUser } from '../../store/slices/authSlice';
+import { Avatar } from '../../components/ui/Avatar';
+
+const OVERVIEW_NAV = [
+  {
+    href: '/admin-dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    exact: true,
+  },
+];
 
 const CONTENT_NAV = [
-  { href: '/admin-dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  {
+    href: '/admin-dashboard/categories',
+    label: 'Categories',
+    icon: FolderTree,
+  },
+  {
+    href: '/admin-dashboard/series',
+    label: 'Test Series',
+    icon: Library,
+  },
+  {
+    href: '/admin-dashboard/questions',
+    label: 'Questions',
+    icon: HelpCircle,
+  },
+  {
+    href: '/admin-dashboard/faqs',
+    label: 'FAQs',
+    icon: MessageCircleQuestion,
+  },
 ];
 
-const CONTENT_MANAGEMENT_NAV = [
-  { href: '/admin-dashboard/categories', label: 'Exam Categories', icon: FolderTree },
-  { href: '/admin-dashboard/series', label: 'Test Series', icon: Library },
-  { href: '/admin-dashboard/questions', label: 'Question Bank', icon: HelpCircle },
-  { href: '/admin-dashboard/faqs', label: 'FAQs', icon: MessageCircleQuestion },
-];
-
-// These groups mirror the reference design's information architecture, but
-// there is no backing API for admin-user management or analytics yet, so the
-// links are shown as disabled "coming soon" entries rather than dead links.
 const USERS_NAV = [
-  { href: '/admin-dashboard/users', label: 'Users', icon: Users },
-];
-const REPORTS_NAV = [
-  { label: 'Analytics', icon: BarChart3 },
-  { label: 'Reports', icon: FileBarChart },
+  {
+    href: '/admin-dashboard/users',
+    label: 'Users',
+    icon: Users,
+  },
 ];
 
-function NavLink({ item, active, onNavigate }) {
+const SECURITY_NAV = [
+  {
+    href: '/admin-dashboard/audit-logs',
+    label: 'Audit Logs',
+    icon: ShieldCheck,
+  },
+];
+
+const COMING_SOON_NAV = [
+  {
+    label: 'Analytics',
+    icon: BarChart3,
+  },
+  {
+    label: 'Reports',
+    icon: FileBarChart,
+  },
+];
+
+function isItemActive(pathname, item) {
+  if (item.exact) {
+    return pathname === item.href;
+  }
+
+  return pathname?.startsWith(item.href);
+}
+
+function NavItem({
+  item,
+  pathname,
+  expanded,
+  onNavigate,
+}) {
   const Icon = item.icon;
+  const active = isItemActive(pathname, item);
+
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+      title={!expanded ? item.label : undefined}
+      className={`group relative flex h-9 w-full items-center rounded-lg transition-colors duration-150 ${
+        expanded
+          ? 'gap-2.5 px-2'
+          : 'justify-center px-0'
+      } ${
         active
-          ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+          ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300'
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
       }`}
     >
-      <Icon size={18} />
-      {item.label}
+      {active && (
+        <span className="absolute left-0 top-1.5 h-6 w-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+      )}
+
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+        <Icon
+          size={17}
+          strokeWidth={active ? 2.1 : 1.8}
+        />
+      </span>
+
+      <span
+        className={`overflow-hidden whitespace-nowrap text-xs font-medium transition-all duration-150 ${
+          expanded
+            ? 'w-auto translate-x-0 opacity-100'
+            : 'pointer-events-none w-0 -translate-x-1 opacity-0'
+        }`}
+      >
+        {item.label}
+      </span>
+
+      {!expanded && (
+        <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-md transition-opacity duration-100 group-hover:opacity-100 dark:bg-white dark:text-slate-900">
+          {item.label}
+        </span>
+      )}
     </Link>
   );
 }
 
-function DisabledNavItem({ item }) {
+function DisabledNavItem({
+  item,
+  expanded,
+}) {
   const Icon = item.icon;
+
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-400 dark:text-slate-600 cursor-not-allowed select-none">
-      <span className="flex items-center gap-3">
-        <Icon size={18} />
+    <div
+      title={
+        !expanded
+          ? `${item.label} — Coming soon`
+          : undefined
+      }
+      className={`group relative flex h-9 w-full items-center rounded-lg text-slate-300 dark:text-slate-700 ${
+        expanded
+          ? 'gap-2.5 px-2'
+          : 'justify-center px-0'
+      }`}
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+        <Icon size={17} />
+      </span>
+
+      <span
+        className={`overflow-hidden whitespace-nowrap text-xs font-medium transition-all duration-150 ${
+          expanded
+            ? 'w-auto opacity-100'
+            : 'pointer-events-none w-0 -translate-x-1 opacity-0'
+        }`}
+      >
         {item.label}
       </span>
-      <span className="text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 px-1.5 py-0.5 rounded">
-        Soon
-      </span>
+
+      {expanded && (
+        <span className="ml-auto rounded bg-slate-100 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-400 dark:bg-slate-800 dark:text-slate-600">
+          Soon
+        </span>
+      )}
+
+      {!expanded && (
+        <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-md transition-opacity duration-100 group-hover:opacity-100 dark:bg-white dark:text-slate-900">
+          {item.label} · Soon
+        </span>
+      )}
     </div>
   );
 }
 
-function SidebarContent({ pathname, isAdminSection, onNavigate }) {
-  const isActive = (item) => (item.exact ? pathname === item.href : pathname?.startsWith(item.href));
-
+function SidebarSection({
+  label,
+  items,
+  pathname,
+  expanded,
+  onNavigate,
+}) {
   return (
-    <>
-      <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-600 rounded-md flex items-center justify-center font-bold text-white text-lg">
+    <section className="mb-3">
+      <div
+        className={`mb-1 overflow-hidden px-2 text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-all duration-150 dark:text-slate-500 ${
+          expanded
+            ? 'h-3.5 opacity-100'
+            : 'h-0 opacity-0'
+        }`}
+      >
+        {label}
+      </div>
+
+      <div className="space-y-0.5">
+        {items.map((item) => (
+          <NavItem
+            key={item.href}
+            item={item}
+            pathname={pathname}
+            expanded={expanded}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SidebarContent({
+  pathname,
+  expanded,
+  onNavigate,
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Logo */}
+      <div
+        className={`flex h-14 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 ${
+          expanded
+            ? 'px-3'
+            : 'justify-center'
+        }`}
+      >
+        <Link
+          href="/admin-dashboard"
+          onClick={onNavigate}
+          className="flex items-center gap-2"
+        >
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
             T
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">TestHub</span>
-          {isAdminSection && (
-            <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500 bg-indigo-50 dark:bg-indigo-500/15 dark:text-indigo-300 px-1.5 py-0.5 rounded">
+
+          <div
+            className={`overflow-hidden whitespace-nowrap transition-all duration-150 ${
+              expanded
+                ? 'w-auto opacity-100'
+                : 'pointer-events-none w-0 opacity-0'
+            }`}
+          >
+            <div className="text-xs font-semibold leading-none text-slate-900 dark:text-white">
+              TestHub
+            </div>
+
+            <div className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-indigo-500">
               Admin
-            </span>
-          )}
-        </div>
+            </div>
+          </div>
+        </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="px-4 space-y-1">
-          {CONTENT_NAV.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item)} onNavigate={onNavigate} />
-          ))}
-        </nav>
+      {/* Navigation */}
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-3">
+        <SidebarSection
+          label="Overview"
+          items={OVERVIEW_NAV}
+          pathname={pathname}
+          expanded={expanded}
+          onNavigate={onNavigate}
+        />
 
-        {isAdminSection && (
-          <>
-            <div className="px-6 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Content Management
-            </div>
-            <nav className="px-4 space-y-1">
-              {CONTENT_MANAGEMENT_NAV.map((item) => (
-                <NavLink key={item.href} item={item} active={isActive(item)} onNavigate={onNavigate} />
-              ))}
-            </nav>
+        <SidebarSection
+          label="Content"
+          items={CONTENT_NAV}
+          pathname={pathname}
+          expanded={expanded}
+          onNavigate={onNavigate}
+        />
 
-            <div className="px-6 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Users
-            </div>
-            <nav className="px-4 space-y-1">
-             {USERS_NAV.map((item) => (
-  <NavLink
-    key={item.href}
-    item={item}
-    active={isActive(item)}
-  />
-))}
-            </nav>
+        <SidebarSection
+          label="Users"
+          items={USERS_NAV}
+          pathname={pathname}
+          expanded={expanded}
+          onNavigate={onNavigate}
+        />
 
-            <div className="px-6 mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Reports
-            </div>
-            <nav className="px-4 space-y-1">
-              {REPORTS_NAV.map((item) => (
-                <DisabledNavItem key={item.label} item={item} />
-              ))}
-            </nav>
-          </>
-        )}
+        <SidebarSection
+          label="Security"
+          items={SECURITY_NAV}
+          pathname={pathname}
+          expanded={expanded}
+          onNavigate={onNavigate}
+        />
+
+        <section>
+          <div
+            className={`mb-1 overflow-hidden px-2 text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-all duration-150 dark:text-slate-500 ${
+              expanded
+                ? 'h-3.5 opacity-100'
+                : 'h-0 opacity-0'
+            }`}
+          >
+            Reports
+          </div>
+
+          <div className="space-y-0.5">
+            {COMING_SOON_NAV.map((item) => (
+              <DisabledNavItem
+                key={item.label}
+                item={item}
+                expanded={expanded}
+              />
+            ))}
+          </div>
+        </section>
       </div>
-    </>
+    </div>
+  );
+}
+
+function DesktopSidebar({
+  pathname,
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <aside
+      className="relative hidden h-dvh w-14 shrink-0 md:block"
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+    >
+      <div
+        className={`absolute left-0 top-0 z-40 h-dvh overflow-hidden border-r border-slate-200 bg-white transition-[width,box-shadow] duration-200 dark:border-slate-800 dark:bg-slate-900 ${
+          expanded
+            ? 'w-56 shadow-xl'
+            : 'w-14 shadow-none'
+        }`}
+      >
+        <SidebarContent
+          pathname={pathname}
+          expanded={expanded}
+        />
+      </div>
+    </aside>
+  );
+}
+
+function MobileSidebar({
+  pathname,
+  open,
+  onClose,
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 md:hidden">
+      <div
+        className="absolute inset-0 bg-slate-950/40"
+        onClick={onClose}
+      />
+
+      <aside className="relative h-dvh w-64 bg-white shadow-xl dark:bg-slate-900">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close menu"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+        >
+          <X size={17} />
+        </button>
+
+        <SidebarContent
+          pathname={pathname}
+          expanded
+          onNavigate={onClose}
+        />
+      </aside>
+    </div>
   );
 }
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
+
   return (
     <button
+      type="button"
       onClick={toggleTheme}
-      className="relative flex items-center justify-center w-9 h-9 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      aria-label={
+        isDark
+          ? 'Switch to light theme'
+          : 'Switch to dark theme'
+      }
+      title={
+        isDark
+          ? 'Switch to light theme'
+          : 'Switch to dark theme'
+      }
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
     >
-      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      {isDark ? (
+        <Sun size={17} />
+      ) : (
+        <Moon size={17} />
+      )}
     </button>
   );
 }
@@ -166,30 +430,58 @@ function NotificationsMenu() {
   const ref = useRef(null);
 
   useEffect(() => {
-    if (!open) return undefined;
-    const onClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    if (!open) {
+      return undefined;
+    }
+
+    const handleClick = (event) => {
+      if (
+        ref.current &&
+        !ref.current.contains(event.target)
+      ) {
+        setOpen(false);
+      }
     };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+
+    document.addEventListener(
+      'mousedown',
+      handleClick
+    );
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClick
+      );
+    };
   }, [open]);
 
   return (
-    <div className="relative" ref={ref}>
+    <div
+      ref={ref}
+      className="relative"
+    >
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="relative flex items-center justify-center w-9 h-9 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
         aria-label="Notifications"
+        className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
       >
-        <Bell size={18} />
+        <Bell size={17} />
       </button>
+
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg py-3 z-30">
-          <div className="px-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-b border-slate-100 px-3 py-2.5 dark:border-slate-800">
+            <p className="text-xs font-semibold text-slate-900 dark:text-white">
+              Notifications
+            </p>
           </div>
-          <div className="px-4 py-8 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400">You&apos;re all caught up.</p>
+
+          <div className="px-3 py-7 text-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              You&apos;re all caught up.
+            </p>
           </div>
         </div>
       )}
@@ -197,53 +489,111 @@ function NotificationsMenu() {
   );
 }
 
-function ProfileMenu({ user, onLogout }) {
+function ProfileMenu({
+  user,
+  onLogout,
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
-    if (!open) return undefined;
-    const onClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    if (!open) {
+      return undefined;
+    }
+
+    const handleClick = (event) => {
+      if (
+        ref.current &&
+        !ref.current.contains(event.target)
+      ) {
+        setOpen(false);
+      }
     };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+
+    document.addEventListener(
+      'mousedown',
+      handleClick
+    );
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClick
+      );
+    };
   }, [open]);
 
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Admin';
-  const role = user?.role ? String(user.role).replace(/_/g, ' ').toLowerCase() : '';
+  const fullName =
+    [user?.firstName, user?.lastName]
+      .filter(Boolean)
+      .join(' ') ||
+    user?.email ||
+    'Admin';
+
+  const role = user?.role
+    ? String(user.role)
+        .replace(/_/g, ' ')
+        .toLowerCase()
+    : '';
 
   return (
-    <div className="relative" ref={ref}>
+    <div
+      ref={ref}
+      className="relative"
+    >
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex items-center gap-1.5 rounded-lg py-1 pl-1 pr-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
       >
-        <Avatar name={fullName} avatarUrl={user?.avatarUrl} size="sm" />
-        <span className="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-200 max-w-[120px] truncate">
+        <Avatar
+          name={fullName}
+          avatarUrl={user?.avatarUrl}
+          size="sm"
+        />
+
+        <span className="hidden max-w-[120px] truncate text-xs font-medium text-slate-700 dark:text-slate-200 sm:block">
           {fullName}
         </span>
-        <ChevronDown size={14} className="text-slate-400" />
+
+        <ChevronDown
+          size={13}
+          className="text-slate-400"
+        />
       </button>
+
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg py-2 z-30">
-          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
-            <Avatar name={fullName} avatarUrl={user?.avatarUrl} size="lg" />
+        <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2.5 border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+            <Avatar
+              name={fullName}
+              avatarUrl={user?.avatarUrl}
+              size="lg"
+            />
+
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{fullName}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
+              <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
+                {fullName}
+              </p>
+
+              <p className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-slate-400">
+                {user?.email}
+              </p>
+
               {role && (
-                <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-500/15 dark:text-indigo-300 px-1.5 py-0.5 rounded">
+                <span className="mt-1 inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
                   {role}
                 </span>
               )}
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onLogout}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             Log out
           </button>
         </div>
@@ -252,14 +602,21 @@ function ProfileMenu({ user, onLogout }) {
   );
 }
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({
+  children,
+}) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAppSelector((state) => state.auth);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const isAdminSection = pathname?.startsWith('/admin-dashboard');
+  const { user } = useAppSelector(
+    (state) => state.auth
+  );
+
+  const [
+    mobileNavOpen,
+    setMobileNavOpen,
+  ] = useState(false);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -267,66 +624,62 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
-      {/* Sidebar (desktop) */}
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:flex flex-col">
-        <SidebarContent pathname={pathname} isAdminSection={isAdminSection} />
-      </aside>
+    <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950">
+      {/* Desktop sidebar */}
+      <DesktopSidebar pathname={pathname} />
 
-      {/* Sidebar (mobile drawer) */}
-      {mobileNavOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMobileNavOpen(false)} />
-          <aside className="relative w-64 h-full bg-white dark:bg-slate-900 flex flex-col shadow-xl">
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setMobileNavOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              <X size={20} />
-            </button>
-            <SidebarContent
-              pathname={pathname}
-              isAdminSection={isAdminSection}
-              onNavigate={() => setMobileNavOpen(false)}
-            />
-          </aside>
-        </div>
-      )}
+      {/* Mobile sidebar */}
+      <MobileSidebar
+        pathname={pathname}
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center gap-4 px-4 sm:px-6 shrink-0">
+      {/* Main application */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <header className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white px-3 dark:border-slate-800 dark:bg-slate-900 sm:px-5">
           <button
+            type="button"
             onClick={() => setMobileNavOpen(true)}
-            className="md:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
             aria-label="Open menu"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white md:hidden"
           >
-            <Menu size={22} />
+            <Menu size={19} />
           </button>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
+
             <NotificationsMenu />
-            <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
+            <div className="mx-1 hidden h-5 w-px bg-slate-200 dark:bg-slate-800 sm:block" />
+
             {user ? (
-              <ProfileMenu user={user} onLogout={handleLogout} />
+              <ProfileMenu
+                user={user}
+                onLogout={handleLogout}
+              />
             ) : (
               <button
+                type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+                className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
               >
-                <LogOut size={18} />
-                <span className="hidden sm:inline">Log out</span>
+                <LogOut size={15} />
+
+                <span className="hidden sm:inline">
+                  Log out
+                </span>
               </button>
             )}
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        {/* Page */}
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+          {children}
+        </main>
       </div>
     </div>
   );
