@@ -8,12 +8,12 @@ import {
   Clock3,
   Flame,
   Target,
-  TrendingUp,
 } from 'lucide-react';
 
 import { useAppSelector } from '../../hooks/useAppSelector';
 import {
   useGetAttemptHistoryQuery,
+  useGetUserPerformanceQuery,
   useGetYearlyStreakQuery,
 } from '../../store/userApi';
 
@@ -85,6 +85,11 @@ export default function ProfilePage() {
     perPage: 20,
   });
 
+  const {
+    data: performance,
+    isLoading: performanceLoading,
+  } = useGetUserPerformanceQuery();
+
   const attempts = useMemo(() => {
     if (Array.isArray(historyResponse)) {
       return historyResponse;
@@ -101,49 +106,30 @@ export default function ProfilePage() {
     return [];
   }, [historyResponse]);
 
-  const completedAttempts = useMemo(
-    () =>
-      attempts.filter(
-        (attempt) =>
-          String(attempt?.status || '').toUpperCase() ===
-          'SUBMITTED'
-      ),
-    [attempts]
-  );
+  const recentAttempts = attempts.slice(0, 4);
 
-  const scoredAttempts = useMemo(
-    () =>
-      completedAttempts
-        .map((attempt) => ({
-          ...attempt,
-          score: getScore(attempt),
-        }))
-        .filter((attempt) => attempt.score !== null),
-    [completedAttempts]
-  );
+  const performanceSummary = performance?.summary;
+  const performanceAttempts = Array.isArray(performance?.attempts)
+    ? performance.attempts
+    : [];
 
-  const recentAverage = useMemo(() => {
-    if (!scoredAttempts.length) return null;
+  const recentAverage = performanceSummary?.averageScorePercentage ?? null;
 
-    const total = scoredAttempts.reduce(
-      (sum, attempt) => sum + attempt.score,
-      0
-    );
+  const bestScore = performanceSummary?.bestScorePercentage ?? null;
 
-    return Math.round(total / scoredAttempts.length);
-  }, [scoredAttempts]);
-
-  const bestScore = useMemo(() => {
-    if (!scoredAttempts.length) return null;
-
-    return Math.max(
-      ...scoredAttempts.map((attempt) => attempt.score)
-    );
-  }, [scoredAttempts]);
+  const completedAttempts =
+    performanceSummary?.totalAttempts ?? 0;
 
   const chartAttempts = useMemo(
-    () => scoredAttempts.slice(0, 8).reverse(),
-    [scoredAttempts]
+    () =>
+      performanceAttempts
+        .filter(
+          (attempt) =>
+            attempt?.scorePercentage !== null &&
+            attempt?.scorePercentage !== undefined
+        )
+        .slice(-8),
+    [performanceAttempts]
   );
 
   const fullName =
@@ -166,15 +152,6 @@ export default function ProfilePage() {
     user?.createdAt ||
     user?.joinedAt ||
     user?.created_at;
-
-  const totalAttempts = streak?.activity
-    ? streak.activity.reduce(
-        (sum, item) => sum + Number(item?.count || 0),
-        0
-      )
-    : attempts.length;
-
-  const recentAttempts = attempts.slice(0, 4);
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-4 pb-6">
@@ -224,54 +201,54 @@ export default function ProfilePage() {
         <div className="p-4 sm:p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Flame
-                    size={17}
-                    className="text-amber-500"
+                  size={17}
+                  className="text-amber-500"
                 />
 
                 <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
-                    Streak
+                  Streak
                 </span>
-                </div>
+              </div>
 
-                <div className="mt-1 flex items-baseline gap-2">
+              <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-3xl font-bold leading-none tracking-tight text-slate-950 dark:text-white">
-                    {streak?.currentStreak || 0}
+                  {streak?.currentStreak || 0}
                 </span>
 
                 <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    day{(streak?.currentStreak || 0) === 1 ? '' : 's'} streak
+                  day{(streak?.currentStreak || 0) === 1 ? '' : 's'} streak
                 </span>
-                </div>
+              </div>
 
-                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                 Your test activity over the past year
-                </p>
+              </p>
             </div>
 
             <div className="flex gap-2">
-                <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
+              <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Active
+                  Active
                 </p>
 
                 <p className="mt-0.5 text-base font-bold text-slate-950 dark:text-white">
-                    {streak?.totalActiveDays || 0}
+                  {streak?.totalActiveDays || 0}
                 </p>
-                </div>
+              </div>
 
-                <div className="hidden rounded-lg border border-slate-200 px-3 py-2 sm:block dark:border-slate-700">
+              <div className="hidden rounded-lg border border-slate-200 px-3 py-2 sm:block dark:border-slate-700">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Best
+                  Best
                 </p>
 
                 <p className="mt-0.5 text-base font-bold text-slate-950 dark:text-white">
-                    {streak?.maxStreak || 0}
+                  {streak?.maxStreak || 0}
                 </p>
-                </div>
+              </div>
             </div>
-            </div>
+          </div>
 
           <div className="mt-4">
             {streakLoading ? (
@@ -302,7 +279,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  Based on your recently loaded scored attempts
+                  Based on all your completed attempts
                 </p>
               </div>
 
@@ -315,41 +292,59 @@ export default function ProfilePage() {
               </Link>
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Recent avg
-                </p>
-                <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
-                  {recentAverage !== null
-                    ? `${recentAverage}%`
-                    : '—'}
-                </p>
+            {performanceLoading ? (
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                {[1, 2, 3].map((item) => (
+                  <div key={item}>
+                    <div className="h-3 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="mt-2 h-8 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Recent avg
+                  </p>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Best
-                </p>
-                <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
-                  {bestScore !== null
-                    ? `${bestScore}%`
-                    : '—'}
-                </p>
-              </div>
+                  <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
+                    {recentAverage !== null
+                      ? `${Math.round(
+                          Number(recentAverage)
+                        )}%`
+                      : '—'}
+                  </p>
+                </div>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Completed
-                </p>
-                <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
-                  {completedAttempts.length}
-                </p>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Best
+                  </p>
+
+                  <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
+                    {bestScore !== null
+                      ? `${Math.round(Number(bestScore))}%`
+                      : '—'}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Completed
+                  </p>
+
+                  <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
+                    {completedAttempts}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mt-4 h-24 rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-800 dark:bg-slate-950/30">
-              {chartAttempts.length >= 2 ? (
+              {performanceLoading ? (
+                <div className="h-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+              ) : chartAttempts.length >= 2 ? (
                 <ScoreChart attempts={chartAttempts} />
               ) : (
                 <div className="flex h-full items-center justify-center text-xs text-slate-400">
@@ -415,7 +410,7 @@ export default function ProfilePage() {
                     <Link
                       key={attempt.attemptId}
                       href={`/attempt/${attempt.attemptId}/result`}
-                      className="flex items-center gap-3 py-2.5 px-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                      className="flex items-center gap-3 px-2 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
                     >
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                         {String(attempt.status || '').toUpperCase() ===
@@ -475,8 +470,8 @@ export default function ProfilePage() {
       </div>
 
       <div className="text-center text-[10px] text-slate-400">
-        {totalAttempts} total test
-        {totalAttempts === 1 ? '' : 's'} recorded
+        {completedAttempts} total test
+        {completedAttempts === 1 ? '' : 's'} recorded
         {streakFetching ? ' · Updating activity…' : ''}
       </div>
     </div>
@@ -484,7 +479,10 @@ export default function ProfilePage() {
 }
 
 function ScoreChart({ attempts }) {
-  const scores = attempts.map((attempt) => attempt.score);
+  const scores = attempts.map(
+    (attempt) => Number(attempt?.scorePercentage) || 0
+  );
+
   const width = 600;
   const height = 90;
   const padding = 8;
@@ -514,7 +512,7 @@ function ScoreChart({ attempts }) {
       viewBox={`0 0 ${width} ${height}`}
       className="h-full w-full"
       preserveAspectRatio="none"
-      aria-label="Recent score trend"
+      aria-label="Score trend"
     >
       <line
         x1="0"
@@ -641,7 +639,7 @@ function ActivityHeatmap({ streak }) {
     <div>
       <div className="w-full overflow-hidden">
         <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="min-w-[680px] sm:min-w-0 p-2">
+          <div className="min-w-[680px] p-2 sm:min-w-0">
             <div
               className="grid gap-[3px]"
               style={{

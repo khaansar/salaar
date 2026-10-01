@@ -36,6 +36,14 @@ export const userApi = apiSlice.injectEndpoints({
       }),
       providesTags: ['AttemptHistory'],
     }),
+
+    getUserPerformance: builder.query({
+      query: () => ({
+        url: 'analytics-api/reports/performance',
+        method: 'GET',
+      }),
+      providesTags: ['UserPerformance'],
+    }),
   }),
 });
 
@@ -46,4 +54,5 @@ export const {
   useLazyGetYearlyStreakQuery,
   useGetAttemptHistoryQuery,
   useLazyGetAttemptHistoryQuery,
+  useGetUserPerformanceQuery,
 } = userApi;

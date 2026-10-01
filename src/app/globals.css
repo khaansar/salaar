@@ -272,3 +272,44 @@ body {
 .dark .katex {
   color: #f8fafc;
 }
+
+@media print {
+  .report-screen {
+    display: none !important;
+  }
+
+  .report-print {
+    display: block !important;
+  }
+
+  .print-dashboard-shell header,
+  .print-dashboard-shell aside {
+    display: none !important;
+  }
+
+  .print-dashboard-shell main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-dashboard-shell > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-dashboard-shell {
+    min-height: 0 !important;
+  }
+
+  body {
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
