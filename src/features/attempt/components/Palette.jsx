@@ -1,14 +1,17 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 
 import {
   setCurrentQuestion,
 } from '../store/attemptSlice';
+import { makeSelectPaletteCounts } from '../store/selectors';
 
 function LegendItem({
   label,
+  count,
   className,
   shape = 'square',
 }) {
@@ -21,7 +24,7 @@ function LegendItem({
             : 'rounded-sm'
         }`}
       >
-        0
+        {count}
       </div>
 
       <span className="leading-tight">
@@ -95,6 +98,9 @@ function QuestionButton({
 
 export default function Palette() {
   const dispatch = useAppDispatch();
+
+  const selectPaletteCounts = useMemo(() => makeSelectPaletteCounts(), []);
+  const overallCounts = useAppSelector((state) => selectPaletteCounts(state));
 
   const sections = useAppSelector(
     (state) => state.attempt.sections
@@ -170,27 +176,32 @@ export default function Palette() {
       <div className="p-4 border-b border-exam-border bg-white grid grid-cols-2 gap-y-3 gap-x-2">
         <LegendItem
           label="Not Visited"
+          count={overallCounts.notVisited}
           className="bg-white border-slate-300 text-slate-500"
         />
 
         <LegendItem
           label="Not Answered"
+          count={overallCounts.notAnswered}
           className="bg-rose-50 border-rose-300 text-rose-600 shadow-[inset_0_-6px_0_rgba(251,113,133,0.2)]"
         />
 
         <LegendItem
           label="Answered"
+          count={overallCounts.answered}
           className="bg-emerald-500 border-emerald-500 text-white"
         />
 
         <LegendItem
           label="Marked"
+          count={overallCounts.markedForReview}
           className="bg-amber-100 border-amber-400 text-amber-800"
           shape="circle"
         />
 
         <LegendItem
           label="Ans & Marked"
+          count={overallCounts.answeredAndMarked}
           className="bg-exam-accent border-exam-accent text-white"
           shape="circle"
         />
