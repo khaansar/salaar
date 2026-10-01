@@ -7,7 +7,9 @@ import {
   LogOut,
   Menu,
   Hexagon,
+  UserRound,
 } from 'lucide-react';
+
 import Link from 'next/link';
 
 import { useTheme } from '../../hooks/useTheme';
@@ -24,7 +26,8 @@ import {
 export default function StudentHeader({
   onMenuClick,
 }) {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } =
+    useTheme();
 
   const { user } = useAppSelector(
     (state) => state.auth
@@ -62,11 +65,12 @@ export default function StudentHeader({
       handleClickOutside
     );
 
-    return () =>
+    return () => {
       document.removeEventListener(
         'mousedown',
         handleClickOutside
       );
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -74,15 +78,19 @@ export default function StudentHeader({
     setDropdownOpen(false);
   };
 
+  const fullName =
+    [user?.firstName, user?.lastName]
+      .filter(Boolean)
+      .join(' ') || 'Student';
+
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8">
-      {/* Left side: Logo */}
-      <div className="flex-1 flex items-center gap-4">
-        {/* Mobile menu button */}
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800/60 dark:bg-slate-900 lg:px-8">
+      {/* Logo */}
+      <div className="flex flex-1 items-center gap-4">
         <button
           type="button"
           onClick={onMenuClick}
-          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 lg:hidden"
           aria-label="Open menu"
         >
           <Menu size={20} />
@@ -92,7 +100,7 @@ export default function StudentHeader({
           href="/"
           className="flex items-center gap-2"
         >
-          <div className="flex flex-shrink-0 h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
             <Hexagon
               size={20}
               className="fill-current"
@@ -105,8 +113,8 @@ export default function StudentHeader({
         </Link>
       </div>
 
-      {/* Right side actions */}
-      <div className="flex items-center gap-4">
+      {/* Actions */}
+      <div className="flex items-center gap-2 sm:gap-4">
         <button
           type="button"
           onClick={toggleTheme}
@@ -147,12 +155,10 @@ export default function StudentHeader({
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+            <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
               <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                 <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                  {user?.firstName
-                    ? `${user.firstName} ${user.lastName || ''}`
-                    : 'Student'}
+                  {fullName}
                 </p>
 
                 <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
@@ -160,14 +166,35 @@ export default function StudentHeader({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-              >
-                <LogOut size={16} />
-                Log out
-              </button>
+              <div className="p-2">
+                <Link
+                  href="/profile"
+                  onClick={() =>
+                    setDropdownOpen(
+                      false
+                    )
+                  }
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                    <UserRound size={16} />
+                  </span>
+
+                  <span>My Profile</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-500/10">
+                    <LogOut size={16} />
+                  </span>
+
+                  <span>Log out</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

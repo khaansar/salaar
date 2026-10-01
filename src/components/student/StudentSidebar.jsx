@@ -44,7 +44,6 @@ export default function StudentSidebar({
       href: '/history',
       icon: Clock,
     },
-    ...(isAdmin ? [{ name: 'Admin dashboard', href: '/admin-dashboard', icon: LayoutDashboard }] : []),
   ];
 
   const comingSoonItems = [
