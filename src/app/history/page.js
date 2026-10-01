@@ -80,7 +80,7 @@ export default function HistoryPage() {
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {history.map((attempt) => (
-                  <tr key={attempt.attemptId} className="hover:bg-slate-50 transition-colors">
+                  <tr key={attempt.attemptId} className="bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/60 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                       {formatDate(attempt.startedAt)}
                     </td>
