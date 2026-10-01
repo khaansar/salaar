@@ -119,6 +119,31 @@ function statusLabel(statusCode) {
   return String(statusCode);
 }
 
+function MetadataBlock({ value }) {
+  let formattedValue;
+
+  try {
+    const parsed =
+      typeof value === 'string'
+        ? JSON.parse(value)
+        : value;
+
+    formattedValue = JSON.stringify(
+      parsed,
+      null,
+      2
+    );
+  } catch {
+    formattedValue = String(value ?? '');
+  }
+
+  return (
+    <pre className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+      {formattedValue}
+    </pre>
+  );
+}
+
 function MetadataValue({ metadata }) {
   if (!metadata) {
     return (
@@ -128,21 +153,7 @@ function MetadataValue({ metadata }) {
     );
   }
 
-  try {
-    const parsed = JSON.parse(metadata);
-
-    return (
-      <pre className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
-        {JSON.stringify(parsed, null, 2)}
-      </pre>
-    );
-  } catch {
-    return (
-      <pre className="max-h-64 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-5 text-slate-200 whitespace-pre-wrap">
-        {metadata}
-      </pre>
-    );
-  }
+  return <MetadataBlock value={metadata} />;
 }
 
 function DetailItem({ label, value, mono = false }) {
