@@ -38,19 +38,42 @@ const attemptSlice = createSlice({
       state.questions = questions || {};
       state.responses = responses || {};
 
+      console.log('Restoring attempt data:', { attemptId: attempt?.id, currentQuestionIndex: attempt?.currentQuestionIndex });
+
       if (
         sections &&
-        sections.length > 0 &&
-        !state.ui.currentSectionId
+        sections.length > 0
       ) {
-        state.ui.currentSectionId = sections[0].id;
+        let restoredQId = null;
+        let restoredSectionId = null;
 
-        if (
-          sections[0].questionIds &&
-          sections[0].questionIds.length > 0
-        ) {
-          state.ui.currentQuestionId =
-            sections[0].questionIds[0];
+        if (typeof attempt.currentQuestionIndex === 'number') {
+          let currentIndex = 0;
+          for (const sec of sections) {
+            if (!sec.questionIds) continue;
+            if (
+              attempt.currentQuestionIndex >= currentIndex &&
+              attempt.currentQuestionIndex < currentIndex + sec.questionIds.length
+            ) {
+              restoredSectionId = sec.id;
+              restoredQId = sec.questionIds[attempt.currentQuestionIndex - currentIndex];
+              break;
+            }
+            currentIndex += sec.questionIds.length;
+          }
+        }
+
+        if (restoredQId && restoredSectionId) {
+          state.ui.currentSectionId = restoredSectionId;
+          state.ui.currentQuestionId = restoredQId;
+        } else if (!state.ui.currentSectionId) {
+          state.ui.currentSectionId = sections[0].id;
+          if (
+            sections[0].questionIds &&
+            sections[0].questionIds.length > 0
+          ) {
+            state.ui.currentQuestionId = sections[0].questionIds[0];
+          }
         }
       }
 
