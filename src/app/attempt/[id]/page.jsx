@@ -1,3 +1,4 @@
+import ForceLightTheme from '@/components/theme/ForceLightTheme';
 import ExamShell from '../../../features/attempt/components/ExamShell';
 
 export const metadata = {
@@ -9,6 +10,9 @@ export default async function AttemptPage({ params }) {
   const { id } = await params;
   
   return (
-    <ExamShell attemptId={id} />
+    <>
+        <ForceLightTheme />
+        <ExamShell attemptId={id} />
+    </>
   );
 }
