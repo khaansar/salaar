@@ -13,8 +13,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: 'TestHub',
-  description: 'TestHub examination platform',
+  title: 'Baahubali',
+  description: 'Baahubali examination platform',
 };
 
 const themeScript = `

@@ -1,17 +1,18 @@
 import StudentShell from '../../components/student/StudentShell';
-import ComingSoon from '../../components/common/ComingSoon';
+import MockTestsPage from '../../features/mock-tests/MockTestsPage';
+import { catalogService } from '../../services/catalogService';
 
 export const metadata = {
-  title: 'Mock Tests | TestHub',
+  title: 'Mock Tests | Baahubali',
 };
 
-export default function Page() {
+export default async function Page() {
+  const [res] = await Promise.allSettled([catalogService.getPopularSeries()]);
+  const series = res.status === 'fulfilled' && Array.isArray(res.value) ? res.value : [];
+
   return (
     <StudentShell>
-      <ComingSoon
-        title="Mock Tests"
-        description="A browsable list of every mock test is on its way. For now, open a test series to find and start a test."
-      />
+      <MockTestsPage series={series} />
     </StudentShell>
   );
 }
