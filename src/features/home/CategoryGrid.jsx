@@ -1,23 +1,26 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Flame } from 'lucide-react';
 import * as Icons from 'lucide-react';
 
-// A dynamic icon component
 const DynamicIcon = ({ name, ...props }) => {
   const IconComponent = Icons[name] || Icons.HelpCircle;
   return <IconComponent {...props} />;
 };
 
-// We will fetch categories from catalogService in the parent and pass as props
 export default function CategoryGrid({ categories = [] }) {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <section className="w-full h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Browse by Category</h2>
-        <Link href="/categories" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1">
-          View All <ArrowRight size={16} />
+    <section className="h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+            <Flame size={20} className="fill-orange-500 text-orange-500" /> Popular Exams
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">Choose from a wide range of exams and start your preparation today.</p>
+        </div>
+        <Link href="/categories" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+          View All Exams <ArrowRight size={14} />
         </Link>
       </div>
 
@@ -26,15 +29,18 @@ export default function CategoryGrid({ categories = [] }) {
           <Link
             key={cat.id}
             href={`/test-series?category=${cat.slug}`}
-            className="group flex min-h-28 flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
+            className="group flex flex-col items-center rounded-xl border border-slate-200 bg-white p-4 text-center transition-all hover:-translate-y-0.5 hover:border-brand-100 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
           >
-            <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${cat.bg || 'bg-indigo-50 dark:bg-indigo-500/10'} ${cat.color || 'text-indigo-600 dark:text-indigo-300'}`}>
-              <DynamicIcon name={cat.icon || 'Folder'} size={20} strokeWidth={1.8} />
+            <div className={`flex h-12 w-12 items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${cat.bg || 'bg-brand-50'} ${cat.color || 'text-brand-600'}`}>
+              <DynamicIcon name={cat.icon || 'Folder'} size={28} strokeWidth={1.8} />
             </div>
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-white">{cat.name}</h3>
-              <ArrowRight size={14} className="shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-600" />
-            </div>
+            <h3 className="mt-3 truncate text-sm font-bold text-slate-900 dark:text-white">{cat.name}</h3>
+            <p className="mt-0.5 text-[11px] text-slate-500">{cat.description || 'Mock Tests & PYQs'}</p>
+            {cat.testCount != null && (
+              <span className="mt-3 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                {cat.testCount}+ Tests
+              </span>
+            )}
           </Link>
         ))}
       </div>

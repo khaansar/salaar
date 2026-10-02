@@ -1,106 +1,85 @@
 import Link from 'next/link';
-import {
-  ArrowRight,
-  FileText,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowRight, FileText, Clock, CheckCircle2, BarChart2, Landmark, TrainFront, MapPin } from 'lucide-react';
 
 function formatDuration(minutes) {
-  if (!minutes) {
-    return null;
-  }
-
+  if (!minutes) return null;
   if (minutes % 60 === 0) {
     const hours = minutes / 60;
-
     return `${hours} hr${hours === 1 ? '' : 's'}`;
   }
-
   return `${minutes} min`;
 }
 
+const ICONS = [
+  { Icon: Landmark, color: 'text-emerald-600' },
+  { Icon: TrainFront, color: 'text-rose-500' },
+  { Icon: Landmark, color: 'text-amber-500' },
+  { Icon: MapPin, color: 'text-blue-500' },
+];
+
+const BADGE = {
+  popular: 'bg-emerald-50 text-emerald-700',
+  new: 'bg-rose-50 text-rose-600',
+  bestseller: 'bg-amber-50 text-amber-600',
+  recommended: 'bg-emerald-50 text-emerald-700',
+};
+
 export default function PopularSeries({ series = [] }) {
-  if (!Array.isArray(series) || series.length === 0) {
-    return null;
-  }
+  if (!Array.isArray(series) || series.length === 0) return null;
 
   return (
-    <section className="mb-10">
-      <div className="mb-4 flex items-end justify-between gap-4">
+    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <Sparkles
-              size={18}
-              className="text-indigo-600 dark:text-indigo-400"
-            />
-
-            <h2 className="text-lg font-semibold tracking-tight text-slate-950 dark:text-white">
-              Popular Test Series
-            </h2>
-          </div>
-
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Build consistency with structured practice.
-          </p>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+            <BarChart2 size={20} className="text-brand-600" /> Featured Test Series
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">Most popular and highly rated test series to boost your preparation.</p>
         </div>
-
-        <Link
-          href="/test-series"
-          className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-        >
-          View all
-          <ArrowRight size={16} />
+        <Link href="/test-series" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+          View All Test Series <ArrowRight size={14} />
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {series.map((item) => (
-          <Link
-            key={item.id}
-            href={`/test-series/${item.slug}`}
-            className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
-          >
-            <div className="flex flex-1 flex-col p-4">
-              {item.badge && (
-                <span className="mb-3 inline-flex w-fit items-center rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
-                  {item.badge}
-                </span>
-              )}
-              <h3 className="line-clamp-2 text-base font-semibold leading-6 text-slate-950 dark:text-white">
-                {item.title}
-              </h3>
-
-              <div className="mt-auto pt-4">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-slate-100 pt-3 text-xs font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                  {item.testCount != null && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <FileText size={14} />
-                      {item.testCount} tests
-                    </span>
-                  )}
-
-                  {item.durationMinutes != null && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock size={14} />
-                      {formatDuration(item.durationMinutes)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                    View series
+        {series.map((item, i) => {
+          const { Icon, color } = ICONS[i % ICONS.length];
+          const duration = formatDuration(item.durationMinutes);
+          return (
+            <Link
+              key={item.id}
+              href={`/test-series/${item.slug}`}
+              className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-brand-100 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
+            >
+              <div className="mb-3 flex items-start justify-between">
+                <Icon size={28} className={color} strokeWidth={1.8} />
+                {item.badge && (
+                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE[String(item.badge).toLowerCase()] || 'bg-brand-50 text-brand-600'}`}>
+                    {item.badge}
                   </span>
-
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:bg-slate-900 dark:text-slate-400 dark:group-hover:bg-indigo-500/10 dark:group-hover:text-indigo-400">
-                    <ArrowRight size={15} />
-                  </span>
-                </div>
+                )}
               </div>
-            </div>
-          </Link>
-        ))}
+              <h3 className="line-clamp-2 text-sm font-bold leading-5 text-slate-900 dark:text-white">{item.title}</h3>
+              {item.subtitle && <p className="mt-0.5 text-xs text-slate-500">{item.subtitle}</p>}
+
+              <ul className="mt-4 space-y-2 text-xs text-slate-500">
+                {item.testCount != null && (
+                  <li className="flex items-center gap-2"><FileText size={14} /> {item.testCount} Tests</li>
+                )}
+                {duration && (
+                  <li className="flex items-center gap-2"><Clock size={14} /> {duration}</li>
+                )}
+                <li className="flex items-center gap-2"><CheckCircle2 size={14} /> Updated Regularly</li>
+              </ul>
+
+              <span className="mt-auto pt-4">
+                <span className="flex w-full items-center justify-center gap-1.5 rounded-md border border-brand-600 py-2 text-xs font-semibold text-brand-600 transition-colors group-hover:bg-brand-50">
+                  View Details <ArrowRight size={13} />
+                </span>
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

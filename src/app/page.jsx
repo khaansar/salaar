@@ -6,12 +6,18 @@ import PremiumCalendar from '../features/home/PremiumCalendar';
 import PopularSeries from '../features/home/PopularSeries';
 import StartPracticing from '../features/home/StartPracticing';
 import ContinueCard from '../features/home/ContinueCard';
+import GuestOnly from '../features/home/GuestOnly';
+import HowItWorks from '../features/home/HowItWorks';
+import StatsStrip from '../features/home/StatsStrip';
+import Testimonials from '../features/home/Testimonials';
+import JoinBanner from '../features/home/JoinBanner';
+import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
 
 export const metadata = {
-  title: 'TestHub | Practice Smarter, Score Higher',
+  title: 'Baahubali | Practice Smarter, Crack Your Exam',
   description:
-    'High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.',
+    'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
 };
 
 async function loadCatalog() {
@@ -22,38 +28,22 @@ async function loadCatalog() {
   ]);
 
   return {
-    categories:
-      results[0].status === 'fulfilled'
-        ? results[0].value
-        : [],
-
-    popularSeries:
-      results[1].status === 'fulfilled'
-        ? results[1].value
-        : [],
-
-    featuredTests:
-      results[2].status === 'fulfilled'
-        ? results[2].value
-        : [],
+    categories: results[0].status === 'fulfilled' ? results[0].value : [],
+    popularSeries: results[1].status === 'fulfilled' ? results[1].value : [],
+    featuredTests: results[2].status === 'fulfilled' ? results[2].value : [],
   };
 }
 
 export default async function HomePage() {
-  const {
-    categories,
-    popularSeries,
-    featuredTests,
-  } = await loadCatalog();
+  const { categories, popularSeries, featuredTests } = await loadCatalog();
 
   return (
     <StudentShell>
-      <div className="pt-4 pb-10 md:pt-6">
+      <div className="pb-10">
         <HeroSection />
         <ContinueCard />
-        <ValueStrip />
 
-        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-10">
+        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-6">
           <div className="flex-1 min-w-0">
             <CategoryGrid categories={categories} />
           </div>
@@ -62,13 +52,17 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <PopularSeries
-          series={popularSeries}
-        />
+        <ValueStrip />
+        <PopularSeries series={popularSeries} />
+        <StartPracticing tests={featuredTests} />
 
-        <StartPracticing
-          tests={featuredTests}
-        />
+        <GuestOnly>
+          <HowItWorks />
+          <StatsStrip />
+          <Testimonials />
+          <JoinBanner />
+          <HomeFaq />
+        </GuestOnly>
       </div>
     </StudentShell>
   );
