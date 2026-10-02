@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -29,7 +28,6 @@ import {
   Lightbulb
 } from 'lucide-react';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
