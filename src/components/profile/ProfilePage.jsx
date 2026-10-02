@@ -226,7 +226,7 @@ export default function ProfilePage() {
               <Pencil size={14} className="text-indigo-500 cursor-pointer" />
             </div>
             <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Aspirant for SSC CGL 2025</p>
-            <p className="text-slate-500 text-sm mt-1">"Consistent practice today, success tomorrow."</p>
+            <p className="text-slate-500 text-sm mt-1">&quot;Consistent practice today, success tomorrow.&quot;</p>
             
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 mt-4 text-xs font-medium text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-1.5"><MapPin size={14}/> {location}</div>
