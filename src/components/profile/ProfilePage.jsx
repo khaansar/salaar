@@ -61,10 +61,20 @@ export default function ProfilePage() {
   const location = user?.location || 'Bangalore, India';
 
   // 2. Stats Mappings
-  const totalAttempts = performance?.summary?.totalAttempts ?? 48; // Fallback to design mock
+  const totalAttempts = performance?.summary?.totalAttempts ?? 0;
   const avgScore = performance?.summary?.averageScorePercentage 
     ? Math.round(performance.summary.averageScorePercentage) 
-    : 78; // Fallback to design mock
+    : 0;
+  const avgAccuracy = performance?.summary?.averageAccuracyPercentage
+    ? Math.round(performance.summary.averageAccuracyPercentage)
+    : null;
+  const avgPercentile = performance?.summary?.averagePercentile
+    ? Math.round(performance.summary.averagePercentile)
+    : null;
+  // Compute total study hours from average time * total attempts
+  const totalStudyHrs = (performance?.summary?.averageTimeTakenSeconds && totalAttempts)
+    ? Math.round((performance.summary.averageTimeTakenSeconds * totalAttempts) / 3600)
+    : null;
 
   // 3. Performance Chart Mappings
   let chartData = [
@@ -79,23 +89,21 @@ export default function ProfilePage() {
   ]; // Fallback to design mock
 
   if (performance?.attempts && performance.attempts.length > 0) {
+    const avgOverall = performance.summary?.averageScorePercentage
+      ? Math.round(performance.summary.averageScorePercentage) : 0;
+    const bestOverall = performance.summary?.bestScorePercentage
+      ? Math.round(performance.summary.bestScorePercentage) : 0;
     chartData = performance.attempts.slice(-8).map(a => ({
-      name: new Date(a.startedAt || a.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+      name: new Date(a.completedAt || a.startedAt || a.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
       your: Math.round(a.scorePercentage || 0),
-      avg: 55, // Mocked as backend doesn't provide
-      top: 85  // Mocked as backend doesn't provide
+      avg: avgOverall,
+      top: bestOverall
     }));
   }
 
   // 4. Recent Tests Mappings
   const historyItems = Array.isArray(historyResponse) ? historyResponse : (historyResponse?.items || historyResponse?.data || []);
-  let realRecentTests = [
-    { id: '1', name: 'SSC CGL 2025 - Full Test 5', date: '28 Sep 2025', score: '82%', rank: 'Top 12%', color: 'text-emerald-500' },
-    { id: '2', name: 'SSC CGL 2025 - Full Test 4', date: '25 Sep 2025', score: '76%', rank: 'Top 18%', color: 'text-emerald-500' },
-    { id: '3', name: 'Quantitative Aptitude - Topic Test', date: '22 Sep 2025', score: '68%', rank: 'Top 22%', color: 'text-orange-500' },
-    { id: '4', name: 'Reasoning - Sectional Test', date: '20 Sep 2025', score: '74%', rank: 'Top 20%', color: 'text-emerald-500' },
-    { id: '5', name: 'SSC CGL 2024 - Previous Year', date: '18 Sep 2025', score: '71%', rank: 'Top 25%', color: 'text-emerald-500' },
-  ]; // Fallback to design mock
+  let realRecentTests = [];
 
   if (historyItems.length > 0) {
     realRecentTests = historyItems.slice(0, 5).map(a => {
@@ -103,18 +111,21 @@ export default function ProfilePage() {
       return {
         id: a.attemptId,
         name: a.testName || 'Test Attempt',
+        category: a.categoryName || '',
         date: new Date(a.startedAt || a.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-        score: a.finalScore ? `${Math.round(a.finalScore)}%` : (isSubmitted ? 'Done' : a.status || '—'),
-        rank: '—', // Mocked as backend doesn't provide
-        color: isSubmitted ? 'text-emerald-500' : 'text-slate-500'
+        score: a.finalScore != null ? `${Math.round(a.finalScore)}%` : (isSubmitted ? 'Done' : a.status || '—'),
+        rank: '—',
+        color: isSubmitted
+          ? (a.finalScore != null && a.finalScore >= 70 ? 'text-emerald-500' : 'text-orange-500')
+          : 'text-slate-500'
       };
     });
   }
 
   // 5. Streak Mappings
-  const currentStreak = streak?.currentStreak ?? 18;
-  const maxStreak = streak?.maxStreak ?? 42;
-  const totalActiveDays = streak?.totalActiveDays ?? 48;
+  const currentStreak = streak?.currentStreak ?? 0;
+  const maxStreak = streak?.maxStreak ?? 0;
+  const totalActiveDays = streak?.totalActiveDays ?? 0;
 
   const renderHeatmap = () => {
     const activityMap = new Map();
@@ -179,13 +190,23 @@ export default function ProfilePage() {
     return <div className="flex flex-col gap-1">{grid}</div>;
   };
 
-  // Remaining purely mocked sections (Subject, Topic Analysis, Strengths/Weaknesses, Recommendations)
-  const subjectPerformance = [
-    { name: 'Quantitative Aptitude', score: 82, color: 'bg-emerald-500' },
-    { name: 'Reasoning Ability', score: 76, color: 'bg-blue-500' },
-    { name: 'English Language', score: 68, color: 'bg-orange-500' },
-    { name: 'General Awareness', score: 54, color: 'bg-rose-500' },
-  ];
+  // 6. Subject-wise Performance (from analytics sectionPerformance)
+  const SECTION_COLORS = ['bg-emerald-500', 'bg-blue-500', 'bg-orange-500', 'bg-rose-500', 'bg-purple-500', 'bg-indigo-500'];
+  const subjectPerformance = (performance?.sectionPerformance || []).map((sec, i) => {
+    const accuracy = sec.averageAccuracyPercentage != null ? Math.round(sec.averageAccuracyPercentage) : 0;
+    return {
+      name: sec.sectionName || `Section ${i + 1}`,
+      score: accuracy,
+      color: accuracy >= 75 ? 'bg-emerald-500'
+           : accuracy >= 60 ? 'bg-blue-500'
+           : accuracy >= 45 ? 'bg-orange-500'
+           : 'bg-rose-500',
+      attempts: sec.attempts || 0,
+      correct: sec.correct || 0,
+      incorrect: sec.incorrect || 0,
+      unattempted: sec.unattempted || 0,
+    };
+  });
 
   const topicAnalysis = [
     { topic: 'Number System', attempted: 12, accuracy: '92%', avgTime: '1.2 min', accColor: 'text-emerald-500' },
@@ -306,9 +327,11 @@ export default function ProfilePage() {
             <Trophy size={24} className="fill-purple-100/10 stroke-purple-500" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Rank (Among Peers)</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">Top 15%</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Better than 85% students</p>
+            <p className="text-xs text-slate-500 font-medium">Avg Percentile</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{avgPercentile != null ? `Top ${100 - avgPercentile}%` : '—'}</p>
+            {avgPercentile != null && (
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Better than {avgPercentile}% students</p>
+            )}
           </div>
         </div>
         
@@ -319,8 +342,8 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="text-xs text-slate-500 font-medium">Total Study Time</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">62 hrs</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">This month</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{totalStudyHrs != null ? `${totalStudyHrs} hrs` : '—'}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Across all attempts</p>
           </div>
         </div>
       </div>
@@ -375,7 +398,13 @@ export default function ProfilePage() {
           </div>
           
           <div className="space-y-6">
-            {subjectPerformance.map((sub, i) => (
+            {subjectPerformance.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <LayoutList size={32} className="text-slate-300 dark:text-slate-600 mb-3" />
+                <p className="text-sm text-slate-400 font-medium">No section data yet</p>
+                <p className="text-xs text-slate-400 mt-1">Complete a few tests to see subject-wise analysis</p>
+              </div>
+            ) : subjectPerformance.map((sub, i) => (
               <div key={i}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{sub.name}</span>
@@ -497,6 +526,16 @@ export default function ProfilePage() {
           </div>
           
           <div className="overflow-x-auto">
+            {realRecentTests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <History size={32} className="text-slate-300 dark:text-slate-600 mb-3" />
+                <p className="text-sm text-slate-400 font-medium">No tests taken yet</p>
+                <p className="text-xs text-slate-400 mt-1">Take your first test to see your history here</p>
+                <Link href="/tests" className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors">
+                  Explore Tests
+                </Link>
+              </div>
+            ) : (
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 font-medium text-xs">
@@ -523,6 +562,7 @@ export default function ProfilePage() {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         </div>
 
