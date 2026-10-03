@@ -3,13 +3,32 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Bot, TrendingUp, BarChart2, Lightbulb, Monitor, Sparkles, FileText, Trophy } from 'lucide-react';
+
+function FloatCard({ icon: Icon, tone, title, text, className }) {
+  return (
+    <div className={`absolute hidden w-48 items-start gap-2.5 rounded-xl border border-white bg-white/90 p-3 shadow-lg shadow-indigo-500/10 backdrop-blur md:flex ${className}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>
+        <Icon size={18} />
+      </span>
+      <div>
+        <p className="text-xs font-bold text-slate-900">{title}</p>
+        <p className="text-[11px] leading-4 text-slate-500">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+const trust = [
+  { icon: Monitor, label: 'Real Exam Interface' },
+  { icon: Sparkles, label: 'AI-Powered Analysis' },
+  { icon: FileText, label: 'Previous Year Papers' },
+  { icon: Lightbulb, label: 'Detailed Solutions' },
+];
 
 export default function HeroSection() {
   const { user } = useAppSelector((state) => state.auth);
   const isAuthenticated = !!user;
-  
-  // Use user's first name if available, otherwise just 'there'
   const name = user?.firstName || 'there';
 
   if (isAuthenticated) {
@@ -25,49 +44,49 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-[#eef2ff] to-[#f3e8ff] dark:from-indigo-950/40 dark:to-purple-900/40 pt-12 pb-16 lg:pt-16 lg:pb-20 rounded-3xl mb-8 border border-white/50 dark:border-white/5">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
-          
-          <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
-            <h1 className="text-3xl tracking-tight font-bold text-slate-900 dark:text-white sm:text-4xl lg:text-4xl mb-4">
-              <span className="block xl:inline">Practice Smarter.</span>{' '}
-              <span className="block text-[#5e43f3] dark:text-indigo-400 xl:inline">Score Higher.</span>
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base sm:max-w-xl sm:mx-auto lg:mx-0 font-medium">
-              High quality mock tests, detailed solutions and performance analytics to help you achieve your goals.
-            </p>
-            
-            <div className="mt-6 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0 flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/test-series"
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-[#5e43f3] hover:bg-[#4d36c6] shadow-sm transition-colors"
-              >
-                Explore Test Series
-                <ArrowRight className="ml-2 -mr-1 w-5 h-5" />
-              </Link>
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center px-6 py-3 border border-slate-300 dark:border-slate-700 text-base font-semibold rounded-xl text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors backdrop-blur"
-              >
-                Sign up free
-              </Link>
-            </div>
+    <section className="relative mb-6 overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white via-[#f6f4ff] to-[#ebe7ff] dark:border-white/5 dark:from-slate-900 dark:via-indigo-950/40 dark:to-purple-950/40">
+      <div className="grid items-center gap-6 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:py-12">
+        <div className="lg:col-span-6">
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-600">
+            <Trophy size={12} /> Your Competitive Exam Partner
+          </span>
+          <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Practice Smarter.
+            <span className="block text-brand-600">Crack Your Exam.</span>
+          </h1>
+          <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href="/tests" className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700">
+              Start a Mock Test <ArrowRight size={16} />
+            </Link>
+            <Link href="/test-series" className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-800 transition-colors hover:border-brand-600 hover:text-brand-600">
+              Explore Test Series
+            </Link>
           </div>
-          
-          <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center justify-end">
-            <div className="relative w-full lg:w-[120%] lg:-mr-10 aspect-video lg:aspect-[4/3] rounded-2xl overflow-hidden">
-              <Image
-                src="/images/home/hero-student.svg"
-                alt="Student studying at laptop"
-                fill
-                priority
-                unoptimized
-                className="object-contain object-right"
-              />
-            </div>
+
+          <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {trust.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-2 text-[11px] font-medium text-slate-600">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
+                  <Icon size={14} />
+                </span>
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="relative h-72 sm:h-[26rem] lg:col-span-6">
+          <div className="absolute inset-0 md:inset-x-12">
+            <Image src="/images/home/hero-student.svg" alt="Student studying at laptop" fill priority unoptimized className="object-contain" />
           </div>
-          
+          <FloatCard icon={Bot} tone="bg-brand-600 text-white" title="AI Mentor" text="Get personalized study suggestions" className="left-0 top-2" />
+          <FloatCard icon={TrendingUp} tone="bg-emerald-500 text-white" title="Improve Your Rank" text="Practice smarter" className="right-0 top-0" />
+          <FloatCard icon={BarChart2} tone="bg-blue-500 text-white" title="Weak Topic Analysis" text="Identify weak areas" className="left-0 top-36" />
+          <FloatCard icon={Lightbulb} tone="bg-amber-100 text-amber-500" title="Detailed Solutions" text="Step-by-step explanations" className="right-2 top-32" />
         </div>
       </div>
     </section>

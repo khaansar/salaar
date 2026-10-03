@@ -18,7 +18,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
-  
+  --color-brand-50: #f3f1ff;
+--color-brand-100: #e8e4ff;
+--color-brand-600: #5e43f3;
+--color-brand-700: #4d36c6;
   /* Exam Engine Tokens */
   --color-exam-accent: #1e3a8a; /* Deep blue */
   --color-exam-accent-light: #eff6ff;
