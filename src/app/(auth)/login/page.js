@@ -75,6 +75,14 @@ export default function LoginPage() {
         </Link>
       </div>
 
+      {/* Top Right Sign Up Link */}
+      <div className="absolute top-8 right-8 z-20 hidden md:flex items-center gap-2 text-sm">
+        <span className="text-slate-500">Don't have an account?</span>
+        <Link href="/signup" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
+          Sign Up &rarr;
+        </Link>
+      </div>
+
       {/* Form Container */}
       <div className="relative z-10 w-full max-w-[440px]">
         <Suspense fallback={<div className="text-center p-4">Loading form...</div>}>
