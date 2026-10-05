@@ -79,26 +79,26 @@ export function SignupForm() {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-slate-100 dark:border-slate-800 overflow-hidden relative">
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Create Account</h2>
-              <p className="text-[14px] text-slate-500">
+              <h2 className="text-[28px] font-bold text-slate-900 dark:text-white tracking-tight mb-1">Create Account</h2>
+              <p className="text-[14px] text-slate-500 dark:text-slate-400">
                 Start your preparation journey today.
               </p>
             </div>
             
             <div className="text-sm sm:text-right mt-2 shrink-0">
-              <span className="text-slate-500">Have an account? </span>
-              <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
+              <span className="text-slate-500 dark:text-slate-400">Have an account? </span>
+              <Link href="/login" className="text-brand-600 dark:text-brand-400 font-semibold hover:text-brand-700 dark:hover:text-brand-300 transition-colors">
                 Login &rarr;
               </Link>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-            <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-xl bg-white text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+            <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-800/80 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -107,7 +107,7 @@ export function SignupForm() {
               </svg>
               Continue with Google
             </button>
-            <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-xl bg-white text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+            <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-800/80 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <svg className="w-4 h-4" viewBox="0 0 21 21">
                 <path fill="#f25022" d="M0 0h10v10H0z"/>
                 <path fill="#7fba00" d="M11 0h10v10H11z"/>
@@ -120,10 +120,10 @@ export function SignupForm() {
 
           <div className="relative mb-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100"></div>
+              <div className="w-full border-t border-slate-100 dark:border-slate-800"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-white text-slate-400 font-medium uppercase tracking-wider">OR</span>
+              <span className="px-4 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">OR</span>
             </div>
           </div>
 
@@ -196,12 +196,12 @@ export function SignupForm() {
             </div>
 
             <div>
-              <label htmlFor="targetExam" className="block text-[13px] font-semibold text-slate-700 mb-1">
+              <label htmlFor="targetExam" className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Select Your Target Exam(s) (Optional)
               </label>
               <select
                 id="targetExam"
-                className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 value={targetExam}
                 onChange={(e) => setTargetExam(e.target.value)}
               >
@@ -218,8 +218,8 @@ export function SignupForm() {
               <Checkbox
                 id="terms"
                 label={
-                  <span className="text-[13px] font-medium text-slate-600">
-                    I agree to the <Link href="/terms" className="text-brand-600 hover:text-brand-800 transition-colors">Terms of Service</Link> and <Link href="/privacy" className="text-brand-600 hover:text-brand-800 transition-colors">Privacy Policy</Link>
+                  <span className="text-[13px] font-medium text-slate-600 dark:text-slate-400">
+                    I agree to the <Link href="/terms" className="text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors">Terms of Service</Link> and <Link href="/privacy" className="text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors">Privacy Policy</Link>
                   </span>
                 }
                 checked={termsAccepted}
@@ -243,11 +243,11 @@ export function SignupForm() {
         </div>
 
         {/* Lower Section inside the same container */}
-        <div className="bg-slate-50 p-5 sm:px-8 border-t border-slate-100 flex items-center justify-center gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 sm:px-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-3">
           <ShieldCheck className="text-brand-500" size={24} />
           <div className="text-left">
-            <h3 className="font-semibold text-slate-900 text-sm">Your data is safe with us</h3>
-            <p className="text-xs text-slate-500">We use industry-standard security measures to protect your information.</p>
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Your data is safe with us</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">We use industry-standard security measures to protect your information.</p>
           </div>
         </div>
       </div>

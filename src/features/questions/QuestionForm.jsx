@@ -46,6 +46,7 @@ function initFromQuestion(question) {
     return {
       questionType: 'MCQ',
       difficulty: 'MEDIUM',
+      topic: '',
       positiveMarks: 1,
       negativeMarks: 0,
       explanation: '',
@@ -71,6 +72,7 @@ function initFromQuestion(question) {
   return {
     questionType: question.questionType || 'MCQ',
     difficulty: question.difficulty || 'MEDIUM',
+    topic: question.topic || '',
     positiveMarks: question.positiveMarks ?? 1,
     negativeMarks: question.negativeMarks ?? 0,
     explanation: question.explanation || '',
@@ -207,6 +209,7 @@ export function QuestionForm({ question }) {
       const payload = {
         questionType: form.questionType,
         difficulty: form.difficulty,
+        topic: form.topic?.trim() || null,
         positiveMarks: Number(form.positiveMarks),
         negativeMarks: Number(form.negativeMarks || 0),
         explanation: form.explanation,
@@ -245,6 +248,7 @@ export function QuestionForm({ question }) {
 
   const previewQuestion = {
     questionType: form.questionType,
+    topic: form.topic,
     translations: form.translations.map((t) => ({
       language: t.language,
       questionText: t.questionText,
@@ -447,30 +451,42 @@ export function QuestionForm({ question }) {
                 <p className="text-sm text-slate-500 mt-0.5">Classify and grade this question.</p>
               </div>
             </CardHeader>
-            <CardBody className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Select label="Difficulty" value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
-                {DIFFICULTY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                label="Positive marks"
-                type="number"
-                step="0.5"
-                value={form.positiveMarks}
-                onChange={(e) => setForm((f) => ({ ...f, positiveMarks: e.target.value }))}
-                error={errors.positiveMarks}
-              />
-              <Input
-                label="Negative marks"
-                type="number"
-                step="0.5"
-                min="0"
-                value={form.negativeMarks}
-                onChange={(e) => setForm((f) => ({ ...f, negativeMarks: e.target.value }))}
-              />
+            <CardBody className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Select label="Difficulty" value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
+                  {DIFFICULTY_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </Select>
+                <Input
+                  label="Positive marks"
+                  type="number"
+                  step="0.5"
+                  value={form.positiveMarks}
+                  onChange={(e) => setForm((f) => ({ ...f, positiveMarks: e.target.value }))}
+                  error={errors.positiveMarks}
+                />
+                <Input
+                  label="Negative marks"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={form.negativeMarks}
+                  onChange={(e) => setForm((f) => ({ ...f, negativeMarks: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Topic / Concept"
+                  placeholder="e.g. Algebra, Trigonometry, Blood Relations"
+                  value={form.topic}
+                  onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
+                />
+                <p className="mt-1 text-xs text-slate-400">Used for topic-level analytics and student weakness diagnosis.</p>
+              </div>
             </CardBody>
           </Card>
 

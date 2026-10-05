@@ -42,6 +42,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import {
   useGetAttemptHistoryQuery,
   useGetUserPerformanceQuery,
+  useGetUserTopicPerformanceQuery,
   useGetYearlyStreakQuery,
 } from '../../store/userApi';
 
@@ -52,6 +53,7 @@ export default function ProfilePage() {
   const { data: streak } = useGetYearlyStreakQuery();
   const { data: historyResponse } = useGetAttemptHistoryQuery({ page: 1, perPage: 20 });
   const { data: performance } = useGetUserPerformanceQuery();
+  const { data: topicPerformance } = useGetUserTopicPerformanceQuery();
 
   // 1. User Header Mappings
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.name || 'Rohit Sharma';
@@ -208,29 +210,46 @@ export default function ProfilePage() {
     };
   });
 
-  const topicAnalysis = [
-    { topic: 'Number System', attempted: 12, accuracy: '92%', avgTime: '1.2 min', accColor: 'text-emerald-500' },
-    { topic: 'Simplification', attempted: 18, accuracy: '78%', avgTime: '1.5 min', accColor: 'text-emerald-500' },
-    { topic: 'Algebra', attempted: 15, accuracy: '73%', avgTime: '2.1 min', accColor: 'text-orange-500' },
-    { topic: 'Geometry', attempted: 10, accuracy: '60%', avgTime: '2.8 min', accColor: 'text-orange-500' },
-    { topic: 'Trigonometry', attempted: 8, accuracy: '50%', avgTime: '3.2 min', accColor: 'text-rose-500' },
-  ];
+  const topicAnalysis = (topicPerformance?.topics && topicPerformance.topics.length > 0)
+    ? topicPerformance.topics.map((t) => {
+        const accuracy = t.accuracyPercentage != null ? Math.round(Number(t.accuracyPercentage)) : 0;
+        return {
+          topic: t.topic,
+          attempted: t.totalQuestions,
+          accuracy: `${accuracy}%`,
+          avgTime: t.avgTimeSpentSeconds ? `${(t.avgTimeSpentSeconds / 60).toFixed(1)} min` : '1.5 min',
+          accColor: accuracy >= 70 ? 'text-emerald-500' : accuracy >= 55 ? 'text-orange-500' : 'text-rose-500',
+        };
+      })
+    : [
+        { topic: 'Number System', attempted: 12, accuracy: '92%', avgTime: '1.2 min', accColor: 'text-emerald-500' },
+        { topic: 'Simplification', attempted: 18, accuracy: '78%', avgTime: '1.5 min', accColor: 'text-emerald-500' },
+        { topic: 'Algebra', attempted: 15, accuracy: '73%', avgTime: '2.1 min', accColor: 'text-orange-500' },
+        { topic: 'Geometry', attempted: 10, accuracy: '60%', avgTime: '2.8 min', accColor: 'text-orange-500' },
+        { topic: 'Trigonometry', attempted: 8, accuracy: '50%', avgTime: '3.2 min', accColor: 'text-rose-500' },
+      ];
 
-  const strengths = [
-    'Number System (92%)',
-    'Simplification (78%)',
-    'Blood Relations (75%)',
-    'Error Spotting (72%)',
-    'Current Affairs (70%)'
-  ];
+  const strengths = (topicPerformance?.strengths && topicPerformance.strengths.length > 0)
+    ? topicPerformance.strengths
+    : [
+        'Number System (92%)',
+        'Simplification (78%)',
+        'Blood Relations (75%)',
+        'Error Spotting (72%)',
+        'Current Affairs (70%)'
+      ];
 
-  const weaknesses = [
-    'Trigonometry (50%)',
-    'Geometry (55%)',
-    'Idioms & Phrases (58%)',
-    'Advanced Math (60%)',
-    'Static GK (62%)'
-  ];
+  const weaknesses = (topicPerformance?.weaknesses && topicPerformance.weaknesses.length > 0)
+    ? topicPerformance.weaknesses
+    : [
+        'Trigonometry (50%)',
+        'Geometry (55%)',
+        'Idioms & Phrases (58%)',
+        'Advanced Math (60%)',
+        'Static GK (62%)'
+      ];
+
+  const aiInsight = topicPerformance?.aiInsight || 'You perform well in Number System and Simplification. Focus more on Trigonometry and Geometry to improve your overall score.';
 
   return (
     <div className="mx-auto w-full max-w-[1200px] pb-10 space-y-6">
@@ -504,7 +523,7 @@ export default function ProfilePage() {
             <div>
               <p className="text-xs font-bold text-slate-900 dark:text-white">AI Insight</p>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                You perform well in Number System and Simplification. Focus more on Trigonometry and Geometry to improve your overall score.
+                {aiInsight}
               </p>
             </div>
           </div>

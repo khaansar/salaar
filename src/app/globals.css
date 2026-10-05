@@ -109,6 +109,14 @@ body {
   background-color: rgb(15 23 42 / 0.7);
 }
 
+.dark .bg-white\/80 {
+  background-color: rgb(15 23 42 / 0.8);
+}
+
+.dark .bg-white\/90 {
+  background-color: rgb(15 23 42 / 0.9);
+}
+
 /* Text */
 
 .dark .text-gray-900,
@@ -220,6 +228,14 @@ body {
 
 .dark .bg-indigo-50 {
   background-color: rgb(99 102 241 / 0.15);
+}
+
+.dark .bg-brand-50 {
+  background-color: rgb(94 67 243 / 0.15);
+}
+
+.dark .bg-brand-100 {
+  background-color: rgb(94 67 243 / 0.25);
 }
 
 .dark .bg-emerald-50 {
