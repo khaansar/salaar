@@ -51,10 +51,18 @@ export function LoginForm() {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
+        {/* Top right "Sign Up" link inside the card */}
+        <div className="absolute top-8 right-8 text-sm hidden sm:block">
+          <span className="text-slate-500">Don't have an account? </span>
+          <Link href="/signup" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
+            Sign Up &rarr;
+          </Link>
+        </div>
+        
         <div className="p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Welcome Back</h2>
+            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1 pr-48">Welcome Back</h2>
             <p className="text-[14px] text-slate-500">
               Login to continue your exam preparation journey.
             </p>
