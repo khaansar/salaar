@@ -61,6 +61,8 @@ export function SignupForm() {
         firstName, 
         lastName, 
         email, 
+        phone,
+        targetExam,
         password 
       })).unwrap();
       
