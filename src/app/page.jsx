@@ -25,17 +25,19 @@ async function loadCatalog() {
     catalogService.getCategories(),
     catalogService.getPopularSeries(),
     catalogService.getFeaturedTests(),
+    catalogService.getTestimonials().catch(() => []),
   ]);
 
   return {
     categories: results[0].status === 'fulfilled' ? results[0].value : [],
     popularSeries: results[1].status === 'fulfilled' ? results[1].value : [],
     featuredTests: results[2].status === 'fulfilled' ? results[2].value : [],
+    testimonials: results[3].status === 'fulfilled' ? results[3].value : [],
   };
 }
 
 export default async function HomePage() {
-  const { categories, popularSeries, featuredTests } = await loadCatalog();
+  const { categories, popularSeries, featuredTests, testimonials } = await loadCatalog();
 
   return (
     <StudentShell>
@@ -59,7 +61,7 @@ export default async function HomePage() {
         <GuestOnly>
           <HowItWorks />
           <StatsStrip />
-          <Testimonials />
+          <Testimonials testimonials={testimonials} />
           <JoinBanner />
           <HomeFaq />
         </GuestOnly>

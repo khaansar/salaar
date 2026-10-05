@@ -10,36 +10,46 @@ const TYPE_TONE = {
 };
 
 function TestCard({ t }) {
-  const type = TYPES.find((x) => x.value === t.type);
+  // Map backend DTO to UI expected format
+  const title = t.title || 'Untitled Test';
+  const seriesName = t.type || t.categoryName || 'Practice Test';
+  const minutes = t.durationMinutes || 0;
+  const questions = t.totalMarks ? Math.floor(t.totalMarks) : 0; // Rough estimate
+  const price = t.isFree ? 0 : 99;
+  
+  // UI type for icons (mock frontend had 'full', 'topic', 'sectional', 'pyp')
+  // We default to 'full' for styling since backend doesn't explicitly store this
+  const uiType = TYPES[0];
+
   return (
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
       <div className="flex items-start gap-3">
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${TYPE_TONE[t.type]}`}><FileText size={20} /></span>
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${TYPE_TONE[uiType.value]}`}><FileText size={20} /></span>
         <div className="min-w-0">
-          <h3 className="text-xs font-bold leading-4 text-slate-900 dark:text-white">{t.series}</h3>
-          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.name}</p>
-          <span className="mt-1.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-slate-800">{type?.short}</span>
+          <h3 className="text-xs font-bold leading-4 text-slate-900 dark:text-white">{seriesName}</h3>
+          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{title}</p>
+          <span className="mt-1.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-slate-800">{uiType.short}</span>
         </div>
       </div>
       <ul className="mt-4 space-y-1.5 text-[11px] text-slate-500">
-        <li className="flex items-center gap-2"><HelpCircle size={13} /> {t.questions} Questions</li>
-        <li className="flex items-center gap-2"><Clock size={13} /> {t.minutes} Minutes</li>
-        <li className="flex items-center gap-2"><Languages size={13} /> {t.languages.join(' + ')}</li>
+        <li className="flex items-center gap-2"><HelpCircle size={13} /> {questions} Questions</li>
+        <li className="flex items-center gap-2"><Clock size={13} /> {minutes} Minutes</li>
+        <li className="flex items-center gap-2"><Languages size={13} /> English + Hindi</li>
       </ul>
       <p className="mt-3 text-xs font-bold">
-        {t.price === 0 ? <span className="text-emerald-600">Free</span> : (
-          <span className="flex items-center justify-between"><span className="text-amber-500">Paid</span><span className="text-slate-900 dark:text-white">₹{t.price}</span></span>
+        {price === 0 ? <span className="text-emerald-600">Free</span> : (
+          <span className="flex items-center justify-between"><span className="text-amber-500">Paid</span><span className="text-slate-900 dark:text-white">₹{price}</span></span>
         )}
       </p>
       <div className="mt-3">
-        <StartTestButton testId={t.id} durationMinutes={t.minutes} variant="outline" />
+        <StartTestButton testId={t.id} durationMinutes={minutes} variant="outline" />
       </div>
     </div>
   );
 }
 
-export default function TestExplorer({ tests, type, onType, page, pages, onPage, onReset }) {
-  const nums = Array.from({ length: pages }, (_, i) => i + 1).filter((n) => Math.abs(n - page) <= 2 || n === 1 || n === pages);
+export default function TestExplorer({ tests, isFetching, type, onType, page, pages, onPage, onReset }) {
+  const nums = Array.from({ length: pages || 1 }, (_, i) => i + 1).filter((n) => Math.abs(n - page) <= 2 || n === 1 || n === pages);
   return (
     <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex items-center justify-between">
@@ -60,7 +70,9 @@ export default function TestExplorer({ tests, type, onType, page, pages, onPage,
         ))}
       </div>
 
-      {tests.length === 0 ? (
+      {isFetching ? (
+        <div className="py-12 text-center text-sm font-semibold text-slate-500">Loading tests...</div>
+      ) : tests.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm font-semibold text-slate-800 dark:text-white">No tests match your filters</p>
           <button type="button" onClick={onReset} className="mt-2 text-xs font-semibold text-brand-600">Clear all filters</button>

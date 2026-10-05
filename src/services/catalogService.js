@@ -97,4 +97,19 @@ export const catalogService = {
       '/attempts-api/streak/yearly'
     );
   },
+
+  async getTestimonials() {
+    if (USE_MOCKS) {
+      await delay(300);
+      return []; // Return mock or empty if mocks enabled
+    }
+
+    return fetchWithCache(
+      '/community-api/public/reviews/PLATFORM',
+      {
+        revalidate: 3600,
+        tags: ['catalog:testimonials'],
+      }
+    );
+  },
 };

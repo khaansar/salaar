@@ -10,7 +10,17 @@ const items = [
   { name: 'Amit Kumar', exam: 'Railway RRB 2024', grad: 'from-sky-400 to-indigo-500', text: 'Best platform for competitive exam preparation. The previous year papers and test series are excellent.' },
 ];
 
-export default function Testimonials() {
+export default function Testimonials({ testimonials = [] }) {
+  const displayItems = testimonials?.length > 0 
+    ? testimonials.map((t, i) => ({
+        name: t.authorName || 'Anonymous',
+        exam: 'Baahubali Student', 
+        grad: ['from-orange-400 to-rose-500', 'from-pink-400 to-purple-500', 'from-sky-400 to-indigo-500'][i % 3],
+        text: t.comment,
+        rating: t.rating || 5
+      }))
+    : items;
+
   const ref = useRef(null);
   const scroll = (dir) =>
     ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.8, behavior: 'smooth' });
@@ -34,13 +44,13 @@ export default function Testimonials() {
       </div>
 
       <div ref={ref} className="flex snap-x gap-3 overflow-x-auto lg:grid lg:grid-cols-3 lg:overflow-visible">
-        {items.map((t) => (
-          <figure key={t.name} className="flex min-w-[85%] snap-center flex-col justify-between rounded-xl border border-slate-200 p-4 sm:min-w-[60%] lg:min-w-0 dark:border-slate-800">
+        {displayItems.map((t, idx) => (
+          <figure key={`${t.name}-${idx}`} className="flex min-w-[85%] snap-center flex-col justify-between rounded-xl border border-slate-200 p-4 sm:min-w-[60%] lg:min-w-0 dark:border-slate-800">
             <blockquote className="text-xs leading-5 text-slate-600">&ldquo;{t.text}&rdquo;</blockquote>
             <figcaption className="mt-4 flex items-center justify-between">
               <span className="flex items-center gap-2.5">
                 <span className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${t.grad} text-xs font-bold text-white`}>
-                  {t.name.split(' ').map((n) => n[0]).join('')}
+                  {t.name.split(' ').map((n) => n[0]).join('').substring(0, 2)}
                 </span>
                 <span>
                   <span className="block text-xs font-bold text-slate-900 dark:text-white">{t.name}</span>
@@ -48,7 +58,7 @@ export default function Testimonials() {
                 </span>
               </span>
               <span className="flex gap-0.5 text-amber-400">
-                {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-current" />)}
+                {[...Array(t.rating || 5)].map((_, i) => <Star key={i} size={12} className="fill-current" />)}
               </span>
             </figcaption>
           </figure>
