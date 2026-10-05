@@ -1,9 +1,13 @@
+'use client';
 import Link from 'next/link';
 import { ArrowRight, Trophy, Rocket } from 'lucide-react';
+import { useAppSelector } from '@/hooks/useAppSelector';
 
 const stairs = [['Practice', 'h-10'], ['Analyze', 'h-16'], ['Improve', 'h-24'], ['Crack Your Exam', 'h-32']];
 
 export default function JoinBanner() {
+  const { user } = useAppSelector((state) => state.auth);
+
   return (
     <section className="mb-6 overflow-hidden rounded-2xl border border-brand-100 bg-gradient-to-r from-[#f1efff] to-[#e4defd] dark:border-slate-800 dark:from-indigo-950/40 dark:to-purple-950/40">
       <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2">
@@ -18,7 +22,7 @@ export default function JoinBanner() {
             Get access to high-quality mock tests, previous year papers, detailed solutions and AI-powered insights.
           </p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+            <Link href={user ? '/' : '/signup'} className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
               Start Your Preparation <ArrowRight size={15} />
             </Link>
             <Link href="/pricing" className="inline-flex items-center justify-center rounded-lg border border-brand-600 bg-white/70 px-5 py-2.5 text-sm font-semibold text-brand-600 hover:bg-white">
