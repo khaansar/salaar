@@ -62,7 +62,7 @@ export function LoginForm() {
         
         <div className="p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1 pr-48">Welcome Back</h2>
+            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Welcome Back</h2>
             <p className="text-[14px] text-slate-500">
               Login to continue your exam preparation journey.
             </p>
