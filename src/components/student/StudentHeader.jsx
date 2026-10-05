@@ -12,9 +12,6 @@ import { logoutUser } from '../../store/slices/authSlice';
 import { useState, useRef, useEffect } from 'react';
 
 const links = [
-  { name: 'Home', href: '/' },
-  { name: 'Mock Tests', href: '/tests' },
-  { name: 'Test Series', href: '/test-series' },
   { name: 'Previous Year Papers', href: '/previous-year-papers' },
   { name: 'Analytics', href: '/analytics' },
   { name: 'Pricing', href: '/pricing' },

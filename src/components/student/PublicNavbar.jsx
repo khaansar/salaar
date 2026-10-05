@@ -11,9 +11,6 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { logoutUser } from '../../store/slices/authSlice';
 
 const links = [
-  { name: 'Home', href: '/' },
-  { name: 'Mock Tests', href: '/tests' },
-  { name: 'Test Series', href: '/test-series' },
   { name: 'Previous Year Papers', href: '/previous-year-papers' }, // TODO: route not built yet
   { name: 'Analytics', href: '/analytics' }, // TODO: route not built yet
   { name: 'Pricing', href: '/pricing' }, // TODO: route not built yet
