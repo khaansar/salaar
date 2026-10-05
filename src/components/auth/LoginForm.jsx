@@ -51,14 +51,6 @@ export function LoginForm() {
 
   return (
     <div className="w-full">
-      {/* Top right "Sign Up" link outside the card */}
-      <div className="absolute top-8 right-8 text-sm hidden md:block">
-        <span className="text-slate-500">Don't have an account? </span>
-        <Link href="/signup" className="text-brand-600 font-semibold hover:text-brand-700">
-          Sign Up &rarr;
-        </Link>
-      </div>
-
       <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
         <div className="p-6 sm:p-8">
           <div className="mb-6">
@@ -152,15 +144,6 @@ export function LoginForm() {
               Continue with GitHub
             </button>
           </div>
-        </div>
-
-        {/* Lower Section inside the same container */}
-        <div className="bg-slate-50 p-6 sm:px-8 border-t border-slate-100 text-center">
-          <h3 className="font-semibold text-slate-900 mb-1">New to Baahubali?</h3>
-          <p className="text-[13px] text-slate-500 mb-4">Join 100K+ aspirants and start your preparation today.</p>
-          <Link href="/signup" className="inline-flex items-center justify-center w-full h-11 border border-brand-300 bg-white shadow-sm text-brand-600 font-semibold text-[14px] rounded-xl hover:bg-slate-50 transition-colors">
-            Create an Account &rarr;
-          </Link>
         </div>
       </div>
     </div>
