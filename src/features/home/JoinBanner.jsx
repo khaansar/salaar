@@ -22,9 +22,18 @@ export default function JoinBanner() {
             Get access to high-quality mock tests, previous year papers, detailed solutions and AI-powered insights.
           </p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link href={user ? '/' : '/signup'} className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
-              Start Your Preparation <ArrowRight size={15} />
-            </Link>
+            {user ? (
+              <button 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+              >
+                Start Your Preparation <ArrowRight size={15} />
+              </button>
+            ) : (
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700">
+                Start Your Preparation <ArrowRight size={15} />
+              </Link>
+            )}
             <Link href="/pricing" className="inline-flex items-center justify-center rounded-lg border border-brand-600 bg-white/70 px-5 py-2.5 text-sm font-semibold text-brand-600 hover:bg-white">
               View Pricing
             </Link>
