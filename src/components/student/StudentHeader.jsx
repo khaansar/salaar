@@ -55,7 +55,7 @@ export default function StudentHeader({ onMenuClick }) {
   const iconBtn = 'flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200';
 
   return (
-    <header className="shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
+    <header className="relative z-50 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
       <div className="flex h-16 items-center justify-between gap-6 px-4 lg:px-8">
         <div className="flex items-center gap-3">
           <button
