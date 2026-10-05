@@ -78,20 +78,21 @@ export function SignupForm() {
   return (
     <div className="w-full">
       <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
-        {/* Top right Login link inside the card */}
-        <div className="absolute top-8 right-8 text-sm hidden sm:block">
-          <span className="text-slate-500">Already have an account? </span>
-          <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
-            Login &rarr;
-          </Link>
-        </div>
-
         <div className="p-6 sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Create Your Account</h2>
-            <p className="text-[14px] text-slate-500">
-              Join Baahubali and start your exam preparation journey today.
-            </p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Create Account</h2>
+              <p className="text-[14px] text-slate-500">
+                Start your preparation journey today.
+              </p>
+            </div>
+            
+            <div className="text-sm sm:text-right mt-2 shrink-0">
+              <span className="text-slate-500">Have an account? </span>
+              <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
+                Login &rarr;
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
