@@ -18,7 +18,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
-  
+  --color-brand-50: #f3f1ff;
+--color-brand-100: #e8e4ff;
+--color-brand-600: #5e43f3;
+--color-brand-700: #4d36c6;
   /* Exam Engine Tokens */
   --color-exam-accent: #1e3a8a; /* Deep blue */
   --color-exam-accent-light: #eff6ff;
@@ -104,6 +107,14 @@ body {
 
 .dark .bg-white\/70 {
   background-color: rgb(15 23 42 / 0.7);
+}
+
+.dark .bg-white\/80 {
+  background-color: rgb(15 23 42 / 0.8);
+}
+
+.dark .bg-white\/90 {
+  background-color: rgb(15 23 42 / 0.9);
 }
 
 /* Text */
@@ -217,6 +228,14 @@ body {
 
 .dark .bg-indigo-50 {
   background-color: rgb(99 102 241 / 0.15);
+}
+
+.dark .bg-brand-50 {
+  background-color: rgb(94 67 243 / 0.15);
+}
+
+.dark .bg-brand-100 {
+  background-color: rgb(94 67 243 / 0.25);
 }
 
 .dark .bg-emerald-50 {

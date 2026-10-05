@@ -2,51 +2,84 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { Suspense } from 'react';
 import Link from 'next/link';
 
+function Logo() {
+  return (
+    <svg viewBox="0 0 32 20" className="h-6 w-10" aria-hidden="true">
+      <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="#5e43f3" />
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <div className="flex w-full min-h-screen bg-white">
-      {/* Left Panel - Brand Showcase (Hidden on Mobile) */}
-      <div className="hidden lg:flex w-1/2 bg-indigo-600 relative overflow-hidden items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-indigo-700 to-blue-600 opacity-90"></div>
+    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Decorative Ambient Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Subtle dot grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 dark:opacity-20"></div>
         
-        {/* Abstract floating shapes */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400 opacity-20 rounded-full blur-3xl"></div>
-        
-        <div className="relative z-10 p-12 text-white max-w-xl">
-          <Link href="/" className="flex items-center gap-3 mb-16 group inline-flex">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-            </div>
-            <span className="font-bold text-2xl tracking-tight">PrepHub</span>
-          </Link>
-          <h1 className="text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-            Master your future, <br />
-            <span className="text-indigo-200">one test at a time.</span>
-          </h1>
-          <p className="text-lg text-indigo-100 font-medium leading-relaxed">
-            Join thousands of students upgrading their skills and cracking exams with our comprehensive testing platform.
-          </p>
+        {/* Glowing orbs */}
+        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-brand-400/10 dark:bg-brand-500/15 blur-[100px] mix-blend-multiply dark:mix-blend-screen"></div>
+        <div className="absolute bottom-0 right-0 h-[600px] w-[600px] translate-x-1/3 translate-y-1/3 rounded-full bg-indigo-400/10 dark:bg-indigo-500/15 blur-[120px] mix-blend-multiply dark:mix-blend-screen"></div>
+        <div className="absolute top-1/4 left-2/3 h-[400px] w-[400px] rounded-full bg-sky-300/10 dark:bg-sky-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen"></div>
+      </div>
+
+      {/* Floating Design Elements (Hidden on smaller screens) */}
+      <div className="hidden xl:block absolute left-[8%] top-[25%] -rotate-6 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] border border-slate-100 dark:border-slate-800 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-brand-50 dark:bg-brand-500/15 dark:border dark:border-brand-500/20 rounded-xl flex items-center justify-center text-2xl">🎓</div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white text-lg leading-tight">100K+</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Students Trust Us</p>
+          </div>
         </div>
       </div>
 
-      {/* Right Panel - Form Container */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 relative">
-        <div className="w-full max-w-[420px]">
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Welcome back</h2>
-            <p className="text-slate-500 text-base">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
-                Sign up for free
-              </Link>
-            </p>
+      <div className="hidden xl:block absolute right-[8%] top-[30%] rotate-6 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] border border-slate-100 dark:border-slate-800 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/15 dark:border dark:border-amber-500/20 rounded-xl flex items-center justify-center text-2xl">⭐</div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white text-lg leading-tight">4.8/5</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Average Rating</p>
           </div>
-
-          <Suspense fallback={<div>Loading form...</div>}>
-            <LoginForm />
-          </Suspense>
         </div>
+      </div>
+
+      <div className="hidden xl:block absolute left-[12%] bottom-[25%] rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] border border-slate-100 dark:border-slate-800 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/15 dark:border dark:border-emerald-500/20 rounded-xl flex items-center justify-center text-2xl">📊</div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white text-lg leading-tight">50K+</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Mock Tests</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="hidden xl:block absolute right-[12%] bottom-[20%] -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] border border-slate-100 dark:border-slate-800 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-rose-50 dark:bg-rose-500/15 dark:border dark:border-rose-500/20 rounded-xl flex items-center justify-center text-2xl">🎯</div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white text-lg leading-tight">15+</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Exam Categories</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Left Logo */}
+      <div className="absolute top-8 left-8 z-20 hidden md:block">
+        <Link href="/" className="flex items-center gap-2">
+          <Logo />
+          <span className="text-xl font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
+            Baahubali
+          </span>
+        </Link>
+      </div>
+
+      {/* Form Container */}
+      <div className="relative z-10 w-full max-w-[500px]">
+        <Suspense fallback={<div className="text-center p-4">Loading form...</div>}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );

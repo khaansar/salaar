@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import { ArrowRight, FileText, Layers3 } from 'lucide-react';
+import { ArrowRight, ChevronRight, FileText, Layers3, Landmark, TrainFront, MapPin } from 'lucide-react';
 
 import StudentShell from '../../components/student/StudentShell';
 import { testService } from '../../services/testService';
 import { catalogService } from '../../services/catalogService';
 
 export const metadata = {
-  title: 'Test Series | TestHub',
+  title: 'Test Series | Baahubali',
   description: 'Structured mock test series for your exam.',
 };
 
@@ -14,6 +14,13 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 12;
+
+const ICONS = [
+  { Icon: Landmark, color: 'text-emerald-600' },
+  { Icon: TrainFront, color: 'text-rose-500' },
+  { Icon: Landmark, color: 'text-amber-500' },
+  { Icon: MapPin, color: 'text-blue-500' },
+];
 
 const slugify = (value = '') =>
   String(value)
@@ -27,7 +34,6 @@ function toList(data) {
 
 function formatPrice(value) {
   if (!value || Number(value) === 0) return 'Free';
-
   return `₹${Number(value).toLocaleString('en-IN')}`;
 }
 
@@ -55,9 +61,7 @@ export default async function TestSeriesIndexPage({ searchParams }) {
 
   const visible = category
     ? series.filter(
-        (item) =>
-          item.categorySlug === category ||
-          slugify(item.categoryName) === category
+        (item) => item.categorySlug === category || slugify(item.categoryName) === category
       )
     : series;
 
@@ -72,39 +76,41 @@ export default async function TestSeriesIndexPage({ searchParams }) {
     return qs ? `/test-series?${qs}` : '/test-series';
   };
 
+  const pill = (active) =>
+    `rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+      active
+        ? 'border-brand-600 bg-brand-600 text-white'
+        : 'border-slate-200 bg-white text-slate-600 hover:border-brand-600 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+    }`;
+
+  const pager = 'rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:border-brand-600 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200';
+
   return (
     <StudentShell>
       <div className="pb-12">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
-          Test Series
-        </h1>
+        <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">
+          <Link href="/" className="hover:text-brand-600">Home</Link>
+          <ChevronRight size={12} />
+          <span className="font-medium text-slate-700">Test Series</span>
+        </nav>
 
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Structured practice, one series at a time.
-        </p>
+        <section className="mb-6 rounded-3xl border border-white/60 bg-gradient-to-br from-white via-[#f6f4ff] to-[#ebe7ff] px-6 py-8 sm:px-10 dark:border-white/5 dark:from-slate-900 dark:via-indigo-950/40 dark:to-purple-950/40">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Test <span className="text-brand-600">Series</span>
+          </h1>
+          <p className="mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Structured practice, one series at a time.
+          </p>
+        </section>
 
         {categories.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Link
-              href="/test-series"
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                !category
-                  ? 'border-indigo-600 bg-indigo-600 text-white'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-              }`}
-            >
-              All
-            </Link>
-
+          <div className="mb-6 flex flex-wrap gap-2">
+            <Link href="/test-series" className={pill(!category)}>All</Link>
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/test-series?category=${encodeURIComponent(cat.slug ?? '')}`}
-                className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                  category === cat.slug
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-                }`}
+                className={pill(category === cat.slug)}
               >
                 {cat.name}
               </Link>
@@ -113,58 +119,47 @@ export default async function TestSeriesIndexPage({ searchParams }) {
         )}
 
         {failed ? (
-          <p className="mt-10 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
+          <p className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
             We couldn&apos;t load test series right now. Please try again in a moment.
           </p>
         ) : visible.length === 0 ? (
           <div className="mt-16 text-center">
-            <p className="font-semibold text-slate-900 dark:text-white">
-              No test series found
-            </p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Try a different category.
-            </p>
+            <p className="font-semibold text-slate-900 dark:text-white">No test series found</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Try a different category.</p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((item) => {
-              const testCount =
-                item.testCount ?? item.mockTests?.length;
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {visible.map((item, i) => {
+              const testCount = item.testCount ?? item.mockTests?.length;
+              const { Icon, color } = ICONS[i % ICONS.length];
 
               return (
                 <Link
                   key={item.id}
                   href={`/test-series/${item.slug}`}
-                  className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-500/40"
+                  className="group flex flex-col rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-100 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                 >
-                  <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    {item.categoryName || 'Test Series'}
-                  </span>
-
-                  <h2 className="mt-2 line-clamp-2 text-base font-semibold leading-6 text-slate-950 dark:text-white">
-                    {item.title}
-                  </h2>
-
-                  <div className="mt-auto flex items-center justify-between pt-5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                      {testCount != null && (
-                        <span className="inline-flex items-center gap-1.5">
-                          <FileText size={14} />
-                          {testCount} tests
-                        </span>
-                      )}
-
-                      <span className="inline-flex items-center gap-1.5">
-                        <Layers3 size={14} />
-                        {formatPrice(item.basePrice)}
-                      </span>
-                    </div>
-
-                    <ArrowRight
-                      size={16}
-                      className="text-slate-400 transition-colors group-hover:text-indigo-600"
-                    />
+                  <div className="mb-3 flex items-start justify-between">
+                    <Icon size={28} className={color} strokeWidth={1.8} />
+                    <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600">
+                      {item.categoryName || 'Test Series'}
+                    </span>
                   </div>
+
+                  <h2 className="line-clamp-2 text-sm font-bold leading-5 text-slate-900 dark:text-white">{item.title}</h2>
+
+                  <ul className="mt-4 space-y-2 text-xs text-slate-500">
+                    {testCount != null && (
+                      <li className="flex items-center gap-2"><FileText size={14} /> {testCount} Tests</li>
+                    )}
+                    <li className="flex items-center gap-2"><Layers3 size={14} /> {formatPrice(item.basePrice)}</li>
+                  </ul>
+
+                  <span className="mt-auto pt-4">
+                    <span className="flex w-full items-center justify-center gap-1.5 rounded-md border border-brand-600 py-2 text-xs font-semibold text-brand-600 group-hover:bg-brand-50">
+                      View Details <ArrowRight size={13} />
+                    </span>
+                  </span>
                 </Link>
               );
             })}
@@ -173,25 +168,8 @@ export default async function TestSeriesIndexPage({ searchParams }) {
 
         {!failed && (page > 1 || hasNext) && (
           <div className="mt-10 flex items-center justify-between">
-            {page > 1 ? (
-              <Link
-                href={pageHref(page - 1)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                Previous
-              </Link>
-            ) : (
-              <span />
-            )}
-
-            {hasNext && (
-              <Link
-                href={pageHref(page + 1)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                Next
-              </Link>
-            )}
+            {page > 1 ? <Link href={pageHref(page - 1)} className={pager}>Previous</Link> : <span />}
+            {hasNext && <Link href={pageHref(page + 1)} className={pager}>Next</Link>}
           </div>
         )}
       </div>
