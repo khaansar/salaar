@@ -76,7 +76,7 @@ export default function LoginPage() {
       </div>
 
       {/* Form Container */}
-      <div className="relative z-10 w-full max-w-[460px]">
+      <div className="relative z-10 w-full max-w-[500px]">
         <Suspense fallback={<div className="text-center p-4">Loading form...</div>}>
           <LoginForm />
         </Suspense>
