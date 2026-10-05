@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import { useGetAuditLogsQuery } from '@/store/adminApi';
+import { siteConfig } from '@/config/site';
 
 const PAGE_SIZE = 20;
 
@@ -520,7 +521,7 @@ export default function AuditLogsPage() {
           </h1>
 
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-            Trace administrative actions, API activity and system events across TestHub.
+            Trace administrative actions, API activity and system events across {siteConfig.name}.
           </p>
         </div>
 

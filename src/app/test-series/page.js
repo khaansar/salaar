@@ -4,9 +4,10 @@ import { ArrowRight, ChevronRight, FileText, Layers3, Landmark, TrainFront, MapP
 import StudentShell from '../../components/student/StudentShell';
 import { testService } from '../../services/testService';
 import { catalogService } from '../../services/catalogService';
+import { siteConfig } from '../../config/site';
 
 export const metadata = {
-  title: 'Test Series | Baahubali',
+  title: siteConfig.formatTitle('Test Series'),
   description: 'Structured mock test series for your exam.',
 };
 

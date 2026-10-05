@@ -27,6 +27,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import { useTheme } from '../../hooks/useTheme';
 import { logoutUser } from '../../store/slices/authSlice';
 import { Avatar } from '../../components/ui/Avatar';
+import { BrandIcon, BrandText } from '../../components/common/BrandLogo';
 
 const OVERVIEW_NAV = [
   {
@@ -249,11 +250,9 @@ function SidebarContent({
         <Link
           href="/admin-dashboard"
           onClick={onNavigate}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2.5 overflow-hidden"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
-            T
-          </div>
+          <BrandIcon size="sm" />
 
           <div
             className={`overflow-hidden whitespace-nowrap transition-all duration-150 ${
@@ -262,13 +261,7 @@ function SidebarContent({
                 : 'pointer-events-none w-0 opacity-0'
             }`}
           >
-            <div className="text-xs font-semibold leading-none text-slate-900 dark:text-white">
-              TestHub
-            </div>
-
-            <div className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-indigo-500">
-              Admin
-            </div>
+            <BrandText size="sm" badge="Admin" />
           </div>
         </Link>
       </div>

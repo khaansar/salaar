@@ -16,13 +16,7 @@ const links = [
   { name: 'Pricing', href: '/pricing' }, // TODO: route not built yet
 ];
 
-function Logo() {
-  return (
-    <svg viewBox="0 0 32 20" className="h-5 w-8" aria-hidden="true">
-      <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="#5e43f3" />
-    </svg>
-  );
-}
+import BrandLogo from '../common/BrandLogo';
 
 export default function PublicNavbar({ minimal = false }) {
   const pathname = usePathname();
@@ -61,12 +55,8 @@ export default function PublicNavbar({ minimal = false }) {
     <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-            <Logo />
-            <span className="text-lg font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-              Baahubali
-            </span>
-          </Link>
+          <BrandLogo onClick={() => setMobileOpen(false)} />
+
 
           {!minimal && (
             <div className="hidden h-16 items-center gap-5 lg:flex">

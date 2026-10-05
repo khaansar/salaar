@@ -1,9 +1,10 @@
 import StudentShell from '../components/student/StudentShell';
 import NotFoundView from '../components/common/NotFoundView';
 import { catalogService } from '../services/catalogService';
+import { siteConfig } from '../config/site';
 
 export const metadata = {
-  title: 'Page Not Found | TestHub',
+  title: siteConfig.formatTitle('Page Not Found'),
 };
 
 async function getSuggestions() {

@@ -1,8 +1,9 @@
 import StudentShell from '../../components/student/StudentShell';
 import ComingSoon from '../../components/common/ComingSoon';
+import { siteConfig } from '../../config/site';
 
 export const metadata = {
-  title: 'Analytics | Baahubali',
+  title: siteConfig.formatTitle('Analytics'),
 };
 
 export default function Page() {

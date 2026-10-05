@@ -16,6 +16,7 @@ import {
 
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useGetAttemptReportQuery } from '../../../../store/reportApi';
+import { siteConfig } from '../../../../config/site';
 
 const formatNumber = (value, digits = 0) => {
   const number = Number(value);
@@ -730,7 +731,7 @@ function PrintDocumentHeader({
   return (
     <header className="border-b-2 border-black pb-5 text-center">
       <p className="text-[22px] font-bold tracking-tight">
-        TestHub
+        {siteConfig.name}
       </p>
 
       <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.35em]">
@@ -1036,7 +1037,7 @@ function PrintDocumentFooter() {
   return (
     <footer className="mt-auto border-t border-black pt-4 text-center">
       <p className="text-[7px] uppercase tracking-[0.25em] text-slate-500">
-        TestHub
+        {siteConfig.name}
       </p>
 
       <p className="mt-1 text-[7px] text-slate-400">
