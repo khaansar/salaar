@@ -55,6 +55,7 @@ export const apiSlice = createApi({
     'UserStreak',
     'AttemptHistory',
     'UserPerformance',
+    'UserTopicPerformance',
     'AttemptReport',
   ],
 
