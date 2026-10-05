@@ -94,7 +94,7 @@ export function SignupForm() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
             <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-xl bg-white text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -115,7 +115,7 @@ export function SignupForm() {
             </button>
           </div>
 
-          <div className="relative mb-8">
+          <div className="relative mb-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-100"></div>
             </div>
@@ -124,7 +124,7 @@ export function SignupForm() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {serverError && (
               <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-start gap-3">
                 <span className="font-medium">
@@ -140,34 +140,36 @@ export function SignupForm() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               error={errors.fullName}
-              className="h-12"
+              className="h-11"
               leftIcon={<User size={18} />}
             />
             
-            <Input
-              id="email"
-              label="Email Address"
-              type="email"
-              placeholder="Enter your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={errors.email}
-              className="h-12"
-              leftIcon={<Mail size={18} />}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                id="email"
+                label="Email Address"
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={errors.email}
+                className="h-11"
+                leftIcon={<Mail size={18} />}
+              />
 
-            <Input
-              id="phone"
-              label="Phone Number"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="h-12"
-              leftIcon={<Phone size={18} />}
-            />
+              <Input
+                id="phone"
+                label="Phone Number"
+                type="tel"
+                placeholder="Phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-11"
+                leftIcon={<Phone size={18} />}
+              />
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <PasswordInput
                 id="password"
                 label="Password"
@@ -175,32 +177,32 @@ export function SignupForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 error={errors.password}
-                className="h-12"
+                className="h-11"
                 leftIcon={<Lock size={18} />}
               />
               <PasswordInput
                 id="confirmPassword"
                 label="Confirm Password"
-                placeholder="Confirm your password"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 error={errors.confirmPassword}
-                className="h-12"
+                className="h-11"
                 leftIcon={<Lock size={18} />}
               />
             </div>
 
             <div>
-              <label htmlFor="targetExam" className="block text-[13px] font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="targetExam" className="block text-[13px] font-semibold text-slate-700 mb-1">
                 Select Your Target Exam(s) (Optional)
               </label>
               <select
                 id="targetExam"
-                className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 value={targetExam}
                 onChange={(e) => setTargetExam(e.target.value)}
               >
-                <option value="">Search and select exams (e.g., SSC CGL, Banking, Railway)</option>
+                <option value="">Search and select exams (e.g., SSC CGL)</option>
                 <option value="ssc">SSC CGL</option>
                 <option value="banking">Banking (IBPS/SBI)</option>
                 <option value="railway">Railway (RRB)</option>
@@ -209,7 +211,7 @@ export function SignupForm() {
               </select>
             </div>
 
-            <div className="pt-2 pb-2">
+            <div className="pt-1 pb-1">
               <Checkbox
                 id="terms"
                 label={

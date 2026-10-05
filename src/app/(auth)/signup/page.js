@@ -12,7 +12,7 @@ function Logo() {
 
 export default function SignupPage() {
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-x-hidden bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* Decorative Ambient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {/* Subtle dot grid */}
