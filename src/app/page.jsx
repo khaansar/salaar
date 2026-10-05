@@ -42,7 +42,9 @@ export default async function HomePage() {
   return (
     <StudentShell>
       <div className="pb-10">
-        <HeroSection />
+        <GuestOnly>
+          <HeroSection />
+        </GuestOnly>
         <ContinueCard />
 
         <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-6">
@@ -58,13 +60,11 @@ export default async function HomePage() {
         <PopularSeries series={popularSeries} />
         <StartPracticing tests={featuredTests} />
 
-        <GuestOnly>
-          <HowItWorks />
-          <StatsStrip />
-          <Testimonials testimonials={testimonials} />
-          <JoinBanner />
-          <HomeFaq />
-        </GuestOnly>
+        <HowItWorks />
+        <StatsStrip />
+        <Testimonials testimonials={testimonials} />
+        <JoinBanner />
+        <HomeFaq />
       </div>
     </StudentShell>
   );
