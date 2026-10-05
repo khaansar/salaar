@@ -15,7 +15,6 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [activeTab, setActiveTab] = useState('Student');
   const [errors, setErrors] = useState({});
   const dispatch = useAppDispatch();
   const { loginStatus, error: serverError } = useAppSelector((state) => state.auth);
@@ -67,23 +66,6 @@ export function LoginForm() {
             <p className="text-[14px] text-slate-500">
               Login to continue your exam preparation journey.
             </p>
-          </div>
-
-          <div className="flex bg-slate-50 p-1 rounded-xl mb-6">
-            {['Student', 'Educator', 'Admin'].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 text-[13px] font-medium rounded-lg transition-colors ${
-                  activeTab === tab
-                    ? 'bg-brand-600 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
