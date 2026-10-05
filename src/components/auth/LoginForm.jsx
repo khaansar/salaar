@@ -146,10 +146,13 @@ export function LoginForm() {
               Continue with Google
             </button>
             <button type="button" className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 rounded-xl bg-white text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.475 2 2 6.475 2 12c0 4.42 2.862 8.163 6.838 9.488.5.087.687-.213.687-.476 0-.237-.013-1.024-.013-1.862-2.513.463-3.162-.612-3.362-1.175-.113-.288-.6-1.175-1.025-1.413-.35-.187-.85-.65-.013-.662.788-.013 1.35 1.538 1.025.9 1.512 2.338 1.087 2.912.825.088-.65.35-1.087.638-1.337-2.225-.25-4.55-1.113-4.55-4.938 0-1.088.387-1.987 1.025-2.688-.1-.25-.45-1.275.1-2.65 0 0 .837-.262 2.75 1.025A9.564 9.564 0 0112 6.8c.85.004 1.705.115 2.5.338 1.913-1.3 2.75-1.025 2.75-1.025.55 1.375.2 2.4.1 2.65.637.7 1.025 1.587 1.025 2.687 0 3.838-2.337 4.688-4.562 4.938.362.312.675.912.675 1.85 0 1.337-.013 2.412-.013 2.737 0 .262.188.575.688.475A10.005 10.005 0 0022 12c0-5.525-4.475-10-10-10z" fill="#24292F"/>
+              <svg className="w-4 h-4" viewBox="0 0 21 21">
+                <path fill="#f25022" d="M0 0h10v10H0z"/>
+                <path fill="#7fba00" d="M11 0h10v10H11z"/>
+                <path fill="#00a4ef" d="M0 11h10v10H0z"/>
+                <path fill="#ffb900" d="M11 11h10v10H11z"/>
               </svg>
-              Continue with GitHub
+              Continue with Microsoft
             </button>
           </div>
         </div>

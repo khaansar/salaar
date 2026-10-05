@@ -1,56 +1,85 @@
 import { SignupForm } from '@/components/auth/SignupForm';
+import { Suspense } from 'react';
 import Link from 'next/link';
+
+function Logo() {
+  return (
+    <svg viewBox="0 0 32 20" className="h-6 w-10" aria-hidden="true">
+      <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="#5e43f3" />
+    </svg>
+  );
+}
 
 export default function SignupPage() {
   return (
-    <div className="flex w-full min-h-screen bg-white">
-      {/* Left Panel - Brand Showcase */}
-      <div className="hidden lg:flex w-1/2 bg-slate-900 relative overflow-hidden items-center justify-center">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 to-transparent"></div>
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-50 p-4 sm:p-6 lg:p-8">
+      {/* Decorative Ambient Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Subtle dot grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40"></div>
         
-        <div className="relative z-10 p-12 text-white max-w-xl">
-          <Link href="/" className="flex items-center gap-3 mb-16 group inline-flex">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center transition-transform group-hover:-translate-y-1 shadow-xl">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#312e81" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-            </div>
-            <span className="font-bold text-2xl tracking-tight">PrepHub</span>
-          </Link>
-          <h1 className="text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-            Start your journey <br />
-            <span className="text-indigo-400">to the top today.</span>
-          </h1>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-indigo-100 font-medium">
-              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
-              Access hundreds of mock tests
-            </div>
-            <div className="flex items-center gap-3 text-indigo-100 font-medium">
-              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
-              Track progress with detailed analytics
-            </div>
-            <div className="flex items-center gap-3 text-indigo-100 font-medium">
-              <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">✓</div>
-              Learn from expert evaluators
-            </div>
+        {/* Glowing orbs */}
+        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-brand-400/10 blur-[100px] mix-blend-multiply"></div>
+        <div className="absolute bottom-0 right-0 h-[600px] w-[600px] translate-x-1/3 translate-y-1/3 rounded-full bg-indigo-400/10 blur-[120px] mix-blend-multiply"></div>
+        <div className="absolute top-1/4 left-2/3 h-[400px] w-[400px] rounded-full bg-sky-300/10 blur-[100px] mix-blend-multiply"></div>
+      </div>
+
+      {/* Floating Design Elements (Hidden on smaller screens) */}
+      <div className="hidden xl:block absolute left-[8%] top-[25%] -rotate-6 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center text-2xl">🎓</div>
+          <div>
+            <p className="font-bold text-slate-900 text-lg leading-tight">100K+</p>
+            <p className="text-slate-500 text-xs font-medium">Students Trust Us</p>
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Form Container */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 relative overflow-y-auto">
-        <div className="w-full max-w-[420px]">
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Create an account</h2>
-            <p className="text-slate-500 text-base">
-              Already have an account?{' '}
-              <Link href="/login" className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
-                Log in instead
-              </Link>
-            </p>
+      <div className="hidden xl:block absolute right-[8%] top-[30%] rotate-6 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-2xl">⭐</div>
+          <div>
+            <p className="font-bold text-slate-900 text-lg leading-tight">4.8/5</p>
+            <p className="text-slate-500 text-xs font-medium">Average Rating</p>
           </div>
-          <SignupForm />
         </div>
+      </div>
+
+      <div className="hidden xl:block absolute left-[12%] bottom-[25%] rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl">📊</div>
+          <div>
+            <p className="font-bold text-slate-900 text-lg leading-tight">50K+</p>
+            <p className="text-slate-500 text-xs font-medium">Mock Tests</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="hidden xl:block absolute right-[12%] bottom-[20%] -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105 z-0">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex items-center gap-4 pr-8">
+          <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-2xl">🎯</div>
+          <div>
+            <p className="font-bold text-slate-900 text-lg leading-tight">15+</p>
+            <p className="text-slate-500 text-xs font-medium">Exam Categories</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Left Logo */}
+      <div className="absolute top-8 left-8 z-20 hidden md:block">
+        <Link href="/" className="flex items-center gap-2">
+          <Logo />
+          <span className="text-xl font-extrabold uppercase tracking-tight text-slate-900">
+            Baahubali
+          </span>
+        </Link>
+      </div>
+
+      {/* Form Container */}
+      <div className="relative z-10 w-full max-w-[440px]">
+        <Suspense fallback={<div className="text-center p-4">Loading form...</div>}>
+          <SignupForm />
+        </Suspense>
       </div>
     </div>
   );
