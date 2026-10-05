@@ -86,9 +86,9 @@ export function SignupForm() {
           </Link>
         </div>
 
-        <div className="p-6 sm:p-8 sm:pr-48">
+        <div className="p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1">Create Your Account</h2>
+            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight mb-1 pr-48">Create Your Account</h2>
             <p className="text-[14px] text-slate-500">
               Join Baahubali and start your exam preparation journey today.
             </p>
