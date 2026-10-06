@@ -30,7 +30,18 @@ export default function ActionBar() {
     } else if (!isLastSection) {
       // Find the next available section
       const currIdx = sections.findIndex(s => s.id === currentSectionId);
-      const nextSection = sections.find((s, idx) => idx > currIdx && s.questionIds?.length > 0);
+      const nextSection = sections.find((s, idx) => {
+        if (idx <= currIdx) return false;
+        if (!s.questionIds?.length) return false;
+        let isExpired = false;
+        if (s.durationMinutes) {
+          const spent = attempt?.sectionTimeSpentSec?.[s.id] || 0;
+          if (spent >= s.durationMinutes * 60) {
+            isExpired = true;
+          }
+        }
+        return !isExpired;
+      });
       
       if (nextSection) {
         if (currentSection.durationMinutes) {
@@ -51,6 +62,8 @@ export default function ActionBar() {
               }).catch(console.error);
           }
         }
+      } else {
+        dispatch(setSubmitModalOpen(true));
       }
     }
   };
