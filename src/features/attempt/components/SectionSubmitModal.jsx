@@ -30,7 +30,11 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
     setIsSubmitting(true);
     try {
       if (flushAutosave) {
-         await flushAutosave();
+         try {
+           await flushAutosave();
+         } catch (autosaveErr) {
+           console.warn('Ignoring autosave error during section submit:', autosaveErr);
+         }
       }
       if (attempt?.id && targetSectionId) {
         const res = await switchSection({ attemptId: attempt.id, sectionId: targetSectionId, submitCurrent: true }).unwrap();

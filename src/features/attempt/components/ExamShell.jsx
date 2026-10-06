@@ -40,7 +40,13 @@ export default function ExamShell({ attemptId }) {
       // Execute the autosubmit flow
       (async () => {
         try {
-          if (flush) await flush();
+          if (flush) {
+            try {
+              await flush();
+            } catch (autosaveErr) {
+              console.warn('Ignoring autosave error during auto-submit:', autosaveErr);
+            }
+          }
           await submitAttempt(attemptId).unwrap();
           window.location.href = `/attempt/${attemptId}/result`;
         } catch (err) {

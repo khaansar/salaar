@@ -26,7 +26,11 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
     setIsSubmitting(true);
     try {
       if (flushAutosave) {
-         await flushAutosave();
+         try {
+           await flushAutosave();
+         } catch (autosaveErr) {
+           console.warn('Ignoring autosave error during final submit:', autosaveErr);
+         }
       }
       await attemptService.submitAttempt(attemptId);
       router.replace(`/attempt/${attemptId}/result`);
