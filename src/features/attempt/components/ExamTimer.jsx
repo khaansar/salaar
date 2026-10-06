@@ -22,6 +22,8 @@ export default function ExamTimer() {
     if (!expiresAtStr || status !== 'IN_PROGRESS') return;
     const globalExpiresAt = new Date(expiresAtStr).getTime();
 
+    let interval;
+
     const calculate = () => {
       let remainingSecs = 0;
       let isSectionTimer = false;
@@ -48,7 +50,7 @@ export default function ExamTimer() {
       setSafeRemainingSeconds(remainingSecs);
       
       if (remainingSecs <= 0) {
-        clearInterval(interval);
+        if (interval) clearInterval(interval);
         // Stop at zero and notify attempt flow
         if (attempt?.id && !isSectionTimer) {
           dispatch({ type: 'attempt/markExpired' });
@@ -77,7 +79,7 @@ export default function ExamTimer() {
     };
 
     calculate();
-    const interval = setInterval(calculate, 1000);
+    interval = setInterval(calculate, 1000);
     return () => clearInterval(interval);
   }, [expiresAtStr, status, attempt?.id, dispatch, currentSectionId, sections, attempt?.currentSectionStartedAt, attempt?.sectionTimeSpentSec, switchSection]);
 
