@@ -33,8 +33,14 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
          await flushAutosave();
       }
       if (attempt?.id && targetSectionId) {
-        await switchSection({ attemptId: attempt.id, sectionId: targetSectionId, submitCurrent: true });
+        const res = await switchSection({ attemptId: attempt.id, sectionId: targetSectionId, submitCurrent: true }).unwrap();
         dispatch(setCurrentSection(targetSectionId));
+        if (res?.data) {
+          dispatch({ type: 'attempt/updateSectionTiming', payload: {
+            currentSectionStartedAt: res.data.currentSectionStartedAt,
+            sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+          }});
+        }
       }
       dispatch(setSectionSubmitModalOpen(false));
       dispatch(setTargetSectionId(null));

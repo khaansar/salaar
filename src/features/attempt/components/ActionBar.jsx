@@ -39,7 +39,16 @@ export default function ActionBar() {
         } else {
           dispatch(setCurrentSection(nextSection.id));
           if (attempt?.id) {
-            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: false });
+            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: false })
+              .unwrap()
+              .then((res) => {
+                 if (res?.data) {
+                   dispatch({ type: 'attempt/updateSectionTiming', payload: {
+                     currentSectionStartedAt: res.data.currentSectionStartedAt,
+                     sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+                   }});
+                 }
+              }).catch(console.error);
           }
         }
       }

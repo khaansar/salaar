@@ -325,6 +325,13 @@ const attemptSlice = createSlice({
       }
     },
 
+    updateSectionTiming(state, action) {
+      if (state.attempt) {
+        state.attempt.currentSectionStartedAt = action.payload.currentSectionStartedAt;
+        state.attempt.sectionTimeSpentSec = action.payload.sectionTimeSpentSec || {};
+      }
+    },
+
     markExpired(state) {
       state.ui.isExpired = true;
     },
@@ -340,6 +347,7 @@ export const {
   setConnectionState,
   updateRemainingTime,
   updateAttemptVersion,
+  updateSectionTiming,
   markExpired,
   setCurrentQuestion,
   setCurrentSection,

@@ -59,7 +59,16 @@ export default function ExamTimer() {
           });
           if (nextSection) {
             dispatch({ type: 'attempt/setCurrentSection', payload: nextSection.id });
-            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true });
+            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true })
+              .unwrap()
+              .then((res) => {
+                 if (res?.data) {
+                   dispatch({ type: 'attempt/updateSectionTiming', payload: {
+                     currentSectionStartedAt: res.data.currentSectionStartedAt,
+                     sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+                   }});
+                 }
+              }).catch(console.error);
           } else {
              dispatch({ type: 'attempt/markExpired' });
           }
