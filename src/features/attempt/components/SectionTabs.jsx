@@ -6,10 +6,14 @@ import { makeSelectPaletteCounts } from '../store/selectors';
 import { useMemo } from 'react';
 import { Menu } from 'lucide-react';
 
+import { useSwitchSectionMutation } from '../store/attemptApi';
+
 export default function SectionTabs() {
   const dispatch = useAppDispatch();
+  const attempt = useAppSelector(state => state.attempt.attempt);
   const sections = useAppSelector(state => state.attempt.sections);
   const currentSectionId = useAppSelector(state => state.attempt.ui.currentSectionId);
+  const [switchSection] = useSwitchSectionMutation();
 
   // We need to instantiate the selector per section to avoid recalculating unnecessarily,
   // but for simplicity in this loop we can just use useSelector or calculate it inside.
@@ -24,13 +28,31 @@ export default function SectionTabs() {
         const isActive = section.id === currentSectionId;
         const total = section.questionIds?.length || 0;
         
+        let isExpired = false;
+        if (section.durationMinutes) {
+          const spent = attempt?.sectionTimeSpentSec?.[section.id] || 0;
+          if (spent >= section.durationMinutes * 60) {
+            isExpired = true;
+          }
+        }
+        
         return (
           <button
             key={section.id}
-            onClick={() => dispatch(setCurrentSection(section.id))}
+            onClick={() => {
+              if (isExpired) return;
+              if (!isActive) {
+                dispatch(setCurrentSection(section.id));
+                if (attempt?.id) {
+                  switchSection({ attemptId: attempt.id, sectionId: section.id });
+                }
+              }
+            }}
+            disabled={isExpired}
             className={`
               h-10 px-4 flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap text-sm font-medium
-              ${isActive 
+              ${isExpired ? 'opacity-50 cursor-not-allowed border-transparent text-exam-text-muted' : 
+                isActive 
                 ? 'border-exam-accent text-exam-accent' 
                 : 'border-transparent text-exam-text-muted hover:text-exam-text hover:bg-exam-bg/50'
               }

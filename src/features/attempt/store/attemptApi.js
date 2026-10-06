@@ -40,6 +40,17 @@ export const attemptApi = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, attemptId) => [{ type: 'Attempt', id: attemptId }],
     }),
+
+    switchSection: builder.mutation({
+      queryFn: async ({ attemptId, sectionId }) => {
+        try {
+          const res = await attemptService.switchSection(attemptId, sectionId);
+          return { data: res };
+        } catch (error) {
+          return { error };
+        }
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -48,4 +59,5 @@ export const {
   useGetAttemptStateQuery,
   useSaveResponsesMutation,
   useSubmitAttemptMutation,
+  useSwitchSectionMutation,
 } = attemptApi;

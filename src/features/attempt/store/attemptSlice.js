@@ -47,7 +47,23 @@ const attemptSlice = createSlice({
         let restoredQId = null;
         let restoredSectionId = null;
 
-        if (typeof attempt.currentQuestionIndex === 'number') {
+        if (attempt.currentSectionId) {
+          restoredSectionId = attempt.currentSectionId;
+          if (typeof attempt.currentQuestionIndex === 'number') {
+            let currentIndex = 0;
+            for (const sec of sections) {
+              if (!sec.questionIds) continue;
+              if (
+                attempt.currentQuestionIndex >= currentIndex &&
+                attempt.currentQuestionIndex < currentIndex + sec.questionIds.length
+              ) {
+                restoredQId = sec.questionIds[attempt.currentQuestionIndex - currentIndex];
+                break;
+              }
+              currentIndex += sec.questionIds.length;
+            }
+          }
+        } else if (typeof attempt.currentQuestionIndex === 'number') {
           let currentIndex = 0;
           for (const sec of sections) {
             if (!sec.questionIds) continue;
