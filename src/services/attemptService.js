@@ -193,9 +193,9 @@ export const attemptService = {
     );
   },
 
-  async switchSection(attemptId, sectionId) {
+  async switchSection(attemptId, sectionId, submitCurrent = false) {
     if (USE_MOCKS) return { success: true };
-    const rawRes = await apiClientRaw.post(`/attempts-api/${attemptId}/sections/${sectionId}/switch`);
+    const rawRes = await apiClientRaw.post(`/attempts-api/${attemptId}/sections/${sectionId}/switch?submitCurrent=${submitCurrent}`);
     return rawRes.data;
   },
 

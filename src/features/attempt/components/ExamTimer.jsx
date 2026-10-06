@@ -59,7 +59,7 @@ export default function ExamTimer() {
           });
           if (nextSection) {
             dispatch({ type: 'attempt/setCurrentSection', payload: nextSection.id });
-            switchSection({ attemptId: attempt.id, sectionId: nextSection.id });
+            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true });
           } else {
              dispatch({ type: 'attempt/markExpired' });
           }

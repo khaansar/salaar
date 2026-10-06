@@ -1,7 +1,7 @@
 'use client';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setCurrentSection } from '../store/attemptSlice';
+import { setCurrentSection, setSectionSubmitModalOpen, setTargetSectionId } from '../store/attemptSlice';
 import { makeSelectPaletteCounts } from '../store/selectors';
 import { useMemo } from 'react';
 import { Menu } from 'lucide-react';
@@ -15,11 +15,6 @@ export default function SectionTabs() {
   const currentSectionId = useAppSelector(state => state.attempt.ui.currentSectionId);
   const [switchSection] = useSwitchSectionMutation();
 
-  // We need to instantiate the selector per section to avoid recalculating unnecessarily,
-  // but for simplicity in this loop we can just use useSelector or calculate it inside.
-  // Given standard Redux hooks, creating a factory per tab is ideal, 
-  // but let's just do a simple mapping for now.
-  
   if (!sections || sections.length === 0) return null;
 
   return (
@@ -29,7 +24,9 @@ export default function SectionTabs() {
         const total = section.questionIds?.length || 0;
         
         let isExpired = false;
+        let isSectionTiming = false;
         if (section.durationMinutes) {
+          isSectionTiming = true;
           const spent = attempt?.sectionTimeSpentSec?.[section.id] || 0;
           if (spent >= section.durationMinutes * 60) {
             isExpired = true;
@@ -42,9 +39,14 @@ export default function SectionTabs() {
             onClick={() => {
               if (isExpired) return;
               if (!isActive) {
-                dispatch(setCurrentSection(section.id));
-                if (attempt?.id) {
-                  switchSection({ attemptId: attempt.id, sectionId: section.id });
+                if (isSectionTiming) {
+                  dispatch(setTargetSectionId(section.id));
+                  dispatch(setSectionSubmitModalOpen(true));
+                } else {
+                  dispatch(setCurrentSection(section.id));
+                  if (attempt?.id) {
+                    switchSection({ attemptId: attempt.id, sectionId: section.id, submitCurrent: false });
+                  }
                 }
               }
             }}

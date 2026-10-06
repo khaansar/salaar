@@ -9,8 +9,10 @@ const initialState = {
   ui: {
     currentQuestionId: null,
     currentSectionId: null,
+    targetSectionId: null,
     paletteOpen: false,
     submitModalOpen: false,
+    sectionSubmitModalOpen: false,
     connection: 'offline',
     isExpired: false,
   },
@@ -165,6 +167,14 @@ const attemptSlice = createSlice({
 
     setSubmitModalOpen(state, action) {
       state.ui.submitModalOpen = action.payload;
+    },
+
+    setSectionSubmitModalOpen(state, action) {
+      state.ui.sectionSubmitModalOpen = action.payload;
+    },
+
+    setTargetSectionId(state, action) {
+      state.ui.targetSectionId = action.payload;
     },
 
     setAnswer(state, action) {
@@ -335,6 +345,8 @@ export const {
   setCurrentSection,
   setPaletteOpen,
   setSubmitModalOpen,
+  setSectionSubmitModalOpen,
+  setTargetSectionId,
   setAnswer,
   toggleAnswer,
   clearAnswer,

@@ -42,9 +42,9 @@ export const attemptApi = apiSlice.injectEndpoints({
     }),
 
     switchSection: builder.mutation({
-      queryFn: async ({ attemptId, sectionId }) => {
+      queryFn: async ({ attemptId, sectionId, submitCurrent }) => {
         try {
-          const res = await attemptService.switchSection(attemptId, sectionId);
+          const res = await attemptService.switchSection(attemptId, sectionId, submitCurrent);
           return { data: res };
         } catch (error) {
           return { error };

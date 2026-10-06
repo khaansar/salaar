@@ -12,6 +12,7 @@ import QuestionPanel from './QuestionPanel';
 import Palette from './Palette';
 import ActionBar from './ActionBar';
 import SubmitSummaryModal from './SubmitSummaryModal';
+import SectionSubmitModal from './SectionSubmitModal';
 
 import { useAttemptStream } from '../hooks/useAttemptStream';
 import { useAutosave } from '../hooks/useAutosave';
@@ -220,6 +221,10 @@ export default function ExamShell({ attemptId }) {
       </footer>
 
       <SubmitSummaryModal
+        attemptId={attemptId}
+        flushAutosave={flush}
+      />
+      <SectionSubmitModal
         attemptId={attemptId}
         flushAutosave={flush}
       />
