@@ -46,7 +46,7 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
       dispatch(setTargetSectionId(null));
     } catch (err) {
       console.error(err);
-      alert('Failed to switch section. Please check your connection and try again.');
+      alert(err?.message || 'Failed to switch section. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
