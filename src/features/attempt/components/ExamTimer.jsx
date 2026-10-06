@@ -61,13 +61,18 @@ export default function ExamTimer() {
           });
           if (nextSection) {
             dispatch({ type: 'attempt/setCurrentSection', payload: nextSection.id });
+            // Optimistically update timing to break the render loop in case the API call fails
+            dispatch({ type: 'attempt/updateSectionTiming', payload: {
+              currentSectionStartedAt: Date.now(),
+              sectionTimeSpentSec: attempt.sectionTimeSpentSec,
+            }});
             switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true })
               .unwrap()
               .then((res) => {
-                 if (res?.data) {
+                 if (res) {
                    dispatch({ type: 'attempt/updateSectionTiming', payload: {
-                     currentSectionStartedAt: res.data.currentSectionStartedAt,
-                     sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+                     currentSectionStartedAt: res.currentSectionStartedAt,
+                     sectionTimeSpentSec: res.sectionTimeSpentSec,
                    }});
                  }
               }).catch(console.error);

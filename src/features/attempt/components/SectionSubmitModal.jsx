@@ -39,10 +39,10 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
       if (attempt?.id && targetSectionId) {
         const res = await switchSection({ attemptId: attempt.id, sectionId: targetSectionId, submitCurrent: true }).unwrap();
         dispatch(setCurrentSection(targetSectionId));
-        if (res?.data) {
+        if (res) {
           dispatch({ type: 'attempt/updateSectionTiming', payload: {
-            currentSectionStartedAt: res.data.currentSectionStartedAt,
-            sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+            currentSectionStartedAt: res.currentSectionStartedAt,
+            sectionTimeSpentSec: res.sectionTimeSpentSec,
           }});
         }
       }

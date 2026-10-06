@@ -53,10 +53,10 @@ export default function ActionBar() {
             switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: false })
               .unwrap()
               .then((res) => {
-                 if (res?.data) {
+                 if (res) {
                    dispatch({ type: 'attempt/updateSectionTiming', payload: {
-                     currentSectionStartedAt: res.data.currentSectionStartedAt,
-                     sectionTimeSpentSec: res.data.sectionTimeSpentSec,
+                     currentSectionStartedAt: res.currentSectionStartedAt,
+                     sectionTimeSpentSec: res.sectionTimeSpentSec,
                    }});
                  }
               }).catch(console.error);
