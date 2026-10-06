@@ -89,6 +89,7 @@ export const attemptService = {
       sections.push({
         id: section.sectionId,
         name: section.title,
+        durationMinutes: section.durationMinutes,
         questionIds,
       });
     });
