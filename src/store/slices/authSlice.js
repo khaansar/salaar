@@ -86,6 +86,26 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async (token, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.post('/auth-api/verify-email', {
+        token,
+      });
+
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(
+          err,
+          'The verification link is invalid or has expired'
+        )
+      );
+    }
+  }
+);
+
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { rejectWithValue }) => {
@@ -182,10 +202,14 @@ const authSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.status = 'succeeded';
         state.registrationStatus = 'succeeded';
-        state.user = action.payload;
+
+        // Registration does not authenticate the user.
+        // Email verification must happen before login.
+        state.user = null;
+
         state.error = null;
         state.isInitialized = true;
       })
@@ -197,6 +221,25 @@ const authSlice = createSlice({
           typeof action.payload === 'string'
             ? action.payload
             : 'Registration failed';
+      })
+
+      // --------------------------------------------------
+      // VERIFY EMAIL
+      // --------------------------------------------------
+
+      .addCase(verifyEmail.pending, (state) => {
+        state.error = null;
+      })
+
+      .addCase(verifyEmail.fulfilled, (state) => {
+        state.error = null;
+      })
+
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : 'Email verification failed';
       })
 
       // --------------------------------------------------
