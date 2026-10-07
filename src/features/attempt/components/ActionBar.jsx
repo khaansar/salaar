@@ -1,8 +1,9 @@
 'use client';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setCurrentQuestion, clearAnswer, toggleMarkForReview, setSubmitModalOpen } from '../store/attemptSlice';
+import { setCurrentQuestion, clearAnswer, toggleMarkForReview, setSubmitModalOpen, setTargetSectionId, setSectionSubmitModalOpen, setCurrentSection } from '../store/attemptSlice';
 import { ChevronLeft, ChevronRight, Bookmark, XCircle } from 'lucide-react';
+import { useSwitchSectionMutation } from '../store/attemptApi';
 
 export default function ActionBar() {
   const dispatch = useAppDispatch();
@@ -10,17 +11,60 @@ export default function ActionBar() {
   const sections = useAppSelector(state => state.attempt.sections);
   const isMarked = useAppSelector(state => state.attempt.responses[currentQuestionId]?.marked);
 
-  // Flatten question IDs for next/prev
-  const flatQIds = sections.flatMap(s => s.questionIds || []);
+  const attempt = useAppSelector(state => state.attempt.attempt);
+  const [switchSection] = useSwitchSectionMutation();
+  
+  const currentSectionId = useAppSelector(state => state.attempt.ui.currentSectionId);
+  const currentSection = sections.find(s => s.id === currentSectionId);
+  const flatQIds = currentSection?.questionIds || [];
   const currentIndex = flatQIds.indexOf(currentQuestionId);
   
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < flatQIds.length - 1;
-  const isLast = currentIndex === flatQIds.length - 1;
+  const isLastSection = sections.findIndex(s => s.id === currentSectionId) === sections.length - 1;
+  const isLastQuestionOverall = isLastSection && !hasNext;
 
   const handleNext = () => {
     if (hasNext) {
       dispatch(setCurrentQuestion(flatQIds[currentIndex + 1]));
+    } else if (!isLastSection) {
+      // Find the next available section
+      const currIdx = sections.findIndex(s => s.id === currentSectionId);
+      const nextSection = sections.find((s, idx) => {
+        if (idx <= currIdx) return false;
+        if (!s.questionIds?.length) return false;
+        let isExpired = false;
+        if (s.durationMinutes) {
+          const spent = attempt?.sectionTimeSpentSec?.[s.id] || 0;
+          if (spent >= s.durationMinutes * 60) {
+            isExpired = true;
+          }
+        }
+        return !isExpired;
+      });
+      
+      if (nextSection) {
+        if (currentSection.durationMinutes) {
+          dispatch(setTargetSectionId(nextSection.id));
+          dispatch(setSectionSubmitModalOpen(true));
+        } else {
+          dispatch(setCurrentSection(nextSection.id));
+          if (attempt?.id) {
+            switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: false })
+              .unwrap()
+              .then((res) => {
+                 if (res) {
+                   dispatch({ type: 'attempt/updateSectionTiming', payload: {
+                     currentSectionStartedAt: res.currentSectionStartedAt,
+                     sectionTimeSpentSec: res.sectionTimeSpentSec,
+                   }});
+                 }
+              }).catch(console.error);
+          }
+        }
+      } else {
+        dispatch(setSubmitModalOpen(true));
+      }
     }
   };
 
@@ -81,11 +125,11 @@ export default function ActionBar() {
 
         <button 
           type="button"
-          onClick={isLast ? () => dispatch(setSubmitModalOpen(true)) : handleNext}
+          onClick={isLastQuestionOverall ? () => dispatch(setSubmitModalOpen(true)) : handleNext}
           className="h-10 px-3 sm:px-6 bg-exam-accent hover:bg-exam-accent/90 text-white font-semibold rounded transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-exam-accent flex items-center gap-2"
         >
-          {isLast ? 'Review & Submit' : 'Save & Next'}
-          {!isLast && <ChevronRight className="w-4 h-4" />}
+          {isLastQuestionOverall ? 'Review & Submit' : (!hasNext ? 'Submit Section' : 'Save & Next')}
+          {!isLastQuestionOverall && <ChevronRight className="w-4 h-4" />}
         </button>
       </div>
     </>
