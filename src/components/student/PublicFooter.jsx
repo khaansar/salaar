@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ArrowUpRight, Mail } from 'lucide-react';
-import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from '../../constants/brand';
 
 const linkGroups = [
   {
@@ -57,13 +56,13 @@ export default function PublicFooter() {
 
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-5 md:gap-10">
           <div className="col-span-2 md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2.5 text-violet-300" aria-label={`${APP_NAME} home`}>
+            <Link href="/" className="inline-flex items-center gap-2.5 text-violet-300" aria-label="ClearIt home">
               <BrandMark />
-              <span className="text-lg font-extrabold uppercase tracking-[0.09em] text-white">{APP_NAME}</span>
+              <span className="text-lg font-extrabold uppercase tracking-[0.09em] text-white">ClearIt</span>
             </Link>
-            <p className="mt-3 text-sm font-medium text-violet-300">{APP_TAGLINE}</p>
+            <p className="mt-3 text-sm font-medium text-violet-300">Practice. Perform. Clear It.</p>
             <p className="mt-4 max-w-sm text-sm leading-6 text-slate-400">
-              {APP_DESCRIPTION}
+              Comprehensive mock tests and real exam practice platform.
             </p>
             <a href="mailto:clearit.root@gmail.com" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white">
               <Mail size={16} className="text-violet-300" /> clearit.root@gmail.com
@@ -85,7 +84,7 @@ export default function PublicFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {APP_NAME}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ClearIt. All rights reserved.</p>
           <p className="text-slate-500">Made for the goals you&apos;re working toward.</p>
         </div>
       </div>

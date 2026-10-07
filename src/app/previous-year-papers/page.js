@@ -1,9 +1,8 @@
 import StudentShell from '../../components/student/StudentShell';
 import ComingSoon from '../../components/common/ComingSoon';
-import { APP_NAME } from '../../constants/brand';
 
 export const metadata = {
-  title: `Previous Year Papers | ${APP_NAME}`,
+  title: 'Previous Year Papers | ClearIt',
 };
 
 export default function Page() {

@@ -5,7 +5,6 @@ import './globals.css';
 import StoreProvider from '../store/StoreProvider';
 import AuthProvider from '../components/auth/AuthProvider';
 import { ToastProvider } from '../components/common/ToastProvider';
-import { APP_DESCRIPTION, APP_NAME } from '../constants/brand';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -14,8 +13,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: APP_NAME,
-  description: APP_DESCRIPTION,
+  title: 'ClearIt',
+  description: 'Comprehensive mock tests and real exam practice platform.',
 };
 
 const themeScript = `

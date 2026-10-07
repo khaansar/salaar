@@ -13,11 +13,10 @@ import Testimonials from '../features/home/Testimonials';
 import JoinBanner from '../features/home/JoinBanner';
 import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
-import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from '../constants/brand';
 
 export const metadata = {
-  title: `${APP_NAME} | ${APP_TAGLINE}`,
-  description: APP_DESCRIPTION,
+  title: 'ClearIt | Practice. Perform. Clear It.',
+  description: 'Comprehensive mock tests and real exam practice platform.',
 };
 
 async function loadCatalog() {

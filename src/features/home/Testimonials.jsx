@@ -2,7 +2,6 @@
 
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquare, Star } from 'lucide-react';
-import { APP_NAME } from '../../constants/brand';
 
 // TODO: replace with real testimonials when available
 const items = [
@@ -15,7 +14,7 @@ export default function Testimonials({ testimonials = [] }) {
   const displayItems = testimonials?.length > 0 
     ? testimonials.map((t, i) => ({
         name: t.authorName || 'Anonymous',
-        exam: `${APP_NAME} Student`, 
+        exam: 'ClearIt Student', 
         grad: ['from-orange-400 to-rose-500', 'from-pink-400 to-purple-500', 'from-sky-400 to-indigo-500'][i % 3],
         text: t.comment,
         rating: t.rating || 5
@@ -33,7 +32,7 @@ export default function Testimonials({ testimonials = [] }) {
           <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <MessageSquare size={20} className="text-brand-600" /> What Our Students Say
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Join aspirants building confidence and achieving their goals with {APP_NAME}.</p>
+          <p className="mt-1 text-xs text-slate-500">Join aspirants building confidence and achieving their goals with ClearIt.</p>
         </div>
         <div className="flex gap-2">
           {[[-1, ChevronLeft, 'Previous'], [1, ChevronRight, 'Next']].map(([d, Icon, label]) => (

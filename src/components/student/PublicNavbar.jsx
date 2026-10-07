@@ -9,7 +9,6 @@ import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { logoutUser } from '../../store/slices/authSlice';
-import { APP_NAME } from '../../constants/brand';
 
 const links = [
   { name: 'Previous Year Papers', href: '/previous-year-papers' }, // TODO: route not built yet
@@ -65,7 +64,7 @@ export default function PublicNavbar({ minimal = false }) {
           <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
             <Logo />
             <span className="text-lg font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-              {APP_NAME}
+              ClearIt
             </span>
           </Link>
 

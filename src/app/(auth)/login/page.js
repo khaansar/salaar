@@ -1,7 +1,6 @@
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { APP_NAME } from '../../../constants/brand';
 
 function Logo() {
   return (
@@ -71,7 +70,7 @@ export default function LoginPage() {
         <Link href="/" className="flex items-center gap-2">
           <Logo />
           <span className="text-xl font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-            {APP_NAME}
+            ClearIt
           </span>
         </Link>
       </div>

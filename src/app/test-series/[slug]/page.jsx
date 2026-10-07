@@ -12,7 +12,6 @@ import Testimonials from '../../../features/home/Testimonials';
 import HomeFaq from '../../../features/home/HomeFaq';
 import { testService } from '../../../services/testService';
 import { catalogService } from '../../../services/catalogService';
-import { APP_NAME } from '../../../constants/brand';
 
 const card = 'rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900';
 
@@ -53,11 +52,11 @@ export async function generateMetadata({ params }) {
     const series = await testService.getSeriesBySlug(slug);
 
     return {
-      title: `${series.title} | ${APP_NAME}`,
+      title: `${series.title} | ClearIt`,
       description: `Practice mock tests from ${series.title}.`,
     };
   } catch {
-    return { title: `Test Series | ${APP_NAME}` };
+    return { title: 'Test Series | ClearIt' };
   }
 }
 
@@ -194,7 +193,7 @@ export default async function TestSeriesPage({ params }) {
         </div>
 
         <section className={`${card} mt-5`}>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"><ShieldCheck size={20} className="text-brand-600" /> Why Choose {APP_NAME}?</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"><ShieldCheck size={20} className="text-brand-600" /> Why Choose ClearIt?</h2>
           <p className="mt-1 text-xs text-slate-500">Everything you need to crack your exam, in one place.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {WHY.map((w) => (

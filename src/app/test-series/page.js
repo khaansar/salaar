@@ -4,11 +4,10 @@ import { ArrowRight, ChevronRight, FileText, Layers3, Landmark, TrainFront, MapP
 import StudentShell from '../../components/student/StudentShell';
 import { testService } from '../../services/testService';
 import { catalogService } from '../../services/catalogService';
-import { APP_NAME, APP_DESCRIPTION } from '../../constants/brand';
 
 export const metadata = {
-  title: `Test Series | ${APP_NAME}`,
-  description: APP_DESCRIPTION,
+  title: 'Test Series | ClearIt',
+  description: 'Comprehensive mock tests and real exam practice platform.',
 };
 
 // Needs the API at request time, so don't try to prerender it during `next build`.
