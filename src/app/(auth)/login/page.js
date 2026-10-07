@@ -1,14 +1,7 @@
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Suspense } from 'react';
-import Link from 'next/link';
+import BrandLogo from '@/components/common/BrandLogo';
 
-function Logo() {
-  return (
-    <svg viewBox="0 0 32 20" className="h-6 w-10" aria-hidden="true">
-      <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="#5e43f3" />
-    </svg>
-  );
-}
 
 export default function LoginPage() {
   return (
@@ -67,12 +60,7 @@ export default function LoginPage() {
 
       {/* Top Left Logo */}
       <div className="absolute top-8 left-8 z-20 hidden md:block">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo />
-          <span className="text-xl font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-            Baahubali
-          </span>
-        </Link>
+        <BrandLogo size="lg" showTagline />
       </div>
 
       {/* Form Container */}

@@ -3,9 +3,10 @@ import * as Icons from 'lucide-react';
 
 import StudentShell from '../../components/student/StudentShell';
 import { catalogService } from '../../services/catalogService';
+import { siteConfig } from '../../config/site';
 
 export const metadata = {
-  title: 'Categories | TestHub',
+  title: siteConfig.formatTitle('Categories'),
   description: 'Browse mock tests by exam category.',
 };
 

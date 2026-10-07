@@ -3,6 +3,7 @@ import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { setSubmitModalOpen } from '../store/attemptSlice';
 import ExamTimer from './ExamTimer';
+import BrandLogo from '../../../components/common/BrandLogo';
 
 export default function ExamHeader() {
   const dispatch = useAppDispatch();
@@ -21,7 +22,7 @@ export default function ExamHeader() {
   return (
     <header className="h-[56px] border-b border-exam-border bg-exam-panel flex items-center justify-between px-4 shrink-0 w-full z-10 shadow-sm">
       <div className="flex items-center gap-4">
-        <div className="font-bold text-lg sm:text-xl tracking-tight text-exam-accent">TestHub</div>
+        <BrandLogo href={null} size="sm" />
         <div className="h-6 w-px bg-exam-border hidden sm:block"></div>
         <div className="hidden sm:flex flex-col">
           <span className="text-[13px] font-semibold text-exam-text line-clamp-1">{attempt?.title || 'Loading Test...'}</span>
