@@ -56,6 +56,7 @@ export const apiSlice = createApi({
     'AttemptHistory',
     'UserPerformance',
     'AttemptReport',
+    'UserTopicPerformance'
   ],
 
   endpoints: (builder) => ({}),
