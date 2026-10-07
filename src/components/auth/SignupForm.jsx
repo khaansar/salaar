@@ -85,7 +85,7 @@ export function SignupForm() {
             </h2>
 
             <p className="text-[14px] leading-6 text-slate-500 dark:text-slate-400">
-              We've sent a verification link to
+              We&apos;ve sent a verification link to
             </p>
 
             <p className="mt-1 font-semibold text-slate-900 dark:text-white break-all">
