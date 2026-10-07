@@ -5,6 +5,7 @@ import './globals.css';
 import StoreProvider from '../store/StoreProvider';
 import AuthProvider from '../components/auth/AuthProvider';
 import { ToastProvider } from '../components/common/ToastProvider';
+import { siteConfig } from '../config/site';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -12,9 +13,21 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
+
 export const metadata = {
-  title: 'Baahubali',
-  description: 'Baahubali examination platform',
+  title: {
+    template: `${siteConfig.name} | %s`,
+    default: `${siteConfig.name} - ${siteConfig.tagline}`,
+  },
+  description: siteConfig.description,
+  icons: {
+    icon: [
+      {
+        url: '/brand/icon.png',
+        type: 'image/png',
+      },
+    ],
+  },
 };
 
 const themeScript = `

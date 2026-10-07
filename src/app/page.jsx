@@ -14,8 +14,10 @@ import JoinBanner from '../features/home/JoinBanner';
 import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
 
+import { siteConfig } from '../config/site';
+
 export const metadata = {
-  title: 'Baahubali | Practice Smarter, Crack Your Exam',
+  title: siteConfig.formatTitle(siteConfig.tagline),
   description:
     'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
 };

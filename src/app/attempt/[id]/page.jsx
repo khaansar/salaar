@@ -1,8 +1,9 @@
 import ForceLightTheme from '@/components/theme/ForceLightTheme';
 import ExamShell from '../../../features/attempt/components/ExamShell';
+import { siteConfig } from '../../../config/site';
 
 export const metadata = {
-  title: 'Taking Test - PrepHub',
+  title: siteConfig.formatTitle('Taking Test'),
 };
 
 export default async function AttemptPage({ params }) {

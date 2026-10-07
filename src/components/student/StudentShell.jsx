@@ -10,6 +10,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import PublicNavbar from './PublicNavbar';
 import StudentSidebar from './StudentSidebar';
 import StudentHeader from './StudentHeader';
+import PublicFooter from './PublicFooter';
 
 export default function StudentShell({
   children,
@@ -139,6 +140,7 @@ export default function StudentShell({
             <div className="mx-auto w-full max-w-[1600px]">
               {children}
             </div>
+            <PublicFooter />
           </main>
         </div>
       </div>
@@ -154,6 +156,7 @@ export default function StudentShell({
           {children}
         </div>
       </main>
+      <PublicFooter />
     </div>
   );
 }
