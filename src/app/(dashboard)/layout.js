@@ -27,6 +27,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import { useTheme } from '../../hooks/useTheme';
 import { logoutUser } from '../../store/slices/authSlice';
 import { Avatar } from '../../components/ui/Avatar';
+import PublicFooter from '../../components/student/PublicFooter';
 
 const OVERVIEW_NAV = [
   {
@@ -677,8 +678,11 @@ export default function DashboardLayout({
         </header>
 
         {/* Page */}
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
-          {children}
+        <main className="min-h-0 flex-1 overflow-y-auto">
+          <div className="p-4 sm:p-5">
+            {children}
+          </div>
+          <PublicFooter />
         </main>
       </div>
     </div>

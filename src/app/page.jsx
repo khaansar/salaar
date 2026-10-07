@@ -13,11 +13,11 @@ import Testimonials from '../features/home/Testimonials';
 import JoinBanner from '../features/home/JoinBanner';
 import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
+import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from '../constants/brand';
 
 export const metadata = {
-  title: 'Baahubali | Practice Smarter, Crack Your Exam',
-  description:
-    'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
+  title: `${APP_NAME} | ${APP_TAGLINE}`,
+  description: APP_DESCRIPTION,
 };
 
 async function loadCatalog() {

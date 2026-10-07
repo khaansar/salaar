@@ -1,8 +1,9 @@
 import StudentShell from '../../components/student/StudentShell';
 import ComingSoon from '../../components/common/ComingSoon';
+import { APP_NAME } from '../../constants/brand';
 
 export const metadata = {
-  title: 'FAQs | Baahubali',
+  title: `FAQs | ${APP_NAME}`,
 };
 
 export default function Page() {
