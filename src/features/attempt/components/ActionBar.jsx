@@ -128,7 +128,7 @@ export default function ActionBar() {
           onClick={isLastQuestionOverall ? () => dispatch(setSubmitModalOpen(true)) : handleNext}
           className="h-10 px-3 sm:px-6 bg-exam-accent hover:bg-exam-accent/90 text-white font-semibold rounded transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-exam-accent flex items-center gap-2"
         >
-          {isLastQuestionOverall ? 'Review & Submit' : 'Save & Next'}
+          {isLastQuestionOverall ? 'Review & Submit' : (!hasNext ? 'Submit Section' : 'Save & Next')}
           {!isLastQuestionOverall && <ChevronRight className="w-4 h-4" />}
         </button>
       </div>
