@@ -1,13 +1,13 @@
-import DashboardLayout from '../../../(dashboard)/layout';
+import StudentShell from '../../../../components/student/StudentShell';
 
 export default function ResultLayout({
   children,
 }) {
   return (
     <div className="print-dashboard-shell">
-      <DashboardLayout>
+      <StudentShell>
         {children}
-      </DashboardLayout>
+      </StudentShell>
     </div>
   );
 }
