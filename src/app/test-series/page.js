@@ -6,8 +6,8 @@ import { testService } from '../../services/testService';
 import { catalogService } from '../../services/catalogService';
 
 export const metadata = {
-  title: 'Test Series | ClearIt',
-  description: 'Comprehensive mock tests and real exam practice platform.',
+  title: 'Test Series | Baahubali',
+  description: 'Structured mock test series for your exam.',
 };
 
 // Needs the API at request time, so don't try to prerender it during `next build`.

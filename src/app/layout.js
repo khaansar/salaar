@@ -13,8 +13,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: 'ClearIt',
-  description: 'Comprehensive mock tests and real exam practice platform.',
+  title: 'Baahubali',
+  description: 'Baahubali examination platform',
 };
 
 const themeScript = `

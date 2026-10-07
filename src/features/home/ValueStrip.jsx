@@ -19,7 +19,7 @@ export default function ValueStrip() {
   return (
     <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
       <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-        <ShieldCheck size={20} className="text-brand-600" /> Why Choose ClearIt?
+        <ShieldCheck size={20} className="text-brand-600" /> Why Choose Baahubali?
       </h2>
       <p className="mt-1 text-xs text-slate-500">Everything you need to crack your exam, in one place.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

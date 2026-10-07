@@ -64,7 +64,7 @@ export default function PublicNavbar({ minimal = false }) {
           <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
             <Logo />
             <span className="text-lg font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-              ClearIt
+              Baahubali
             </span>
           </Link>
 

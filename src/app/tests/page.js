@@ -3,7 +3,7 @@ import MockTestsPage from '../../features/mock-tests/MockTestsPage';
 import { catalogService } from '../../services/catalogService';
 
 export const metadata = {
-  title: 'Mock Tests | ClearIt',
+  title: 'Mock Tests | Baahubali',
 };
 
 export default async function Page() {

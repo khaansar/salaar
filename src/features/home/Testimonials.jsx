@@ -14,7 +14,7 @@ export default function Testimonials({ testimonials = [] }) {
   const displayItems = testimonials?.length > 0 
     ? testimonials.map((t, i) => ({
         name: t.authorName || 'Anonymous',
-        exam: 'ClearIt Student', 
+        exam: 'Baahubali Student', 
         grad: ['from-orange-400 to-rose-500', 'from-pink-400 to-purple-500', 'from-sky-400 to-indigo-500'][i % 3],
         text: t.comment,
         rating: t.rating || 5
@@ -32,7 +32,7 @@ export default function Testimonials({ testimonials = [] }) {
           <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <MessageSquare size={20} className="text-brand-600" /> What Our Students Say
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Join aspirants building confidence and achieving their goals with ClearIt.</p>
+          <p className="mt-1 text-xs text-slate-500">Join thousands of aspirants who are achieving their goals with Baahubali.</p>
         </div>
         <div className="flex gap-2">
           {[[-1, ChevronLeft, 'Previous'], [1, ChevronRight, 'Next']].map(([d, Icon, label]) => (

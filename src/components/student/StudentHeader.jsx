@@ -68,7 +68,7 @@ export default function StudentHeader({ onMenuClick }) {
             <svg viewBox="0 0 32 20" className="h-5 w-8" aria-hidden="true">
               <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="#5e43f3" />
             </svg>
-            <span className="text-lg font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">ClearIt</span>
+            <span className="text-lg font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">Baahubali</span>
           </Link>
         </div>
 

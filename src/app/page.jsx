@@ -15,8 +15,9 @@ import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
 
 export const metadata = {
-  title: 'ClearIt | Practice. Perform. Clear It.',
-  description: 'Comprehensive mock tests and real exam practice platform.',
+  title: 'Baahubali | Practice Smarter, Crack Your Exam',
+  description:
+    'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
 };
 
 async function loadCatalog() {

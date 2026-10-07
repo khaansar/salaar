@@ -70,7 +70,7 @@ export default function LoginPage() {
         <Link href="/" className="flex items-center gap-2">
           <Logo />
           <span className="text-xl font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-            ClearIt
+            Baahubali
           </span>
         </Link>
       </div>

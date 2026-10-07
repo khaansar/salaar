@@ -2,7 +2,7 @@ import StudentShell from '../../components/student/StudentShell';
 import ComingSoon from '../../components/common/ComingSoon';
 
 export const metadata = {
-  title: 'Analytics | ClearIt',
+  title: 'Analytics | Baahubali',
 };
 
 export default function Page() {
