@@ -89,6 +89,7 @@ export const attemptService = {
       sections.push({
         id: section.sectionId,
         name: section.title,
+        durationMinutes: section.durationMinutes,
         questionIds,
       });
     });
@@ -145,6 +146,9 @@ export const attemptService = {
         expiresAt: attemptRes.expiresAt,
         attemptVersion: attemptRes.attemptVersion,
         currentQuestionIndex: attemptRes.currentQuestionIndex,
+        currentSectionId: attemptRes.currentSectionId,
+        sectionTimeSpentSec: attemptRes.sectionTimeSpentSec || {},
+        currentSectionStartedAt: attemptRes.currentSectionStartedAt,
       },
 
       sections,
@@ -187,6 +191,12 @@ export const attemptService = {
         durationMinutes,
       }
     );
+  },
+
+  async switchSection(attemptId, sectionId, submitCurrent = false) {
+    if (USE_MOCKS) return { success: true };
+    const rawRes = await apiClientRaw.post(`/attempts-api/${attemptId}/sections/${sectionId}/switch?submitCurrent=${submitCurrent}`);
+    return rawRes.data;
   },
 
   getStreamUrl(attemptId) {

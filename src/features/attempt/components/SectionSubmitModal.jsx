@@ -1,26 +1,30 @@
 'use client';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setSubmitModalOpen } from '../store/attemptSlice';
+import { setSectionSubmitModalOpen, setCurrentSection, setTargetSectionId } from '../store/attemptSlice';
 import { makeSelectPaletteCounts } from '../store/selectors';
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { attemptService } from '../../../services/attemptService';
+import { useSwitchSectionMutation } from '../store/attemptApi';
 
-export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
+export default function SectionSubmitModal({ attemptId, flushAutosave }) {
   const dispatch = useAppDispatch();
-  const router = useRouter();
+  const [switchSection] = useSwitchSectionMutation();
   
-  const isOpen = useAppSelector(state => state.attempt.ui.submitModalOpen);
+  const isOpen = useAppSelector(state => state.attempt.ui.sectionSubmitModalOpen);
+  const targetSectionId = useAppSelector(state => state.attempt.ui.targetSectionId);
+  const currentSectionId = useAppSelector(state => state.attempt.ui.currentSectionId);
   const sections = useAppSelector(state => state.attempt.sections);
   const attempt = useAppSelector(state => state.attempt.attempt);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Derive overall counts
+  // Derive counts for current section only
   const selectPaletteCounts = useMemo(() => makeSelectPaletteCounts(), []);
-  const overallCounts = useAppSelector(state => selectPaletteCounts(state));
+  const sectionCounts = useAppSelector(state => selectPaletteCounts(state, currentSectionId));
+  const currentSection = sections.find(s => s.id === currentSectionId);
+  const targetSection = sections.find(s => s.id === targetSectionId);
 
-  if (!isOpen) return null;
+  if (!isOpen || !currentSection) return null;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -29,22 +33,32 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
          try {
            await flushAutosave();
          } catch (autosaveErr) {
-           console.warn('Ignoring autosave error during final submit:', autosaveErr);
+           console.warn('Ignoring autosave error during section submit:', autosaveErr);
          }
       }
-      await attemptService.submitAttempt(attemptId);
-      router.replace(`/attempt/${attemptId}/result`);
+      if (attempt?.id && targetSectionId) {
+        const res = await switchSection({ attemptId: attempt.id, sectionId: targetSectionId, submitCurrent: true }).unwrap();
+        dispatch(setCurrentSection(targetSectionId));
+        if (res) {
+          dispatch({ type: 'attempt/updateSectionTiming', payload: {
+            currentSectionStartedAt: res.currentSectionStartedAt,
+            sectionTimeSpentSec: res.sectionTimeSpentSec,
+          }});
+        }
+      }
+      dispatch(setSectionSubmitModalOpen(false));
+      dispatch(setTargetSectionId(null));
     } catch (err) {
       console.error(err);
+      alert(err?.message || 'Failed to switch section. Please check your connection and try again.');
+    } finally {
       setIsSubmitting(false);
-      if (err.message === 'ATTEMPT_EXPIRED') {
-        alert('Your attempt has expired and cannot be submitted.');
-      } else if (err.message === 'CONFLICT') {
-        alert('There was a conflict saving your answers. Please try again.');
-      } else {
-        alert('Failed to submit. Please check your connection and try again.');
-      }
     }
+  };
+
+  const handleCancel = () => {
+    dispatch(setSectionSubmitModalOpen(false));
+    dispatch(setTargetSectionId(null));
   };
 
   return (
@@ -55,9 +69,9 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
         className="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col overflow-hidden"
       >
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Submit Exam Summary</h2>
+          <h2 className="text-xl font-bold text-slate-800">Submit Section: {currentSection.name}</h2>
           <button 
-            onClick={() => dispatch(setSubmitModalOpen(false))}
+            onClick={handleCancel}
             disabled={isSubmitting}
             className="text-slate-400 hover:text-slate-600 focus:outline-none"
           >
@@ -67,14 +81,14 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
 
         <div className="p-6 overflow-y-auto">
           <p className="text-sm text-slate-600 mb-6">
-            Please review your attempt summary below. Once submitted, you cannot change your answers and your score will be finalized.
+            Are you sure you want to submit this section and move to <strong>{targetSection?.name}</strong>? 
+            <br/><span className="text-rose-600 font-semibold">Warning: You will not be able to return to this section once submitted.</span>
           </p>
           
           <div className="overflow-x-auto rounded border border-slate-200">
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3">Section</th>
                   <th className="px-4 py-3 text-center">Total</th>
                   <th className="px-4 py-3 text-center text-emerald-600">Answered</th>
                   <th className="px-4 py-3 text-center text-amber-600">Marked</th>
@@ -83,16 +97,14 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {/* Real sections map would go here. For now, showing overall */}
                 <tr>
-                  <td className="px-4 py-3 font-semibold text-slate-800">Overall</td>
                   <td className="px-4 py-3 text-center font-bold">
-                    {sections.reduce((acc, s) => acc + (s.questionIds?.length || 0), 0)}
+                    {currentSection.questionIds?.length || 0}
                   </td>
-                  <td className="px-4 py-3 text-center font-medium">{overallCounts.answered + overallCounts.answeredAndMarked}</td>
-                  <td className="px-4 py-3 text-center font-medium">{overallCounts.markedForReview + overallCounts.answeredAndMarked}</td>
-                  <td className="px-4 py-3 text-center font-medium">{overallCounts.notAnswered}</td>
-                  <td className="px-4 py-3 text-center font-medium">{overallCounts.notVisited}</td>
+                  <td className="px-4 py-3 text-center font-medium">{sectionCounts.answered + sectionCounts.answeredAndMarked}</td>
+                  <td className="px-4 py-3 text-center font-medium">{sectionCounts.markedForReview + sectionCounts.answeredAndMarked}</td>
+                  <td className="px-4 py-3 text-center font-medium">{sectionCounts.notAnswered}</td>
+                  <td className="px-4 py-3 text-center font-medium">{sectionCounts.notVisited}</td>
                 </tr>
               </tbody>
             </table>
@@ -101,7 +113,7 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
 
         <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
           <button 
-            onClick={() => dispatch(setSubmitModalOpen(false))}
+            onClick={handleCancel}
             disabled={isSubmitting}
             className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded transition-colors disabled:opacity-50"
           >
@@ -117,7 +129,7 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
                 <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 Submitting...
               </>
-            ) : 'Confirm & Submit'}
+            ) : 'Submit Section'}
           </button>
         </div>
       </div>

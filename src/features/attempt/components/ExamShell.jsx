@@ -12,6 +12,7 @@ import QuestionPanel from './QuestionPanel';
 import Palette from './Palette';
 import ActionBar from './ActionBar';
 import SubmitSummaryModal from './SubmitSummaryModal';
+import SectionSubmitModal from './SectionSubmitModal';
 
 import { useAttemptStream } from '../hooks/useAttemptStream';
 import { useAutosave } from '../hooks/useAutosave';
@@ -39,7 +40,13 @@ export default function ExamShell({ attemptId }) {
       // Execute the autosubmit flow
       (async () => {
         try {
-          if (flush) await flush();
+          if (flush) {
+            try {
+              await flush();
+            } catch (autosaveErr) {
+              console.warn('Ignoring autosave error during auto-submit:', autosaveErr);
+            }
+          }
           await submitAttempt(attemptId).unwrap();
           window.location.href = `/attempt/${attemptId}/result`;
         } catch (err) {
@@ -220,6 +227,10 @@ export default function ExamShell({ attemptId }) {
       </footer>
 
       <SubmitSummaryModal
+        attemptId={attemptId}
+        flushAutosave={flush}
+      />
+      <SectionSubmitModal
         attemptId={attemptId}
         flushAutosave={flush}
       />
