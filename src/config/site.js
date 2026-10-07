@@ -1,12 +1,12 @@
 export const siteConfig = {
-  name: process.env.NEXT_PUBLIC_APP_NAME || 'Ace-it',
-  shortName: 'Ace-it',
-  tagline: 'Till you land it',
-  description: 'Ace-it — Till you land it. Comprehensive mock tests and real exam practice platform.',
+  name: process.env.NEXT_PUBLIC_APP_NAME,
+  shortName: process.env.NEXT_PUBLIC_APP_NAME,
+  tagline: process.env.NEXT_PUBLIC_APP_TAGLINE,
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
   logo: '/brand/icon.png',
-  fullLogo: '/brand/logo.png',
+  fullLogo: '/brand/icon.png',
   formatTitle: (pageTitle) => {
-    const brand = process.env.NEXT_PUBLIC_APP_NAME || 'Ace-it';
+    const brand = process.env.NEXT_PUBLIC_APP_NAME;
     return pageTitle ? `${brand} | ${pageTitle}` : brand;
   },
 };

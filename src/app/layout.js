@@ -20,6 +20,14 @@ export const metadata = {
     default: `${siteConfig.name} - ${siteConfig.tagline}`,
   },
   description: siteConfig.description,
+  icons: {
+    icon: [
+      {
+        url: '/brand/icon.png',
+        type: 'image/png',
+      },
+    ],
+  },
 };
 
 const themeScript = `

@@ -51,7 +51,7 @@ export function BrandText({
   const textSize = textSizeMap[size] || textSizeMap.md;
 
   // Normalize name parsing (e.g. "Ace-it", "Ace it", "AceIt")
-  const cleanName = (name || 'Ace-it').trim();
+  const cleanName = name.trim();
   let firstPart = 'Ace';
   let restPart = 'it';
   let separator = '-';
