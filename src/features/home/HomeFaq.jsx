@@ -1,16 +1,19 @@
 import Link from 'next/link';
 import { ArrowRight, ChevronDown, HelpCircle } from 'lucide-react';
+import { siteConfig } from '../../config/site';
 
 // TODO: confirm copy, or load from faqService once a public FAQ endpoint exists
-const faqs = [
-  { q: 'What exams does Baahubali cover?', a: 'We cover SSC, Banking, Railway, UPSC, State PSC, Teaching and more, with new exams added regularly.' },
+const getFaqs = (brandName) => [
+  { q: `What exams does ${brandName} cover?`, a: 'We cover SSC, Banking, Railway, UPSC, State PSC, Teaching and more, with new exams added regularly.' },
   { q: 'Are the mock tests based on the latest exam pattern?', a: 'Yes. Tests follow the latest pattern, marking scheme and difficulty level of each exam.' },
   { q: 'Do you provide detailed solutions?', a: 'Every question comes with a step-by-step solution you can review after the test.' },
   { q: 'Can I access previous year papers?', a: 'Yes. Previous year papers are available alongside mock tests and topic tests.' },
-  { q: 'Is there a mobile app available?', a: 'You can use Baahubali on any phone, tablet or desktop browser.' },
+  { q: 'Is there a mobile app available?', a: `You can use ${brandName} on any phone, tablet or desktop browser.` },
 ];
 
 export default function HomeFaq() {
+  const faqs = getFaqs(siteConfig.name);
+
   return (
     <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -18,7 +21,7 @@ export default function HomeFaq() {
           <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <HelpCircle size={20} className="text-brand-600" /> Frequently Asked Questions
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Find answers to common questions about Baahubali.</p>
+          <p className="mt-1 text-xs text-slate-500">Find answers to common questions about {siteConfig.name}.</p>
         </div>
         <Link href="/faqs" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
           View All FAQs <ArrowRight size={14} />

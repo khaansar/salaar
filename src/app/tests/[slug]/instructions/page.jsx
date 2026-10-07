@@ -1,9 +1,10 @@
 import { cookies } from 'next/headers';
 import { fetchWithCache } from '@/lib/cache';
 import InstructionsClient from './InstructionsClient';
+import { siteConfig } from '@/config/site';
 
 export const metadata = {
-  title: 'Test Instructions - PrepHub',
+  title: siteConfig.formatTitle('Test Instructions'),
 };
 
 export default async function InstructionsPage({ params }) {

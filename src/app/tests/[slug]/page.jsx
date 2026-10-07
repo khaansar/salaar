@@ -6,6 +6,7 @@ import StudentShell from '../../../components/student/StudentShell';
 import StartTestButton from '../../../features/catalog/StartTestButton';
 import { testService } from '../../../services/testService';
 import { formatDuration } from '../../../utils/format';
+import { siteConfig } from '../../../config/site';
 
 async function loadTest(slug) {
   try {
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }) {
   const test = await loadTest(slug).catch(() => null);
 
   return {
-    title: test?.title ? `${test.title} | TestHub` : 'Mock Test | TestHub',
+    title: siteConfig.formatTitle(test?.title || 'Mock Test'),
   };
 }
 

@@ -1,9 +1,10 @@
 import StudentShell from '../../components/student/StudentShell';
 import MockTestsPage from '../../features/mock-tests/MockTestsPage';
 import { catalogService } from '../../services/catalogService';
+import { siteConfig } from '../../config/site';
 
 export const metadata = {
-  title: 'Mock Tests | Baahubali',
+  title: siteConfig.formatTitle('Mock Tests'),
 };
 
 export default async function Page() {

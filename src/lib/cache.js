@@ -2,7 +2,7 @@
  * Shared cache configuration for public/server-side catalog requests.
  *
  * The actual cache is Next.js' Data Cache.
- * Redis caching will be handled by Baahubali independently.
+ * Redis caching will be handled by the platform backend independently.
  */
 
 export const CACHE_TAGS = {
