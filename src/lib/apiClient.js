@@ -48,6 +48,8 @@ const NO_REFRESH_PATHS = new Set([
   '/auth-api/register',
   '/auth-api/refresh',
   '/auth-api/logout',
+  '/auth-api/verify-email',
+  '/auth-api/resend-verification',
 ]);
 
 const shouldSkipRefresh = (config) => {
@@ -61,7 +63,7 @@ const shouldSkipRefresh = (config) => {
 };
 
 const isCredentialSubmission = (config) =>
-  ['/auth-api/login', '/auth-api/register'].some((path) =>
+  ['/auth-api/login', '/auth-api/register', '/auth-api/verify-email'].some((path) =>
     config?.url?.includes(path)
   );
 
