@@ -9,8 +9,10 @@ const initialState = {
   ui: {
     currentQuestionId: null,
     currentSectionId: null,
+    targetSectionId: null,
     paletteOpen: false,
     submitModalOpen: false,
+    sectionSubmitModalOpen: false,
     connection: 'offline',
     isExpired: false,
   },
@@ -47,7 +49,23 @@ const attemptSlice = createSlice({
         let restoredQId = null;
         let restoredSectionId = null;
 
-        if (typeof attempt.currentQuestionIndex === 'number') {
+        if (attempt.currentSectionId) {
+          restoredSectionId = attempt.currentSectionId;
+          if (typeof attempt.currentQuestionIndex === 'number') {
+            let currentIndex = 0;
+            for (const sec of sections) {
+              if (!sec.questionIds) continue;
+              if (
+                attempt.currentQuestionIndex >= currentIndex &&
+                attempt.currentQuestionIndex < currentIndex + sec.questionIds.length
+              ) {
+                restoredQId = sec.questionIds[attempt.currentQuestionIndex - currentIndex];
+                break;
+              }
+              currentIndex += sec.questionIds.length;
+            }
+          }
+        } else if (typeof attempt.currentQuestionIndex === 'number') {
           let currentIndex = 0;
           for (const sec of sections) {
             if (!sec.questionIds) continue;
@@ -149,6 +167,14 @@ const attemptSlice = createSlice({
 
     setSubmitModalOpen(state, action) {
       state.ui.submitModalOpen = action.payload;
+    },
+
+    setSectionSubmitModalOpen(state, action) {
+      state.ui.sectionSubmitModalOpen = action.payload;
+    },
+
+    setTargetSectionId(state, action) {
+      state.ui.targetSectionId = action.payload;
     },
 
     setAnswer(state, action) {
@@ -299,6 +325,13 @@ const attemptSlice = createSlice({
       }
     },
 
+    updateSectionTiming(state, action) {
+      if (state.attempt) {
+        state.attempt.currentSectionStartedAt = action.payload.currentSectionStartedAt;
+        state.attempt.sectionTimeSpentSec = action.payload.sectionTimeSpentSec || {};
+      }
+    },
+
     markExpired(state) {
       state.ui.isExpired = true;
     },
@@ -314,11 +347,14 @@ export const {
   setConnectionState,
   updateRemainingTime,
   updateAttemptVersion,
+  updateSectionTiming,
   markExpired,
   setCurrentQuestion,
   setCurrentSection,
   setPaletteOpen,
   setSubmitModalOpen,
+  setSectionSubmitModalOpen,
+  setTargetSectionId,
   setAnswer,
   toggleAnswer,
   clearAnswer,

@@ -210,36 +210,7 @@ export default function Palette() {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-4">
         {sections.map((section) => {
-          const isExpanded =
-            section.id ===
-            currentSectionId;
-
-          if (!isExpanded) {
-            return (
-              <div
-                key={section.id}
-                className="mb-4"
-              >
-                <button
-                  onClick={() =>
-                    dispatch(
-                      setCurrentQuestion(
-                        section
-                          .questionIds?.[0]
-                      )
-                    )
-                  }
-                  className="w-full text-left font-semibold text-sm text-exam-text-muted hover:text-exam-text flex items-center justify-between p-2 bg-white rounded border border-exam-border"
-                >
-                  {section.name}
-
-                  <span className="text-xs font-bold text-exam-accent bg-exam-accent-light px-2 py-0.5 rounded">
-                    Expand
-                  </span>
-                </button>
-              </div>
-            );
-          }
+          if (section.id !== currentSectionId) return null;
 
           return (
             <div
