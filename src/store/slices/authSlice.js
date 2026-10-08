@@ -86,6 +86,31 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const validateEmailVerificationToken = createAsyncThunk(
+  'auth/validateEmailVerificationToken',
+  async (token, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.get(
+        '/auth-api/verify-email/validate',
+        {
+          params: {
+            token,
+          },
+        }
+      );
+
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(
+          err,
+          'This verification link is invalid or has expired.'
+        )
+      );
+    }
+  }
+);
+
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async (token, { rejectWithValue }) => {
@@ -136,11 +161,88 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.post(
+        '/auth-api/forgot-password',
+        { email }
+      );
+
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(
+          err,
+          'Forgot password request failed'
+        )
+      );
+    }
+  }
+);
+
+export const validatePasswordResetToken = createAsyncThunk(
+  'auth/validatePasswordResetToken',
+  async (token, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.get(
+        '/auth-api/reset-password/validate',
+        {
+          params: {
+            token,
+          },
+        }
+      );
+
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(
+          err,
+          'This password reset link is invalid or has expired.'
+        )
+      );
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, newPassword }, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.post(
+        '/auth-api/reset-password',
+        {
+          token,
+          newPassword,
+        }
+      );
+
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(err, 'Reset password failed')
+      );
+    }
+  }
+);
+
 export const initialAuthState = {
   user: null,
   status: 'idle',
   loginStatus: 'idle',
   registrationStatus: 'idle',
+
+  forgotPasswordStatus: 'idle',
+  resetPasswordStatus: 'idle',
+
+  emailVerificationValidationStatus: 'idle',
+  emailVerificationValidationError: null,
+
+  passwordResetValidationStatus: 'idle',
+  passwordResetValidationError: null,
+
   isRestoringSession: false,
   isInitialized: false,
   error: null,
@@ -156,6 +258,7 @@ const authSlice = createSlice({
       state.status = 'idle';
       state.loginStatus = 'idle';
       state.registrationStatus = 'idle';
+
       state.isRestoringSession = false;
       state.error = null;
       state.isInitialized = true;
@@ -224,6 +327,37 @@ const authSlice = createSlice({
       })
 
       // --------------------------------------------------
+      // VALIDATE EMAIL VERIFICATION TOKEN
+      // --------------------------------------------------
+
+      .addCase(
+        validateEmailVerificationToken.pending,
+        (state) => {
+          state.emailVerificationValidationStatus = 'loading';
+          state.emailVerificationValidationError = null;
+        }
+      )
+
+      .addCase(
+        validateEmailVerificationToken.fulfilled,
+        (state) => {
+          state.emailVerificationValidationStatus = 'succeeded';
+          state.emailVerificationValidationError = null;
+        }
+      )
+
+      .addCase(
+        validateEmailVerificationToken.rejected,
+        (state, action) => {
+          state.emailVerificationValidationStatus = 'failed';
+          state.emailVerificationValidationError =
+            typeof action.payload === 'string'
+              ? action.payload
+              : 'This verification link is invalid or has expired.';
+        }
+      )
+
+      // --------------------------------------------------
       // VERIFY EMAIL
       // --------------------------------------------------
 
@@ -289,6 +423,81 @@ const authSlice = createSlice({
         state.error = null;
 
         state.isInitialized = true;
+      })
+
+      // --------------------------------------------------
+      // FORGOT PASSWORD
+      // --------------------------------------------------
+
+      .addCase(forgotPassword.pending, (state) => {
+        state.forgotPasswordStatus = 'loading';
+        state.error = null;
+      })
+
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.forgotPasswordStatus = 'succeeded';
+        state.error = null;
+      })
+
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.forgotPasswordStatus = 'failed';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : 'Forgot password request failed';
+      })
+
+      // --------------------------------------------------
+      // VALIDATE PASSWORD RESET TOKEN
+      // --------------------------------------------------
+
+      .addCase(
+        validatePasswordResetToken.pending,
+        (state) => {
+          state.passwordResetValidationStatus = 'loading';
+          state.passwordResetValidationError = null;
+        }
+      )
+
+      .addCase(
+        validatePasswordResetToken.fulfilled,
+        (state) => {
+          state.passwordResetValidationStatus = 'succeeded';
+          state.passwordResetValidationError = null;
+        }
+      )
+
+      .addCase(
+        validatePasswordResetToken.rejected,
+        (state, action) => {
+          state.passwordResetValidationStatus = 'failed';
+          state.passwordResetValidationError =
+            typeof action.payload === 'string'
+              ? action.payload
+              : 'This password reset link is invalid or has expired.';
+        }
+      )
+
+      // --------------------------------------------------
+      // RESET PASSWORD
+      // --------------------------------------------------
+
+      .addCase(resetPassword.pending, (state) => {
+        state.resetPasswordStatus = 'loading';
+        state.error = null;
+      })
+
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.resetPasswordStatus = 'succeeded';
+        state.error = null;
+      })
+
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.resetPasswordStatus = 'failed';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : 'Reset password failed';
       });
   },
 });

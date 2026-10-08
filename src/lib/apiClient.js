@@ -49,7 +49,11 @@ const NO_REFRESH_PATHS = new Set([
   '/auth-api/refresh',
   '/auth-api/logout',
   '/auth-api/verify-email',
+  '/auth-api/verify-email/validate',
   '/auth-api/resend-verification',
+  '/auth-api/forgot-password',
+  '/auth-api/reset-password',
+  '/auth-api/reset-password/validate',
 ]);
 
 const shouldSkipRefresh = (config) => {
@@ -63,8 +67,8 @@ const shouldSkipRefresh = (config) => {
 };
 
 const isCredentialSubmission = (config) =>
-  ['/auth-api/login', '/auth-api/register', '/auth-api/verify-email'].some((path) =>
-    config?.url?.includes(path)
+  ['/auth-api/login', '/auth-api/register', '/auth-api/verify-email'].some(
+    (path) => config?.url?.includes(path)
   );
 
 const notifySessionExpired = () => {
@@ -78,12 +82,14 @@ const notifySessionExpired = () => {
   // Login/register 401s are handled by their forms so their error messages
   // remain visible instead of triggering a needless navigation.
   const { pathname, search } = window.location;
+
   if (pathname === '/login' || pathname === '/signup') {
     return false;
   }
 
   const next = `${pathname}${search}`;
   window.location.replace(`/login?next=${encodeURIComponent(next)}`);
+
   return true;
 };
 
@@ -124,6 +130,7 @@ apiClient.interceptors.response.use(
           return new Promise(() => {});
         }
       }
+
       return normalizeError(error);
     }
 
@@ -133,6 +140,7 @@ apiClient.interceptors.response.use(
       if (notifySessionExpired()) {
         return new Promise(() => {});
       }
+
       return normalizeError(error);
     }
 
@@ -145,11 +153,11 @@ apiClient.interceptors.response.use(
       if (refreshError?.isAuthRedirect) {
         return new Promise(() => {});
       }
+
       return Promise.reject(refreshError);
     }
   }
 );
-
 
 export const apiClientRaw = axios.create({
   baseURL,
