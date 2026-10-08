@@ -258,7 +258,7 @@ export default function ProfilePage() {
       <div className="bg-white dark:bg-slate-900 rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           <div className="relative shrink-0">
-            <img src="https://i.pravatar.cc/150?u=rohit" alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-indigo-50 dark:border-indigo-500/20" />
+            <img src={user.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-indigo-50 dark:border-indigo-500/20" />
           </div>
           <div className="text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
