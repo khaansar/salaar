@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -10,10 +10,15 @@ import {
   EyeOff,
   LockKeyhole,
   ShieldCheck,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
 import BrandLogo from '@/components/common/BrandLogo';
-import { resetPassword } from '@/store/slices/authSlice';
+import {
+  resetPassword,
+  validatePasswordResetToken,
+} from '@/store/slices/authSlice';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -22,7 +27,13 @@ export default function ResetPasswordPage() {
 
   const token = searchParams.get('token');
 
-  const { loading, error } = useSelector((state) => state.auth);
+  const {
+    resetPasswordStatus,
+    passwordResetValidationStatus,
+    passwordResetValidationError,
+  } = useSelector((state) => state.auth);
+
+  const validationStarted = useRef(false);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -79,13 +90,29 @@ export default function ResetPasswordPage() {
     confirmPassword.length > 0 &&
     password === confirmPassword;
 
+  const isResetting =
+    resetPasswordStatus === 'loading';
+
+  /*
+   * Validate the reset token when the page loads.
+   *
+   * This does NOT reset the password.
+   * The actual reset only happens after the user submits
+   * the new password.
+   */
   useEffect(() => {
-    if (!token) {
-      setLocalError(
-        'This password reset link is invalid or incomplete. Please request a new one.'
-      );
+    if (validationStarted.current) {
+      return;
     }
-  }, [token]);
+
+    validationStarted.current = true;
+
+    if (!token) {
+      return;
+    }
+
+    dispatch(validatePasswordResetToken(token));
+  }, [dispatch, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,6 +122,13 @@ export default function ResetPasswordPage() {
     if (!token) {
       setLocalError(
         'This password reset link is invalid or incomplete. Please request a new one.'
+      );
+      return;
+    }
+
+    if (passwordResetValidationStatus !== 'succeeded') {
+      setLocalError(
+        'This password reset link is no longer valid. Please request a new one.'
       );
       return;
     }
@@ -136,8 +170,11 @@ export default function ResetPasswordPage() {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950">
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-                <BrandLogo size="xl" />
           <div className="w-full max-w-md">
+
+            <div className="mb-8 flex justify-center">
+              <BrandLogo size="lg" />
+            </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20 sm:p-10">
 
@@ -152,8 +189,8 @@ export default function ResetPasswordPage() {
               </h1>
 
               <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                Your password has been successfully changed. You can now sign
-                in using your new password.
+                Your password has been successfully changed. You can
+                now sign in using your new password.
               </p>
 
               <button
@@ -176,7 +213,112 @@ export default function ResetPasswordPage() {
   }
 
   /*
-   * Reset password form
+   * Missing token / invalid / expired token
+   */
+  if (
+    !token ||
+    passwordResetValidationStatus === 'failed'
+  ) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950">
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <div className="w-full max-w-md">
+
+            <div className="mb-8 flex justify-center">
+              <BrandLogo size="lg" />
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20 sm:p-10">
+
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 dark:bg-red-500/10">
+                <AlertCircle
+                  size={32}
+                  className="text-red-600 dark:text-red-400"
+                />
+              </div>
+
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Reset link expired
+              </h1>
+
+              <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                {passwordResetValidationError ||
+                  'This password reset link is invalid or has expired. Please request a new password reset link.'}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => router.push('/forgot-password')}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/20"
+              >
+                Request a new reset link
+                <ArrowRight size={17} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="mt-3 flex w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Back to login
+              </button>
+            </div>
+
+            <p className="mt-6 text-center text-xs text-slate-400">
+              Secure account recovery
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  /*
+   * Validating token
+   */
+  if (
+    passwordResetValidationStatus === 'loading' ||
+    passwordResetValidationStatus === 'idle'
+  ) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950">
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <div className="w-full max-w-md">
+
+            <div className="mb-8 flex justify-center">
+              <BrandLogo size="lg" />
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20 sm:p-10">
+
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">
+                <Loader2
+                  size={28}
+                  className="animate-spin text-indigo-600 dark:text-indigo-400"
+                />
+              </div>
+
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Checking reset link
+              </h1>
+
+              <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                Please wait while we verify that your password reset
+                link is still valid.
+              </p>
+            </div>
+
+            <p className="mt-6 text-center text-xs text-slate-400">
+              Secure account recovery
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  /*
+   * Valid reset token — show password form.
    */
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950">
@@ -185,7 +327,7 @@ export default function ResetPasswordPage() {
 
           {/* Brand */}
           <div className="mb-8 flex justify-center">
-            <BrandLogo />
+            <BrandLogo size="lg" />
           </div>
 
           {/* Main card */}
@@ -213,9 +355,9 @@ export default function ResetPasswordPage() {
             </div>
 
             {/* Error */}
-            {(localError || error) && (
+            {localError && (
               <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
-                {localError || error}
+                {localError}
               </div>
             )}
 
@@ -238,16 +380,20 @@ export default function ResetPasswordPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your new password"
                     autoComplete="new-password"
-                    disabled={loading || !token}
+                    disabled={isResetting}
                     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                   />
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    disabled={loading}
+                    onClick={() =>
+                      setShowPassword((prev) => !prev)
+                    }
+                    disabled={isResetting}
                     aria-label={
-                      showPassword ? 'Hide password' : 'Show password'
+                      showPassword
+                        ? 'Hide password'
+                        : 'Show password'
                     }
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                   >
@@ -289,7 +435,9 @@ export default function ResetPasswordPage() {
                               ? 'bg-amber-500'
                               : 'bg-red-500'
                         }`}
-                        style={{ width: `${strength.percentage}%` }}
+                        style={{
+                          width: `${strength.percentage}%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -308,12 +456,18 @@ export default function ResetPasswordPage() {
                 <div className="relative">
                   <input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={
+                      showConfirmPassword
+                        ? 'text'
+                        : 'password'
+                    }
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) =>
+                      setConfirmPassword(e.target.value)
+                    }
                     placeholder="Re-enter your new password"
                     autoComplete="new-password"
-                    disabled={loading || !token}
+                    disabled={isResetting}
                     className={`w-full rounded-xl border bg-white px-4 py-3.5 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 ${
                       confirmPassword && !passwordsMatch
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10 dark:border-red-500/50'
@@ -326,9 +480,11 @@ export default function ResetPasswordPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      setShowConfirmPassword((prev) => !prev)
+                      setShowConfirmPassword(
+                        (prev) => !prev
+                      )
                     }
-                    disabled={loading}
+                    disabled={isResetting}
                     aria-label={
                       showConfirmPassword
                         ? 'Hide password'
@@ -403,10 +559,10 @@ export default function ResetPasswordPage() {
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !token}
+                disabled={isResetting}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? (
+                {isResetting ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                     Updating password...
@@ -428,8 +584,8 @@ export default function ResetPasswordPage() {
               />
 
               <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-                For your security, password reset links expire after 15
-                minutes.
+                For your security, password reset links expire after
+                15 minutes.
               </p>
             </div>
           </div>
