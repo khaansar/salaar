@@ -136,11 +136,37 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.post('/auth-api/forgot-password', { email });
+      return data;
+    } catch (err) {
+      return rejectWithValue(getErrorMessage(err, 'Forgot password request failed'));
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, newPassword }, { rejectWithValue }) => {
+    try {
+      const data = await apiClient.post('/auth-api/reset-password', { token, newPassword });
+      return data;
+    } catch (err) {
+      return rejectWithValue(getErrorMessage(err, 'Reset password failed'));
+    }
+  }
+);
+
 export const initialAuthState = {
   user: null,
   status: 'idle',
   loginStatus: 'idle',
   registrationStatus: 'idle',
+  forgotPasswordStatus: 'idle',
+  resetPasswordStatus: 'idle',
   isRestoringSession: false,
   isInitialized: false,
   error: null,
@@ -289,6 +315,40 @@ const authSlice = createSlice({
         state.error = null;
 
         state.isInitialized = true;
+      })
+
+      // --------------------------------------------------
+      // FORGOT PASSWORD
+      // --------------------------------------------------
+      
+      .addCase(forgotPassword.pending, (state) => {
+        state.forgotPasswordStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.forgotPasswordStatus = 'succeeded';
+        state.error = null;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.forgotPasswordStatus = 'failed';
+        state.error = typeof action.payload === 'string' ? action.payload : 'Forgot password request failed';
+      })
+
+      // --------------------------------------------------
+      // RESET PASSWORD
+      // --------------------------------------------------
+      
+      .addCase(resetPassword.pending, (state) => {
+        state.resetPasswordStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.resetPasswordStatus = 'succeeded';
+        state.error = null;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.resetPasswordStatus = 'failed';
+        state.error = typeof action.payload === 'string' ? action.payload : 'Reset password failed';
       });
   },
 });
