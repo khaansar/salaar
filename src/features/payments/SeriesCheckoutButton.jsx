@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,6 +16,8 @@ import {
   useVerifyPaymentMutation,
   useGetPaymentStatusQuery,
 } from '../../store/paymentApi';
+
+import { siteConfig } from '../../config/site';
 
 const RAZORPAY_CHECKOUT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
 
@@ -204,7 +205,8 @@ export default function SeriesCheckoutButton({
         key: order.providerKeyId,
         amount: order.amount,
         currency: order.currency,
-        name: 'Baahubali',
+        name: siteConfig.name,
+        image:'/brand/icon.png',
         description: `Access to ${seriesTitle || 'test series'}`,
         order_id: order.providerOrderId,
         theme: {
