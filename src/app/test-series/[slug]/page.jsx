@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +9,7 @@ import {
 
 import StudentShell from '../../../components/student/StudentShell';
 import SeriesTestsTable from '../../../features/test-series/SeriesTestsTable';
+import SeriesCheckoutButton from '../../../features/payments/SeriesCheckoutButton';
 import Testimonials from '../../../features/home/Testimonials';
 import HomeFaq from '../../../features/home/HomeFaq';
 import { testService } from '../../../services/testService';
@@ -158,9 +160,18 @@ export default async function TestSeriesPage({ params }) {
             <div className={card}>
               <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{formatPrice(series.basePrice)}</p>
               <p className="mt-1 text-xs text-slate-500">{isFree ? 'Free access' : 'One-time payment'} • Full access to {mockTests.length} tests</p>
-              <Link href={isFree ? '#tests' : '/pricing'} className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-brand-600 py-3 text-sm font-semibold text-white hover:bg-brand-700">
-                {isFree ? 'Start Practicing' : 'Buy Now & Start Practicing'} <ArrowRight size={15} />
-              </Link>
+
+              {isFree ? (
+                <Link href="#tests" className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-brand-600 py-3 text-sm font-semibold text-white hover:bg-brand-700">
+                  Start Practicing <ArrowRight size={15} />
+                </Link>
+              ) : (
+                <SeriesCheckoutButton
+                  seriesId={series.id}
+                  seriesTitle={series.title}
+                />
+              )}
+
               <ul className="mt-4 space-y-2 text-xs text-slate-600">
                 {[`Full access to all ${mockTests.length} tests`, 'Detailed solutions & analytics', 'Access on web, mobile and tablet', 'No hidden charges'].map((x) => (
                   <li key={x} className="flex items-center gap-2"><CheckCircle2 size={14} className="shrink-0 text-emerald-500" />{x}</li>

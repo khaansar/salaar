@@ -1,3 +1,4 @@
+
 import { createApi } from '@reduxjs/toolkit/query/react';
 import apiClient from '../lib/apiClient';
 
@@ -56,7 +57,11 @@ export const apiSlice = createApi({
     'AttemptHistory',
     'UserPerformance',
     'AttemptReport',
-    'UserTopicPerformance'
+    'UserTopicPerformance',
+    'PaymentProduct',
+    'Payment',
+    'Orders',
+    'Entitlements',
   ],
 
   endpoints: (builder) => ({}),
