@@ -1,55 +1,39 @@
-import { Plus_Jakarta_Sans } from 'next/font/google';
-import Script from 'next/script';
-import { cookies } from 'next/headers';
-import './globals.css';
-import StoreProvider from '../store/StoreProvider';
-import AuthProvider from '../components/auth/AuthProvider';
-import { ToastProvider } from '../components/common/ToastProvider';
-import { siteConfig } from '../config/site';
+import { Plus_Jakarta_Sans } from "next/font/google";
 
+import "./globals.css";
+
+import StoreProvider from "../store/StoreProvider";
+import AuthProvider from "../components/auth/AuthProvider";
+import { ToastProvider } from "../components/common/ToastProvider";
+import { siteConfig } from "@/config/site";
+
+/**
+ * Load the application's primary font and expose it through a CSS variable
+ * so that the existing global styles and components can use it consistently.
+ */
 const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta',
-  display: 'swap',
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
 });
 
-
+/**
+ * Root document metadata shared by the Salaar frontend.
+ */
 export const metadata = {
-  title: {
-    template: `${siteConfig.name} | %s`,
-    default: `${siteConfig.name} - ${siteConfig.tagline}`,
-  },
+  title: siteConfig.name,
   description: siteConfig.description,
-  icons: {
-    icon: [
-      {
-        url: '/brand/icon.png',
-        type: 'image/png',
-      },
-    ],
-  },
 };
 
-const themeScript = `
-  (function () {
-    try {
-      var theme = localStorage.getItem('theme');
-
-      if (
-        theme === 'dark' ||
-        (!theme &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      ) {
-        document.documentElement.classList.add('dark');
-      }
-    } catch (e) {}
-  })();
-`;
-
-export default async function RootLayout({ children }) {
-  const cookieStore = await cookies();
-  const hasSession = Boolean(cookieStore.get('ACCESS_TOKEN')?.value);
-
+/**
+ * The root layout defines the HTML document and mounts the application-wide
+ * providers required by pages throughout the application.
+ *
+ * Theme initialization is intentionally not performed through an inline
+ * script here. The application's client-side theme hook is responsible for
+ * restoring the user's saved theme and updating the HTML document class.
+ */
+export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
@@ -57,12 +41,8 @@ export default async function RootLayout({ children }) {
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Script id="theme-script" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
-
-        <StoreProvider hasSession={hasSession}>
-          <AuthProvider hasSession={hasSession}>
+        <StoreProvider>
+          <AuthProvider>
             <ToastProvider>
               {children}
             </ToastProvider>

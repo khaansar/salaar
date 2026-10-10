@@ -22,7 +22,7 @@ export function BrandIcon({ size = 'md', className = '' }) {
     >
       <Image
         src="/brand/icon.png"
-        alt={siteConfig.name}
+        alt={siteConfig.name || "ClearIt"}
         width={px}
         height={px}
         priority
@@ -50,10 +50,9 @@ export function BrandText({
 
   const textSize = textSizeMap[size] || textSizeMap.md;
 
-  // Normalize name parsing (e.g. "Ace-it", "Ace it", "AceIt")
-  const cleanName = name.trim();
-  let firstPart = 'Ace';
-  let restPart = 'it';
+  const cleanName = typeof name === 'string' && name.trim() ? name.trim() : 'ClearIt';
+  let firstPart = 'Clear';
+  let restPart = 'It';
   let separator = '-';
 
   if (cleanName.includes('-')) {
