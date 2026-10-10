@@ -59,7 +59,7 @@ export default function PublicFooter() {
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-5 md:gap-10">
           <div className="col-span-2 md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-2.5 text-violet-700 dark:text-violet-300" aria-label={`${siteConfig.name} home`}>
-              <BrandLogo />
+              <BrandLogo href={null} />
             </Link>
             <p className="mt-3 text-sm font-medium text-violet-700 dark:text-violet-300">{siteConfig.tagline}</p>
             <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-slate-400">
