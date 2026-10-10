@@ -1,7 +1,7 @@
 import { apiSlice } from "./apiSlice";
 
 const PAYMENT_BASE = "/payments-api/admin";
-const REVIEW_BASE = "/reviews-api/admin/reviews";
+const REVIEW_BASE = "/community-api/admin/reviews";
 
 export const adminApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
