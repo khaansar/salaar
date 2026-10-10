@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Moon, Sun, LogOut, Menu, Search, UserRound, ChevronDown } from 'lucide-react';
+import { Moon, Sun, LogOut, Menu, Search, UserRound, ChevronDown, ReceiptText, Settings, CircleHelp } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -13,9 +13,9 @@ import { useState, useRef, useEffect } from 'react';
 import BrandLogo from '../common/BrandLogo';
 
 const links = [
-  { name: 'Previous Year Papers', href: '/previous-year-papers' },
-  { name: 'Analytics', href: '/analytics' },
-  { name: 'Pricing', href: '/pricing' },
+  { name: 'Home', href: '/' },
+  { name: 'Explore Tests', href: '/tests' },
+  { name: 'My Learning', href: '/history' },
 ];
 
 export default function StudentHeader({ onMenuClick }) {
@@ -85,7 +85,6 @@ export default function StudentHeader({ onMenuClick }) {
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          {/* TODO: wire to real search (currently submits ?q= to /tests) */}
           <form action="/tests" className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex">
             <Search size={15} className="text-slate-400" />
             <input name="q" placeholder="Search exams, tests, topics..." className="w-44 bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400" />
@@ -93,10 +92,6 @@ export default function StudentHeader({ onMenuClick }) {
 
           <button type="button" onClick={toggleTheme} className={iconBtn} aria-label="Toggle theme">
             {isDark ? <Sun size={19} /> : <Moon size={19} />}
-          </button>
-
-          <button type="button" className={iconBtn} aria-label="Notifications">
-            <Bell size={19} />
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -114,33 +109,71 @@ export default function StudentHeader({ onMenuClick }) {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#0B0F19]">
                 <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                   <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{fullName}</p>
                   <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
                 </div>
 
-                <div className="p-2">
+                <div className="flex flex-col py-2">
                   <Link
                     href="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                      <UserRound size={16} />
-                    </span>
-                    <span>My Profile</span>
+                    <UserRound size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">My Profile</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Personal details and account information</p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/history"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    <ReceiptText size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Orders & Payments</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Receipts and payment status, if not already under My Learning</p>
+                    </div>
+                  </Link>
+                  
+                  <Link
+                    href="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    <Settings size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Account Settings</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Security, preferences and session management</p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/faqs"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    <CircleHelp size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Help & Support</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">FAQs and assistance</p>
+                    </div>
                   </Link>
 
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-500/10">
-                      <LogOut size={16} />
-                    </span>
-                    <span>Log out</span>
+                    <LogOut size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Logout</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">End the current session</p>
+                    </div>
                   </button>
                 </div>
               </div>
@@ -149,7 +182,6 @@ export default function StudentHeader({ onMenuClick }) {
 
         </div>
       </div>
-
     </header>
   );
 }

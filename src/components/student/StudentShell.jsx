@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
+import Link from 'next/link';
 
 import { useAppSelector } from '../../hooks/useAppSelector';
 
 import PublicNavbar from './PublicNavbar';
-import StudentSidebar from './StudentSidebar';
 import StudentHeader from './StudentHeader';
 import PublicFooter from './PublicFooter';
 
@@ -94,14 +92,6 @@ export default function StudentShell({
         />
 
         <div className="flex flex-1 min-h-0 relative">
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block group relative z-50">
-            <div className="w-[72px] h-full flex-shrink-0" />
-            <div className="absolute top-0 left-0 h-full w-[72px] group-hover:w-64 transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 overflow-hidden flex-shrink-0 shadow-none group-hover:shadow-2xl">
-              <StudentSidebar />
-            </div>
-          </div>
-
           {mobileNavOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
               <button
@@ -125,12 +115,16 @@ export default function StudentShell({
                   <X size={20} />
                 </button>
 
-                <div className="h-full">
-                  <StudentSidebar
-                    onNavigate={() =>
-                      setMobileNavOpen(false)
-                    }
-                  />
+                <div className="flex flex-col gap-2 p-6 pt-16">
+                  <Link href="/" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                    Home
+                  </Link>
+                  <Link href="/tests" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                    Explore Tests
+                  </Link>
+                  <Link href="/history" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                    My Learning
+                  </Link>
                 </div>
               </aside>
             </div>
