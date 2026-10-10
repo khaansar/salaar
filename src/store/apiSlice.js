@@ -1,25 +1,17 @@
-
 import { createApi } from '@reduxjs/toolkit/query/react';
 import apiClient from '../lib/apiClient';
 
 /**
  * RTK Query baseQuery using the existing Axios client.
  *
- * apiClient already:
- * - applies the API base URL
- * - handles authentication
- * - unwraps response.data.data
- * - normalizes API errors
+ * apiClient already applies the configured API base URL, attaches the
+ * existing authentication/session credentials, unwraps response.data.data,
+ * and normalizes API errors. Do not add another response-unwrapping layer
+ * inside individual endpoint definitions.
  */
 const axiosBaseQuery =
   () =>
-  async ({
-    url,
-    method = 'GET',
-    data,
-    params,
-    headers,
-  }) => {
+  async ({ url, method = 'GET', data, params, headers }) => {
     try {
       const result = await apiClient({
         url,
@@ -62,7 +54,14 @@ export const apiSlice = createApi({
     'Payment',
     'Orders',
     'Entitlements',
+
+    // Admin payment-management cache tags.
+    'AdminPayment',
+    'AdminOrder',
+    'AdminOrderTimeline',
+    'AdminRefund',
+    'AdminRefundableAmount',
   ],
 
-  endpoints: (builder) => ({}),
+  endpoints: () => ({}),
 });
