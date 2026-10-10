@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,6 +14,7 @@ import Palette from './Palette';
 import ActionBar from './ActionBar';
 import SubmitSummaryModal from './SubmitSummaryModal';
 import SectionSubmitModal from './SectionSubmitModal';
+import DynamicWatermark from './DynamicWatermark';
 
 import { useAttemptStream } from '../hooks/useAttemptStream';
 import { useAutosave } from '../hooks/useAutosave';
@@ -66,7 +68,7 @@ export default function ExamShell({ attemptId }) {
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
+
     // Initial check (in case they load the page directly not in fullscreen)
     setIsFullscreen(!!document.fullscreenElement);
 
@@ -86,26 +88,26 @@ export default function ExamShell({ attemptId }) {
   // Anti-cheat: Disable right-click, copy, PrintScreen, and DevTools
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
-    
+
     const handleKeyDown = (e) => {
       if (e.key === 'PrintScreen') {
         e.preventDefault();
         navigator.clipboard.writeText('Screenshots are disabled during the examination.').catch(() => {});
         return;
       }
-      
+
       // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+C (and Mac equivalents)
       if (
-        e.keyCode === 123 || 
-        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
-        (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67)) || 
-        (e.metaKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+        e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+        (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67)) ||
+        (e.metaKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
         (e.metaKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67))
       ) {
         e.preventDefault();
       }
     };
-    
+
     const handleCopy = (e) => {
       e.preventDefault();
       if (e.clipboardData) {
@@ -157,6 +159,8 @@ export default function ExamShell({ attemptId }) {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6] select-none">
+      <DynamicWatermark />
+
       {!isFullscreen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-exam-bg/90 backdrop-blur-sm">
           <div className="bg-exam-panel border border-exam-border rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
