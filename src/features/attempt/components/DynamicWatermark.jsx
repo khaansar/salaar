@@ -68,8 +68,6 @@ export default function DynamicWatermark() {
 
   const labelRef = useRef(null);
   const tileRef = useRef(null);
-  const positionRef = useRef(position);
-  positionRef.current = position;
 
   const tileImage = useMemo(() => (label ? buildTile(label) : ''), [label]);
 
