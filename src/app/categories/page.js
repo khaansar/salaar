@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react';
 import StudentShell from '../../components/student/StudentShell';
 import { catalogService } from '../../services/catalogService';
 import { siteConfig } from '../../config/site';
+import HomeFaq from '../../features/home/HomeFaq';
 
 export const metadata = {
   title: siteConfig.formatTitle('Categories'),
@@ -77,6 +78,7 @@ export default async function CategoriesPage() {
             })}
           </div>
         )}
+        {!failed && <div className="mt-8"><HomeFaq title="Category FAQs" subtitle="Helpful answers for finding the right exam category and practice." /></div>}
       </div>
     </StudentShell>
   );

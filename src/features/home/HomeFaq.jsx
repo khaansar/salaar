@@ -1,43 +1,41 @@
-import Link from 'next/link';
-import { ArrowRight, ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
 import { siteConfig } from '../../config/site';
+import { faqApi } from '../../services/faqService';
 
-// TODO: confirm copy, or load from faqService once a public FAQ endpoint exists
-const getFaqs = (brandName) => [
-  { q: `What exams does ${brandName} cover?`, a: 'We cover SSC, Banking, Railway, UPSC, State PSC, Teaching and more, with new exams added regularly.' },
-  { q: 'Are the mock tests based on the latest exam pattern?', a: 'Yes. Tests follow the latest pattern, marking scheme and difficulty level of each exam.' },
-  { q: 'Do you provide detailed solutions?', a: 'Every question comes with a step-by-step solution you can review after the test.' },
-  { q: 'Can I access previous year papers?', a: 'Yes. Previous year papers are available alongside mock tests and topic tests.' },
-  { q: 'Is there a mobile app available?', a: `You can use ${brandName} on any phone, tablet or desktop browser.` },
-];
-
-export default function HomeFaq() {
-  const faqs = getFaqs(siteConfig.name);
+export default async function HomeFaq({ targetId = null, title = 'Frequently Asked Questions', subtitle }) {
+  let faqs = [];
+  try {
+    const items = await faqApi.list(targetId);
+    faqs = (Array.isArray(items) ? items : [])
+      .sort((a, b) => (Number(a.displayOrder) || 0) - (Number(b.displayOrder) || 0))
+      .slice(0, 4);
+  } catch {
+    faqs = [];
+  }
 
   return (
-    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-4 flex items-start justify-between gap-4">
+    <section className="relative mb-6 overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-white via-[#faf9ff] to-indigo-50/80 p-5 shadow-sm sm:p-8 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/30">
+      <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-200/30 blur-3xl dark:bg-indigo-500/10" />
+      <div className="relative mb-5 flex items-start justify-between gap-4">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <HelpCircle size={20} className="text-brand-600" /> Frequently Asked Questions
+          <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-600 dark:border-indigo-500/20 dark:bg-slate-900/70 dark:text-indigo-300"><Sparkles size={12} /> Quick answers</span>
+          <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+            <HelpCircle size={20} className="text-brand-600" /> {title}
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Find answers to common questions about {siteConfig.name}.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle || `A few helpful answers about ${siteConfig.name}.`}</p>
         </div>
-        <Link href="/faqs" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
-          View All FAQs <ArrowRight size={14} />
-        </Link>
       </div>
-      <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 dark:border-slate-800">
-        {faqs.map((f, i) => (
-          <details key={f.q} className="group px-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-sm font-medium text-slate-800 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
-              <span><span className="mr-3 font-semibold text-brand-600">{i + 1}.</span>{f.q}</span>
-              <ChevronDown size={16} className="text-slate-400 transition-transform group-open:rotate-180" />
+      {faqs.length ? <div className="relative grid gap-3 md:grid-cols-2">
+        {faqs.map((faq, i) => (
+          <details key={faq.id ?? faq.question} className="group rounded-2xl border border-slate-200/80 bg-white/90 px-4 transition hover:border-indigo-200 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:hover:border-indigo-500/40">
+            <summary className="flex cursor-pointer list-none items-start justify-between gap-3 py-4 text-sm font-semibold leading-5 text-slate-800 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
+              <span className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-[11px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">{String(i + 1).padStart(2, '0')}</span>{faq.question}</span>
+              <ChevronDown size={16} className="mt-1 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
             </summary>
-            <p className="pb-4 pl-7 text-xs leading-5 text-slate-500">{f.a}</p>
+            <p className="pb-4 pl-9 text-sm leading-6 text-slate-600 dark:text-slate-300">{faq.answer}</p>
           </details>
         ))}
-      </div>
+      </div> : <p className="relative rounded-2xl border border-dashed border-indigo-200 bg-white/70 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">FAQs will appear here once they&apos;re published.</p>}
     </section>
   );
 }
