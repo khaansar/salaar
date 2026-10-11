@@ -8,6 +8,7 @@ import {
   setCurrentQuestion,
 } from '../store/attemptSlice';
 import { makeSelectPaletteCounts } from '../store/selectors';
+import { Avatar } from '../../../components/ui/Avatar';
 
 function LegendItem({
   label,
@@ -143,22 +144,7 @@ export default function Palette() {
       {/* User Info */}
       <div className="p-4 border-b border-exam-border bg-exam-panel flex items-center gap-3">
         <div className="w-12 h-12 bg-slate-200 rounded text-slate-500 flex items-center justify-center overflow-hidden shrink-0">
-          {user?.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.avatarUrl}
-              alt={displayName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <svg
-              className="w-8 h-8 mt-2"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          )}
+          <Avatar name={displayName} avatarUrl={user?.avatarUrl ||  "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} size="lg" className="!h-12 !w-12 !rounded-md !border-0" />
         </div>
 
         <div>
