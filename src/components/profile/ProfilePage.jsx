@@ -45,9 +45,37 @@ import {
   useGetUserTopicPerformanceQuery,
   useGetYearlyStreakQuery,
 } from '../../store/userApi';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { Avatar } from '../ui/Avatar';
+import { useRef, useState } from 'react';
+import { fetchCurrentUser } from '../../store/slices/authSlice';
+import { uploadAvatar } from '../../lib/avatarUpload';
 
 export default function ProfilePage() {
   const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+    const avatarInputRef = useRef(null);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const [avatarError, setAvatarError] = useState('');
+
+    const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    setAvatarError('');
+    setAvatarUploading(true);
+
+    try {
+        await uploadAvatar(file);
+        await dispatch(fetchCurrentUser());
+    } catch (error) {
+        setAvatarError(error?.message || 'Failed to upload avatar.');
+    } finally {
+        setAvatarUploading(false);
+    }
+    };
   
   // Real Backend Data Hooks
   const { data: streak } = useGetYearlyStreakQuery();
@@ -257,9 +285,44 @@ export default function ProfilePage() {
       {/* 1. Header Section */}
       <div className="bg-white dark:bg-slate-900 rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="relative shrink-0">
-            <img src={user?.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-indigo-50 dark:border-indigo-500/20" />
-          </div>
+          <div className="group relative h-28 w-28 shrink-0">
+            <Avatar
+                name={fullName}
+                avatarUrl={user?.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"}
+                size="lg"
+                className="!h-28 !w-28 !text-3xl !border-4 !border-indigo-50 dark:!border-indigo-500/20"
+            />
+
+            <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAvatarChange}
+                disabled={avatarUploading}
+                className="hidden"
+            />
+
+            <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                aria-label="Change profile picture"
+                title={avatarUploading ? 'Uploading avatar...' : 'Change profile picture'}
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-wait"
+            >
+                {avatarUploading ? (
+                <span className="text-xs font-medium">Uploading…</span>
+                ) : (
+                <Pencil size={22} />
+                )}
+            </button>
+
+            {avatarError && (
+                <p role="alert" className="mt-2 w-40 text-xs text-red-500">
+                {avatarError}
+                </p>
+            )}
+            </div>
           <div className="text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{fullName}</h1>
