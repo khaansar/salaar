@@ -9,9 +9,16 @@ export function proxy(request) {
   /*
    * Authentication pages are always reachable.
    */
-  if (pathname === '/login' || pathname === '/signup') {
-    return NextResponse.next();
-  }
+  /*
+ * Redirect authenticated visitors away from login and signup.
+ */
+    if (pathname === '/login' || pathname === '/signup') {
+        if (accessToken) {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+
+        return NextResponse.next();
+    }
 
   /*
    * Admin routes.
