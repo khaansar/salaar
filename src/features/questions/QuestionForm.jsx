@@ -2,42 +2,104 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, AlertTriangle, Save, HelpCircle, ListChecks, Lightbulb, Tag } from 'lucide-react';
+import {
+  Plus,
+  X,
+  AlertTriangle,
+  Save,
+  HelpCircle,
+  ListChecks,
+  Lightbulb,
+  Tag,
+} from 'lucide-react';
+
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
+
 import { OptionsEditor, newOptionId } from './OptionsEditor';
 import { CorrectAnswerEditor } from './CorrectAnswerEditor';
 import { QuestionPreviewContent } from './QuestionPreviewDrawer';
 import { MathTextarea } from './MathTextarea';
+import { QuestionImageEditor } from './QuestionImageEditor';
+
 import { questionsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
-import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, COMMON_LANGUAGES } from '@/constants/enums';
+import {
+  QUESTION_TYPE_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  COMMON_LANGUAGES,
+} from '@/constants/enums';
 
-const HAS_OPTIONS = (type) => type === 'MCQ' || type === 'MULTI_CORRECT';
+const HAS_OPTIONS = (type) =>
+  type === 'MCQ' || type === 'MULTI_CORRECT';
 
-function parseOptions(optionsJson) {
+function normalizeImages(images) {
+  if (!Array.isArray(images)) return [];
+
+  return images
+    .filter((image) => image && typeof image.url === 'string')
+    .map((image, index) => ({
+      url: image.url,
+      publicId: image.publicId || '',
+      altText: image.altText || '',
+      caption: image.caption || '',
+      sequence: Number.isInteger(image.sequence)
+        ? image.sequence
+        : index,
+    }))
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+function parseOptions(optionsJson, optionImages = {}) {
   if (!optionsJson) return [];
+
+  let parsed;
+
   try {
-    const parsed = JSON.parse(optionsJson);
-    if (Array.isArray(parsed)) {
-      return parsed.map((o) => ({ id: o.id || newOptionId(), text: o.text || '' }));
-    }
-    if (parsed && typeof parsed === 'object') {
-      return Object.entries(parsed).map(([id, text]) => ({ id, text: typeof text === 'string' ? text : String(text ?? '') }));
-    }
-    return [];
+    parsed =
+      typeof optionsJson === 'string'
+        ? JSON.parse(optionsJson)
+        : optionsJson;
   } catch {
     return [];
   }
+
+  let options = [];
+
+  if (Array.isArray(parsed)) {
+    options = parsed.map((option) => ({
+      id: option.id || newOptionId(),
+      text: option.text || '',
+    }));
+  } else if (parsed && typeof parsed === 'object') {
+    options = Object.entries(parsed).map(([id, value]) => ({
+      id,
+      text:
+        typeof value === 'string'
+          ? value
+          : String(value ?? ''),
+    }));
+  }
+
+  return options.map((option) => ({
+    ...option,
+    images: normalizeImages(optionImages?.[option.id]),
+  }));
 }
 
 function emptyTranslation(language, withOptions) {
   return {
     language,
     questionText: '',
-    options: withOptions ? [{ id: newOptionId(), text: '' }, { id: newOptionId(), text: '' }] : [],
+    questionImages: [],
+    options: withOptions
+      ? [
+          { id: newOptionId(), text: '', images: [] },
+          { id: newOptionId(), text: '', images: [] },
+        ]
+      : [],
   };
 }
 
@@ -50,21 +112,25 @@ function initFromQuestion(question) {
       positiveMarks: 1,
       negativeMarks: 0,
       explanation: '',
+      explanationImages: [],
       translations: [emptyTranslation('en', true)],
       correctAnswerJson: {},
     };
   }
-  
+
   const withOptions = HAS_OPTIONS(question.questionType);
   const answerState = { ...(question.correctAnswerJson || {}) };
 
-  // Defensively bind both keys so the frontend cannot fail
   if (question.questionType === 'MCQ') {
-    const mappedKey = answerState.key || answerState.correctOptionId;
+    const mappedKey =
+      answerState.key || answerState.correctOptionId;
+
     answerState.key = mappedKey;
     answerState.correctOptionId = mappedKey;
   } else if (question.questionType === 'MULTI_CORRECT') {
-    const mappedKeys = answerState.keys || answerState.correctOptionIds || [];
+    const mappedKeys =
+      answerState.keys || answerState.correctOptionIds || [];
+
     answerState.keys = mappedKeys;
     answerState.correctOptionIds = mappedKeys;
   }
@@ -76,13 +142,48 @@ function initFromQuestion(question) {
     positiveMarks: question.positiveMarks ?? 1,
     negativeMarks: question.negativeMarks ?? 0,
     explanation: question.explanation || '',
-    translations: (question.translations || []).map((t) => ({
-      language: t.language,
-      questionText: t.questionText || '',
-      options: withOptions ? parseOptions(t.optionsJson) : [],
+    explanationImages: normalizeImages(question.explanationImages),
+    translations: (question.translations || []).map((translation) => ({
+      language: translation.language,
+      questionText: translation.questionText || '',
+      questionImages: normalizeImages(translation.questionImages),
+      options: withOptions
+        ? parseOptions(
+            translation.optionsJson,
+            translation.optionImages
+          )
+        : [],
     })),
     correctAnswerJson: answerState,
   };
+}
+
+/**
+ * Keep the backend optionImages contract separate from optionsJson.
+ *
+ * optionsJson remains { optionId: "option text" }.
+ * optionImages becomes { optionId: [image metadata, ...] }.
+ */
+function buildOptionImages(options) {
+  return Object.fromEntries(
+    options
+      .filter((option) => Array.isArray(option.images) && option.images.length)
+      .map((option) => [
+        option.id,
+        normalizeImages(option.images).map((image, sequence) => ({
+          ...image,
+          sequence,
+        })),
+      ])
+  );
+}
+
+function buildOptionsJson(options) {
+  return JSON.stringify(
+    Object.fromEntries(
+      options.map((option) => [option.id, option.text || ''])
+    )
+  );
 }
 
 export function QuestionForm({ question }) {
@@ -91,116 +192,224 @@ export function QuestionForm({ question }) {
   const isEdit = Boolean(question);
 
   const [form, setForm] = useState(() => initFromQuestion(question));
-  const [activeLang, setActiveLang] = useState(form.translations[0]?.language || 'en');
+  const [activeLang, setActiveLang] = useState(
+    form.translations[0]?.language || 'en'
+  );
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const activeTranslation = form.translations.find((t) => t.language === activeLang) || form.translations[0];
+  const activeTranslation =
+    form.translations.find(
+      (translation) => translation.language === activeLang
+    ) || form.translations[0];
+
   const primaryTranslation = form.translations[0];
   const withOptions = HAS_OPTIONS(form.questionType);
 
   const availableLanguages = useMemo(
-    () => COMMON_LANGUAGES.filter((l) => !form.translations.some((t) => t.language === l.value)),
+    () =>
+      COMMON_LANGUAGES.filter(
+        (language) =>
+          !form.translations.some(
+            (translation) => translation.language === language.value
+          )
+      ),
     [form.translations]
   );
 
   const updateTranslation = (language, patch) => {
-    setForm((f) => ({
-      ...f,
-      translations: f.translations.map((t) => (t.language === language ? { ...t, ...patch } : t)),
+    setForm((current) => ({
+      ...current,
+      translations: current.translations.map((translation) =>
+        translation.language === language
+          ? { ...translation, ...patch }
+          : translation
+      ),
     }));
   };
 
   const setQuestionType = (type) => {
-    setForm((f) => ({
-      ...f,
+    setForm((current) => ({
+      ...current,
       questionType: type,
       correctAnswerJson: {},
-      translations: f.translations.map((t) => ({
-        ...t,
-        options: HAS_OPTIONS(type) ? (t.options.length ? t.options : [{ id: newOptionId(), text: '' }, { id: newOptionId(), text: '' }]) : [],
+      translations: current.translations.map((translation) => ({
+        ...translation,
+        options: HAS_OPTIONS(type)
+          ? translation.options.length
+            ? translation.options
+            : [
+                { id: newOptionId(), text: '', images: [] },
+                { id: newOptionId(), text: '', images: [] },
+              ]
+          : [],
       })),
     }));
   };
 
   const addLanguage = (code) => {
-    if (!code || form.translations.some((t) => t.language === code)) return;
-    const copyOptionsFromPrimary = withOptions
-      ? primaryTranslation.options.map((o) => ({ id: o.id, text: '' }))
+    if (
+      !code ||
+      form.translations.some(
+        (translation) => translation.language === code
+      )
+    ) {
+      return;
+    }
+
+    const copiedOptions = withOptions
+      ? primaryTranslation.options.map((option) => ({
+          id: option.id,
+          text: '',
+          images: [],
+        }))
       : [];
-    setForm((f) => ({
-      ...f,
-      translations: [...f.translations, { language: code, questionText: '', options: copyOptionsFromPrimary }],
+
+    setForm((current) => ({
+      ...current,
+      translations: [
+        ...current.translations,
+        {
+          language: code,
+          questionText: '',
+          questionImages: [],
+          options: copiedOptions,
+        },
+      ],
     }));
+
     setActiveLang(code);
   };
 
   const removeLanguage = (code) => {
     if (form.translations.length <= 1) return;
-    setForm((f) => ({ ...f, translations: f.translations.filter((t) => t.language !== code) }));
-    if (activeLang === code) setActiveLang(form.translations[0].language === code ? form.translations[1]?.language : form.translations[0].language);
+
+    const remaining = form.translations.filter(
+      (translation) => translation.language !== code
+    );
+
+    setForm((current) => ({
+      ...current,
+      translations: remaining,
+    }));
+
+    if (activeLang === code) {
+      setActiveLang(remaining[0].language);
+    }
   };
 
   const validate = () => {
-    const next = {};
-    form.translations.forEach((t) => {
-      if (!t.questionText.trim()) next[`text_${t.language}`] = 'Question text is required';
+    const nextErrors = {};
+
+    form.translations.forEach((translation) => {
+      if (!translation.questionText.trim()) {
+        nextErrors[`text_${translation.language}`] =
+          'Question text is required';
+      }
+
       if (withOptions) {
-        const filled = t.options.filter((o) => o.text.trim());
-        if (filled.length < 2) next[`options_${t.language}`] = 'Add at least 2 non-empty options';
+        const filled = translation.options.filter((option) =>
+          option.text.trim()
+        );
+
+        if (filled.length < 2) {
+          nextErrors[`options_${translation.language}`] =
+            'Add at least 2 non-empty options';
+        }
       }
     });
-    
-    // Checks for either key format so UI validation doesn't falsely fail
-    if (withOptions) {
-      if (form.questionType === 'MCQ') {
-        const hasKey = form.correctAnswerJson.key || form.correctAnswerJson.correctOptionId;
-        if (!hasKey) next.correctAnswer = 'Select the correct option';
-      }
-      if (form.questionType === 'MULTI_CORRECT') {
-        const arr = form.correctAnswerJson.keys || form.correctAnswerJson.correctOptionIds || [];
-        if (!arr.length) next.correctAnswer = 'Select at least one correct option';
+
+    if (withOptions && form.questionType === 'MCQ') {
+      const hasCorrectOption =
+        form.correctAnswerJson.key ||
+        form.correctAnswerJson.correctOptionId;
+
+      if (!hasCorrectOption) {
+        nextErrors.correctAnswer = 'Select the correct option';
       }
     }
-    if (form.questionType === 'NUMERICAL' && (form.correctAnswerJson.value === undefined || form.correctAnswerJson.value === '')) {
-      next.correctAnswer = 'Enter the correct numerical value';
+
+    if (withOptions && form.questionType === 'MULTI_CORRECT') {
+      const correctOptions =
+        form.correctAnswerJson.keys ||
+        form.correctAnswerJson.correctOptionIds ||
+        [];
+
+      if (!correctOptions.length) {
+        nextErrors.correctAnswer =
+          'Select at least one correct option';
+      }
     }
-    if (form.positiveMarks === '' || Number.isNaN(Number(form.positiveMarks))) next.positiveMarks = 'Required';
-    
-    setErrors(next);
-    return Object.keys(next).length === 0;
+
+    if (
+      form.questionType === 'NUMERICAL' &&
+      (form.correctAnswerJson.value === undefined ||
+        form.correctAnswerJson.value === '')
+    ) {
+      nextErrors.correctAnswer =
+        'Enter the correct numerical value';
+    }
+
+    if (
+      form.positiveMarks === '' ||
+      Number.isNaN(Number(form.positiveMarks))
+    ) {
+      nextErrors.positiveMarks = 'Required';
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  // Interceptor: Syncs both formats whenever the child component updates
   const handleCorrectAnswerChange = (incomingJson) => {
     const nextAnswer = { ...incomingJson };
-    if (nextAnswer.correctOptionId) nextAnswer.key = nextAnswer.correctOptionId;
-    if (nextAnswer.key) nextAnswer.correctOptionId = nextAnswer.key;
-    
-    if (nextAnswer.correctOptionIds) nextAnswer.keys = nextAnswer.correctOptionIds;
-    if (nextAnswer.keys) nextAnswer.correctOptionIds = nextAnswer.keys;
 
-    setForm((f) => ({ ...f, correctAnswerJson: nextAnswer }));
+    if (nextAnswer.correctOptionId) {
+      nextAnswer.key = nextAnswer.correctOptionId;
+    }
+
+    if (nextAnswer.key) {
+      nextAnswer.correctOptionId = nextAnswer.key;
+    }
+
+    if (nextAnswer.correctOptionIds) {
+      nextAnswer.keys = nextAnswer.correctOptionIds;
+    }
+
+    if (nextAnswer.keys) {
+      nextAnswer.correctOptionIds = nextAnswer.keys;
+    }
+
+    setForm((current) => ({
+      ...current,
+      correctAnswerJson: nextAnswer,
+    }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
     if (!validate()) {
       toast.error('Please fix the highlighted fields');
       return;
     }
+
     setSaving(true);
-    
+
     try {
-      // Clean up payload so ONLY the Java-expected schema is sent
       const finalAnswer = { ...form.correctAnswerJson };
+
       if (form.questionType === 'MCQ') {
-        finalAnswer.key = finalAnswer.key || finalAnswer.correctOptionId;
+        finalAnswer.key =
+          finalAnswer.key || finalAnswer.correctOptionId;
+
         delete finalAnswer.correctOptionId;
         delete finalAnswer.keys;
         delete finalAnswer.correctOptionIds;
       } else if (form.questionType === 'MULTI_CORRECT') {
-        finalAnswer.keys = finalAnswer.keys || finalAnswer.correctOptionIds;
+        finalAnswer.keys =
+          finalAnswer.keys || finalAnswer.correctOptionIds;
+
         delete finalAnswer.correctOptionId;
         delete finalAnswer.correctOptionIds;
         delete finalAnswer.key;
@@ -213,13 +422,36 @@ export function QuestionForm({ question }) {
         positiveMarks: Number(form.positiveMarks),
         negativeMarks: Number(form.negativeMarks || 0),
         explanation: form.explanation,
-        translations: form.translations.map((t) => ({
-          language: t.language,
-          questionText: t.questionText,
+        explanationImages: normalizeImages(
+          form.explanationImages
+        ).map((image, sequence) => ({
+          ...image,
+          sequence,
+        })),
+
+        translations: form.translations.map((translation) => ({
+          language: translation.language,
+          questionText: translation.questionText,
+
+          questionImages: normalizeImages(
+            translation.questionImages
+          ).map((image, sequence) => ({
+            ...image,
+            sequence,
+          })),
+
           ...(withOptions
-            ? { optionsJson: JSON.stringify(Object.fromEntries(t.options.map((o) => [o.id, o.text]))) }
+            ? {
+                optionsJson: buildOptionsJson(
+                  translation.options
+                ),
+                optionImages: buildOptionImages(
+                  translation.options
+                ),
+              }
             : {}),
         })),
+
         correctAnswerJson: finalAnswer,
       };
 
@@ -230,132 +462,198 @@ export function QuestionForm({ question }) {
         await questionsApi.create(payload);
         toast.success('Question created');
       }
+
       router.push('/admin-dashboard/questions');
-    } catch (err) {
-      toast.error(err?.message || 'Failed to save question');
+    } catch (error) {
+      toast.error(error?.message || 'Failed to save question');
     } finally {
       setSaving(false);
     }
   };
 
-
-  const STEPS = [
-    { id: 'details', label: 'Question Details', hint: 'Content and basic settings', icon: HelpCircle },
-    ...(withOptions ? [{ id: 'options', label: 'Options', hint: 'Add answer options', icon: ListChecks }] : [{ id: 'answer', label: 'Correct Answer', hint: 'Define the correct answer', icon: ListChecks }]),
-    { id: 'explanation', label: 'Explanation', hint: 'Add solution and explanation', icon: Lightbulb },
-    { id: 'metadata', label: 'Difficulty & Marks', hint: 'Classify and grade this question', icon: Tag },
+  const steps = [
+    {
+      id: 'details',
+      label: 'Question Details',
+      hint: 'Content and basic settings',
+      icon: HelpCircle,
+    },
+    ...(withOptions
+      ? [
+          {
+            id: 'options',
+            label: 'Options',
+            hint: 'Add answer options',
+            icon: ListChecks,
+          },
+        ]
+      : [
+          {
+            id: 'answer',
+            label: 'Correct Answer',
+            hint: 'Define the correct answer',
+            icon: ListChecks,
+          },
+        ]),
+    {
+      id: 'explanation',
+      label: 'Explanation',
+      hint: 'Add solution and explanation',
+      icon: Lightbulb,
+    },
+    {
+      id: 'metadata',
+      label: 'Difficulty & Marks',
+      hint: 'Classify and grade this question',
+      icon: Tag,
+    },
   ];
 
   const previewQuestion = {
     questionType: form.questionType,
     topic: form.topic,
-    translations: form.translations.map((t) => ({
-      language: t.language,
-      questionText: t.questionText,
-      optionsJson: withOptions ? JSON.stringify(Object.fromEntries(t.options.map((o) => [o.id, o.text]))) : undefined,
+    translations: form.translations.map((translation) => ({
+      language: translation.language,
+      questionText: translation.questionText,
+      questionImages: translation.questionImages,
+      optionsJson: withOptions
+        ? buildOptionsJson(translation.options)
+        : undefined,
+      optionImages: withOptions
+        ? buildOptionImages(translation.options)
+        : undefined,
     })),
     correctAnswerJson: form.correctAnswerJson,
     explanation: form.explanation,
+    explanationImages: form.explanationImages,
   };
 
   return (
     <form onSubmit={handleSubmit} className="pb-24">
       {question?.isLocked && (
         <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
           <div>
             <p className="font-medium">This question is locked</p>
             <p className="mt-0.5 text-amber-700">
-              {question.warning || 'It is used in one or more published tests. Edit with care — changes affect live tests.'}
+              {question.warning ||
+                'It is used in one or more published tests. Edit with care — changes affect live tests.'}
             </p>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_360px] gap-6 items-start">
-        {/* Left: step anchors */}
-        <div className="hidden lg:block sticky top-6 space-y-1">
-          {STEPS.map((step, i) => (
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[220px_1fr_360px]">
+        {/* Left: section navigation */}
+        <div className="sticky top-6 hidden space-y-1 lg:block">
+          {steps.map((step, index) => (
             <a
               key={step.id}
               href={`#step-${step.id}`}
-              className="flex items-start gap-3 rounded-lg px-2 py-2.5 hover:bg-slate-100 transition-colors group"
+              className="group flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-100"
             >
-              <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                {i + 1}
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
+                {index + 1}
               </span>
+
               <span>
-                <span className="block text-sm font-semibold text-slate-800 group-hover:text-indigo-700">{step.label}</span>
-                <span className="block text-xs text-slate-500">{step.hint}</span>
+                <span className="block text-sm font-semibold text-slate-800 group-hover:text-indigo-700">
+                  {step.label}
+                </span>
+                <span className="block text-xs text-slate-500">
+                  {step.hint}
+                </span>
               </span>
             </a>
           ))}
         </div>
 
-        {/* Middle: form content */}
-        <div className="space-y-6 min-w-0">
+        {/* Main editor */}
+        <div className="min-w-0 space-y-6">
           <Card id="step-details">
             <CardHeader className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
                 <HelpCircle size={18} />
               </div>
+
               <div>
-                <h2 className="font-semibold text-slate-900">Question Details</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Enter the question content and basic information.</p>
+                <h2 className="font-semibold text-slate-900">
+                  Question Details
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  Enter the question content and basic information.
+                </p>
               </div>
             </CardHeader>
+
             <CardBody className="space-y-4">
-              <Select label="Question type" value={form.questionType} onChange={(e) => setQuestionType(e.target.value)}>
-                {QUESTION_TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+              <Select
+                label="Question type"
+                value={form.questionType}
+                onChange={(event) =>
+                  setQuestionType(event.target.value)
+                }
+              >
+                {QUESTION_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </Select>
 
-              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
-                {form.translations.map((t) => (
+              <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-1">
+                {form.translations.map((translation) => (
                   <button
                     type="button"
-                    key={t.language}
-                    onClick={() => setActiveLang(t.language)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors mt-3 ${
-                      activeLang === t.language ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    key={translation.language}
+                    onClick={() => setActiveLang(translation.language)}
+                    className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      activeLang === translation.language
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    {t.language}
+                    {translation.language}
+
                     {form.translations.length > 1 && (
                       <span
                         role="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeLanguage(t.language);
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeLanguage(translation.language);
                         }}
-                        className={activeLang === t.language ? 'text-white/70 hover:text-white' : 'text-slate-400 hover:text-slate-600'}
+                        className={
+                          activeLang === translation.language
+                            ? 'text-white/70 hover:text-white'
+                            : 'text-slate-400 hover:text-slate-600'
+                        }
                       >
                         <X size={12} />
                       </span>
                     )}
                   </button>
                 ))}
+
                 {availableLanguages.length > 0 && (
-                  <div className="relative group mt-3">
+                  <div className="group relative mt-3">
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
                     >
-                      <Plus size={12} /> Add language
+                      <Plus size={12} />
+                      Add language
                     </button>
+
                     <div className="absolute left-0 top-full z-10 hidden pt-1 group-hover:block group-focus-within:block">
                       <div className="flex min-w-[140px] flex-col rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-                        {availableLanguages.map((l) => (
+                        {availableLanguages.map((language) => (
                           <button
                             type="button"
-                            key={l.value}
-                            onClick={() => addLanguage(l.value)}
-                            className="text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                            key={language.value}
+                            onClick={() => addLanguage(language.value)}
+                            className="px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
                           >
-                            {l.label}
+                            {language.label}
                           </button>
                         ))}
                       </div>
@@ -365,116 +663,220 @@ export function QuestionForm({ question }) {
               </div>
 
               {activeTranslation && (
-                <MathTextarea
-                  id={`qtext-${activeTranslation.language}`}
-                  label="Question Text"
-                  rows={4}
-                  placeholder="Use $...$ for inline math and $$...$$ for block math, e.g. $x^2 + y^2 = z^2$"
-                  value={activeTranslation.questionText}
-                  onChange={(text) => updateTranslation(activeTranslation.language, { questionText: text })}
-                  error={errors[`text_${activeTranslation.language}`]}
-                />
+                <>
+                  <MathTextarea
+                    id={`qtext-${activeTranslation.language}`}
+                    label="Question Text"
+                    rows={4}
+                    placeholder="Use $...$ for inline math and $$...$$ for block math, e.g. $x^2 + y^2 = z^2$"
+                    value={activeTranslation.questionText}
+                    onChange={(text) =>
+                      updateTranslation(activeTranslation.language, {
+                        questionText: text,
+                      })
+                    }
+                    error={errors[`text_${activeTranslation.language}`]}
+                  />
+
+                  <QuestionImageEditor
+                    title="Question images"
+                    description="Images and diagrams shown alongside the question text."
+                    images={activeTranslation.questionImages}
+                    disabled={saving}
+                    onChange={(questionImages) =>
+                      updateTranslation(activeTranslation.language, {
+                        questionImages,
+                      })
+                    }
+                  />
+                </>
               )}
             </CardBody>
           </Card>
 
           <Card id={withOptions ? 'step-options' : 'step-answer'}>
             <CardHeader className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
                 <ListChecks size={18} />
               </div>
+
               <div>
-                <h2 className="font-semibold text-slate-900">{withOptions ? 'Options' : 'Correct Answer'}</h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  {withOptions ? 'Add answer options and mark the correct one(s).' : 'Define the correct answer for this question.'}
+                <h2 className="font-semibold text-slate-900">
+                  {withOptions ? 'Options' : 'Correct Answer'}
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  {withOptions
+                    ? 'Add answer options and mark the correct one(s).'
+                    : 'Define the correct answer for this question.'}
                 </p>
               </div>
             </CardHeader>
+
             <CardBody className="space-y-4">
               {withOptions && activeTranslation && (
                 <div>
                   <OptionsEditor
                     value={activeTranslation.options}
-                    onChange={(options) => updateTranslation(activeTranslation.language, { options })}
+                    onChange={(options) =>
+                      updateTranslation(activeTranslation.language, {
+                        options,
+                      })
+                    }
+                    disabled={saving}
                   />
+
                   {errors[`options_${activeTranslation.language}`] && (
-                    <p className="mt-1.5 text-xs text-red-500">{errors[`options_${activeTranslation.language}`]}</p>
+                    <p className="mt-1.5 text-xs text-red-500">
+                      {errors[`options_${activeTranslation.language}`]}
+                    </p>
                   )}
-                  {activeTranslation.language !== primaryTranslation.language && (
+
+                  {activeTranslation.language !==
+                    primaryTranslation.language && (
                     <p className="mt-2 text-xs text-slate-400">
-                      Correct answer is set from the <strong className="uppercase">{primaryTranslation.language}</strong> options — keep option order consistent across languages.
+                      Correct answer is set from the{' '}
+                      <strong className="uppercase">
+                        {primaryTranslation.language}
+                      </strong>{' '}
+                      options — keep option IDs consistent across languages.
                     </p>
                   )}
                 </div>
               )}
-              <div className={withOptions ? 'pt-4 border-t border-slate-100' : ''}>
-                {withOptions && <p className="text-sm font-medium text-slate-700 mb-2">Correct answer</p>}
+
+              <div
+                className={
+                  withOptions ? 'border-t border-slate-100 pt-4' : ''
+                }
+              >
+                {withOptions && (
+                  <p className="mb-2 text-sm font-medium text-slate-700">
+                    Correct answer
+                  </p>
+                )}
+
                 <CorrectAnswerEditor
                   questionType={form.questionType}
                   options={withOptions ? primaryTranslation.options : []}
                   value={form.correctAnswerJson}
                   onChange={handleCorrectAnswerChange}
                 />
-                {errors.correctAnswer && <p className="mt-2 text-xs text-red-500">{errors.correctAnswer}</p>}
+
+                {errors.correctAnswer && (
+                  <p className="mt-2 text-xs text-red-500">
+                    {errors.correctAnswer}
+                  </p>
+                )}
               </div>
             </CardBody>
           </Card>
 
           <Card id="step-explanation">
             <CardHeader className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
                 <Lightbulb size={18} />
               </div>
+
               <div>
-                <h2 className="font-semibold text-slate-900">Explanation</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Shown to students after they submit the question.</p>
+                <h2 className="font-semibold text-slate-900">
+                  Explanation
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  Shown to students after they submit the question.
+                </p>
               </div>
             </CardHeader>
-            <CardBody>
+
+            <CardBody className="space-y-4">
               <MathTextarea
                 id="explanation"
                 rows={4}
-                placeholder="Explain the solution step by step. Supports $...$ math and images."
+                placeholder="Explain the solution step by step. Supports $...$ math and Markdown images."
                 value={form.explanation}
-                onChange={(text) => setForm((f) => ({ ...f, explanation: text }))}
+                onChange={(explanation) =>
+                  setForm((current) => ({
+                    ...current,
+                    explanation,
+                  }))
+                }
+              />
+
+              <QuestionImageEditor
+                title="Explanation images"
+                description="Add solution diagrams, worked examples, or other explanation figures."
+                images={form.explanationImages}
+                disabled={saving}
+                onChange={(explanationImages) =>
+                  setForm((current) => ({
+                    ...current,
+                    explanationImages,
+                  }))
+                }
               />
             </CardBody>
           </Card>
 
           <Card id="step-metadata">
             <CardHeader className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                 <Tag size={18} />
               </div>
+
               <div>
-                <h2 className="font-semibold text-slate-900">Difficulty &amp; Marks</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Classify and grade this question.</p>
+                <h2 className="font-semibold text-slate-900">
+                  Difficulty &amp; Marks
+                </h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  Classify and grade this question.
+                </p>
               </div>
             </CardHeader>
+
             <CardBody className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Select label="Difficulty" value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
-                  {DIFFICULTY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <Select
+                  label="Difficulty"
+                  value={form.difficulty}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      difficulty: event.target.value,
+                    }))
+                  }
+                >
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
                     </option>
                   ))}
                 </Select>
+
                 <Input
                   label="Positive marks"
                   type="number"
                   step="0.5"
                   value={form.positiveMarks}
-                  onChange={(e) => setForm((f) => ({ ...f, positiveMarks: e.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      positiveMarks: event.target.value,
+                    }))
+                  }
                   error={errors.positiveMarks}
                 />
+
                 <Input
                   label="Negative marks"
                   type="number"
                   step="0.5"
                   min="0"
                   value={form.negativeMarks}
-                  onChange={(e) => setForm((f) => ({ ...f, negativeMarks: e.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      negativeMarks: event.target.value,
+                    }))
+                  }
                 />
               </div>
 
@@ -483,17 +885,30 @@ export function QuestionForm({ question }) {
                   label="Topic / Concept"
                   placeholder="e.g. Algebra, Trigonometry, Blood Relations"
                   value={form.topic}
-                  onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      topic: event.target.value,
+                    }))
+                  }
                 />
-                <p className="mt-1 text-xs text-slate-400">Used for topic-level analytics and student weakness diagnosis.</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Used for topic-level analytics and student weakness diagnosis.
+                </p>
               </div>
             </CardBody>
           </Card>
 
           <div className="flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => router.push('/admin-dashboard/questions')} disabled={saving}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/admin-dashboard/questions')}
+              disabled={saving}
+            >
               Cancel
             </Button>
+
             <Button type="submit" isLoading={saving}>
               <Save size={16} className="mr-2" />
               {isEdit ? 'Save changes' : 'Create question'}
@@ -501,13 +916,18 @@ export function QuestionForm({ question }) {
           </div>
         </div>
 
-        {/* Right: live preview + quick settings, sticky on desktop */}
+        {/* Live preview */}
         <div className="space-y-6 lg:sticky lg:top-6">
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-slate-900">Question Preview</h2>
-              <p className="text-sm text-slate-500 mt-0.5">This is how the question will appear to students.</p>
+              <h2 className="font-semibold text-slate-900">
+                Question Preview
+              </h2>
+              <p className="mt-0.5 text-sm text-slate-500">
+                This is how the question will appear to students.
+              </p>
             </CardHeader>
+
             <CardBody>
               <QuestionPreviewContent question={previewQuestion} />
             </CardBody>
