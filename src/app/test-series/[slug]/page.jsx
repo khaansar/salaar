@@ -217,7 +217,7 @@ export default async function TestSeriesPage({ params }) {
           </div>
         </section>
 
-        <div id="faqs" className="mt-5"><HomeFaq targetId={series.categoryId} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
+        <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
         <div id="reviews" className="mt-5"><Testimonials /></div>
       </div>
     </StudentShell>
