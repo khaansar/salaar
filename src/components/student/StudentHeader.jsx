@@ -12,6 +12,8 @@ import { logoutUser } from '../../store/slices/authSlice';
 import { useState, useRef, useEffect } from 'react';
 import BrandLogo from '../common/BrandLogo';
 
+import { Avatar } from '../ui/Avatar';
+
 const links = [
   { name: 'Previous Year Papers', href: '/previous-year-papers' },
   { name: 'Analytics', href: '/analytics' },
@@ -26,8 +28,6 @@ export default function StudentHeader({ onMenuClick }) {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  const initial = (user?.firstName?.[0] || user?.email?.[0] || 'U').toUpperCase();
 
   const isActive = (href) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
@@ -107,9 +107,9 @@ export default function StudentHeader({ onMenuClick }) {
               aria-label="Open profile menu"
               aria-expanded={dropdownOpen}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 font-semibold text-brand-600 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30">
-                {initial}
-              </span>
+              
+                <Avatar name={fullName} avatarUrl={user?.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} size="md" className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30" />
+
               <ChevronDown size={14} className="hidden text-slate-400 sm:block" />
             </button>
 

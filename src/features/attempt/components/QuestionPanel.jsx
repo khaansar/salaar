@@ -1,57 +1,80 @@
 'use client';
+
 import { useAppSelector } from '../../../hooks/useAppSelector';
-import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { MathText } from '../../../components/common/MathText';
+import { QuestionImages } from '../../../components/common/QuestionImages';
 import OptionList from './OptionList';
 import NumericAnswer from './NumericAnswer';
 
 export default function QuestionPanel() {
-  const currentQuestionId = useAppSelector(state => state.attempt.ui.currentQuestionId);
-  const question = useAppSelector(state => state.attempt.questions[currentQuestionId]);
-  
-  const sections = useAppSelector(state => state.attempt.sections);
-  
+  const currentQuestionId = useAppSelector(
+    (state) => state.attempt.ui.currentQuestionId
+  );
+
+  const question = useAppSelector(
+    (state) => state.attempt.questions[currentQuestionId]
+  );
+
+  const sections = useAppSelector((state) => state.attempt.sections);
+
   if (!question) {
     return (
-      <div className="flex-1 p-8 flex items-center justify-center text-exam-text-muted">
+      <div className="flex flex-1 items-center justify-center p-8 text-exam-text-muted">
         Select a question from the palette
       </div>
     );
   }
 
-  // Determine question index just for display
   let globalIndex = 0;
-  for (const s of sections) {
-    const idx = s.questionIds?.indexOf(currentQuestionId);
-    if (idx !== undefined && idx !== -1) {
-      globalIndex = idx + 1; // 1-indexed within section for now, or global if we count across
+
+  for (const section of sections) {
+    const index = section.questionIds?.indexOf(currentQuestionId);
+
+    if (index !== undefined && index !== -1) {
+      globalIndex = index + 1;
       break;
     }
   }
 
   return (
     <div className="flex-1 overflow-y-auto bg-exam-bg p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto bg-exam-panel border border-exam-border rounded-lg shadow-sm overflow-hidden">
-        {/* Question Header */}
-        <div className="px-6 py-4 border-b border-exam-border flex flex-wrap items-center justify-between gap-4 bg-exam-bg/30">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-exam-border bg-exam-panel shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-exam-border bg-exam-bg/30 px-6 py-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-exam-text">Question {globalIndex}</h2>
-            <span className="text-[11px] font-bold tracking-wider px-2 py-0.5 bg-slate-200 text-slate-700 rounded-sm uppercase">
+            <h2 className="text-lg font-bold text-exam-text">
+              Question {globalIndex}
+            </h2>
+
+            <span className="rounded-sm bg-slate-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-700">
               {question.type}
             </span>
           </div>
+
           <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="text-emerald-600">+{question.marks}</span>
+            <span className="text-emerald-600">
+              +{question.marks}
+            </span>
+
             {question.negativeMarks > 0 && (
-              <span className="text-rose-600">-{question.negativeMarks}</span>
+              <span className="text-rose-600">
+                -{question.negativeMarks}
+              </span>
             )}
           </div>
         </div>
 
-        {/* Question Body */}
         <div className="p-6">
-          <MathText text={question.text} className="text-[17px] leading-[1.6] text-exam-text select-none" />
-          
+          <MathText
+            text={question.text}
+            className="select-none text-[17px] leading-[1.6] text-exam-text"
+          />
+
+          <QuestionImages
+            images={question.questionImages}
+            className="mt-4"
+            imageClassName="max-h-[32rem]"
+          />
+
           <div className="mt-8">
             {question.type === 'NAT' ? (
               <NumericAnswer questionId={question.id} />

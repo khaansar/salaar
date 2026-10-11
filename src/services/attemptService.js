@@ -3,12 +3,85 @@ import apiClient, { apiClientRaw } from '../lib/apiClient';
 const USE_MOCKS =
   process.env.NEXT_PUBLIC_USE_ATTEMPT_MOCKS === 'true';
 
+function parseOptions(optionsJson) {
+  if (!optionsJson) {
+    return [];
+  }
+
+  let parsed = optionsJson;
+
+  if (typeof optionsJson === 'string') {
+    try {
+      parsed = JSON.parse(optionsJson);
+    } catch {
+      return [];
+    }
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed.map((option, index) => ({
+      id: String(option.id ?? index),
+      text: String(option.text ?? ''),
+    }));
+  }
+
+  if (parsed && typeof parsed === 'object') {
+    return Object.entries(parsed).map(([id, value]) => ({
+      id,
+      text: typeof value === 'string'
+        ? value
+        : String(value ?? ''),
+    }));
+  }
+
+  return [];
+}
+
+function normalizeImages(images) {
+  if (!Array.isArray(images)) {
+    return [];
+  }
+
+  return images
+    .filter(
+      (image) =>
+        image &&
+        typeof image.url === 'string' &&
+        image.url.trim()
+    )
+    .map((image, index) => ({
+      url: image.url,
+      publicId: image.publicId ?? image.public_id ?? null,
+      altText: image.altText ?? image.alt_text ?? '',
+      caption: image.caption ?? '',
+      sequence: Number.isInteger(image.sequence)
+        ? image.sequence
+        : index,
+    }))
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+function normalizeOptionImages(optionImages) {
+  if (
+    !optionImages ||
+    typeof optionImages !== 'object' ||
+    Array.isArray(optionImages)
+  ) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(optionImages).map(([optionId, images]) => [
+      optionId,
+      normalizeImages(images),
+    ])
+  );
+}
+
 export const attemptService = {
   async getAttemptState(attemptId) {
     if (USE_MOCKS) {
-      const {
-        MOCK_ATTEMPT_DATA,
-      } = await import(
+      const { MOCK_ATTEMPT_DATA } = await import(
         '../features/attempt/mock/mockAttempt'
       );
 
@@ -20,9 +93,7 @@ export const attemptService = {
     );
 
     if (!rawRes || !rawRes.data) {
-      throw new Error(
-        'Attempt response was empty'
-      );
+      throw new Error('Attempt response was empty');
     }
 
     const attemptRes = rawRes.data;
@@ -31,9 +102,7 @@ export const attemptService = {
     const testId = attemptRes.testId;
 
     if (!testId) {
-      throw new Error(
-        'Attempt response is missing testId'
-      );
+      throw new Error('Attempt response is missing testId');
     }
 
     const structureRes = await apiClient.get(
@@ -41,9 +110,7 @@ export const attemptService = {
     );
 
     if (!structureRes) {
-      throw new Error(
-        'Test structure response was empty'
-      );
+      throw new Error('Test structure response was empty');
     }
 
     const sections = [];
@@ -62,25 +129,16 @@ export const attemptService = {
 
         questionIds.push(questionId);
 
-        let options = [];
-
-        if (
-          question.optionsJson &&
-          typeof question.optionsJson === 'object'
-        ) {
-          options = Object.entries(
-            question.optionsJson
-          ).map(([key, value]) => ({
-            id: key,
-            text: value,
-          }));
-        }
-
         questions[questionId] = {
           id: questionId,
           type: question.questionType,
           text: question.questionText,
-          options,
+          options: parseOptions(question.optionsJson),
+
+          // New Baahubali image fields.
+          questionImages: normalizeImages(question.questionImages),
+          optionImages: normalizeOptionImages(question.optionImages),
+
           marks: question.positiveMarks,
           negativeMarks: question.negativeMarks,
         };
@@ -94,17 +152,14 @@ export const attemptService = {
       });
     });
 
-    /*
-     * Restore persisted answers.
-     */
+    // Restore persisted answers without changing existing answer semantics.
     if (
       attemptRes.answers &&
       typeof attemptRes.answers === 'object'
     ) {
       Object.entries(attemptRes.answers).forEach(
         ([questionId, answer]) => {
-          const type =
-            questions[questionId]?.type;
+          const type = questions[questionId]?.type;
 
           const response = {
             visited: true,
@@ -150,7 +205,6 @@ export const attemptService = {
         sectionTimeSpentSec: attemptRes.sectionTimeSpentSec || {},
         currentSectionStartedAt: attemptRes.currentSectionStartedAt,
       },
-
       sections,
       questions,
       responses,
@@ -161,18 +215,21 @@ export const attemptService = {
     if (USE_MOCKS) {
       return { success: true };
     }
-    const rawRes = await apiClientRaw.patch(`/attempts-api/${attemptId}`, payload);
+
+    const rawRes = await apiClientRaw.patch(
+      `/attempts-api/${attemptId}`,
+      payload
+    );
+
     return {
       ...rawRes.data,
-      attemptVersion: rawRes.meta?.attemptVersion
+      attemptVersion: rawRes.meta?.attemptVersion,
     };
   },
 
   async submitAttempt(attemptId) {
     if (USE_MOCKS) {
-      return {
-        success: true,
-      };
+      return { success: true };
     }
 
     return apiClient.post(
@@ -180,22 +237,26 @@ export const attemptService = {
     );
   },
 
-  async startAttempt(
-    testId,
-    durationMinutes
-  ) {
-    return apiClient.post(
-      '/attempts-api/',
-      {
-        testId,
-        durationMinutes,
-      }
-    );
+  async startAttempt(testId, durationMinutes) {
+    return apiClient.post('/attempts-api/', {
+      testId,
+      durationMinutes,
+    });
   },
 
-  async switchSection(attemptId, sectionId, submitCurrent = false) {
-    if (USE_MOCKS) return { success: true };
-    const rawRes = await apiClientRaw.post(`/attempts-api/${attemptId}/sections/${sectionId}/switch?submitCurrent=${submitCurrent}`);
+  async switchSection(
+    attemptId,
+    sectionId,
+    submitCurrent = false
+  ) {
+    if (USE_MOCKS) {
+      return { success: true };
+    }
+
+    const rawRes = await apiClientRaw.post(
+      `/attempts-api/${attemptId}/sections/${sectionId}/switch?submitCurrent=${submitCurrent}`
+    );
+
     return rawRes.data;
   },
 
