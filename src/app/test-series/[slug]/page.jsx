@@ -125,7 +125,7 @@ export default async function TestSeriesPage({ params }) {
         </section>
 
         <div className="mb-5 flex gap-6 overflow-x-auto rounded-xl border border-slate-200/80 bg-white px-5 dark:border-slate-800 dark:bg-slate-900">
-          {[['Overview', '#overview'], [`Tests (${mockTests.length})`, '#tests'], ['FAQs', '#faqs'], ['Reviews', '#reviews']].map(([label, href], i) => (
+          {[['Overview', '#overview'], [`Tests (${mockTests.length})`, '#tests'], ['Reviews', '#reviews'], ['FAQs', '#faqs']].map(([label, href], i) => (
             <a key={label} href={href} className={`-mb-px whitespace-nowrap border-b-2 py-3.5 text-xs font-semibold ${i === 0 ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
               {label}
             </a>
@@ -217,8 +217,8 @@ export default async function TestSeriesPage({ params }) {
           </div>
         </section>
 
-        <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
         <div id="reviews" className="mt-5"><Testimonials /></div>
+        <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
       </div>
     </StudentShell>
   );

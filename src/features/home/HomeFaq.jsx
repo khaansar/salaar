@@ -47,14 +47,17 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle || `A few helpful answers about ${siteConfig.name}.`}</p>
         </div>
       </div>
-      {faqs.length ? <div className="relative grid items-start gap-3 md:grid-cols-2">
+      {faqs.length ? <div className="relative w-full space-y-3">
         {faqs.map((faq, i) => (
-          <details key={faq.id ?? faq.question} className="group rounded-2xl border border-slate-200/80 bg-white/90 px-4 transition hover:border-indigo-200 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:hover:border-indigo-500/40">
-            <summary className="flex cursor-pointer list-none items-start justify-between gap-3 py-4 text-sm font-semibold leading-5 text-slate-800 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-              <span className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-[11px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">{String(i + 1).padStart(2, '0')}</span>{faq.question}</span>
-              <ChevronDown size={16} className="mt-1 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+          <details key={faq.id ?? faq.question} className="group overflow-hidden rounded-2xl border border-indigo-100/90 bg-white/80 shadow-[0_2px_12px_rgba(79,70,229,0.04)] transition duration-200 open:border-indigo-200 open:bg-white open:shadow-[0_12px_32px_rgba(79,70,229,0.09)] hover:border-indigo-200 dark:border-slate-700 dark:bg-slate-900/70 dark:open:border-indigo-500/40 dark:open:bg-slate-900">
+            <summary className="flex cursor-pointer list-none items-center gap-4 px-4 py-4 text-sm font-semibold leading-6 text-slate-800 sm:px-5 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-violet-100 text-xs font-bold tracking-wide text-indigo-600 dark:from-indigo-500/15 dark:to-violet-500/10 dark:text-indigo-300">{String(i + 1).padStart(2, '0')}</span>
+              <span className="flex-1">{faq.question}</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-indigo-500 transition group-open:rotate-180 group-open:bg-indigo-50 dark:bg-slate-800 dark:text-indigo-300 dark:group-open:bg-indigo-500/10"><ChevronDown size={16} /></span>
             </summary>
-            <p className="pb-4 pl-9 text-sm leading-6 text-slate-600 dark:text-slate-300">{faq.answer}</p>
+            <div className="ml-[4.25rem] mr-5 border-t border-indigo-50 pb-5 pt-3 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:text-slate-300">
+              <p className="whitespace-pre-wrap">{faq.answer}</p>
+            </div>
           </details>
         ))}
       </div> : <p className="relative rounded-2xl border border-dashed border-indigo-200 bg-white/70 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">{loading ? 'Loading FAQs…' : failed ? 'FAQs are temporarily unavailable.' : 'No FAQs are available yet.'}</p>}

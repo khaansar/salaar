@@ -39,6 +39,8 @@ export function FaqManager({ adminOnly = false }) {
   const [testsError, setTestsError] = useState('');
   const [categoryFilter, setCategoryFilter] = useState(ALL);
   const [testFilter, setTestFilter] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formTest, setFormTest] = useState('');
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -112,6 +114,32 @@ export function FaqManager({ adminOnly = false }) {
     return () => { active = false; };
   }, [categoryFilter]);
 
+  const [formSeriesOptions, setFormSeriesOptions] = useState([]);
+  const [formSeriesLoading, setFormSeriesLoading] = useState(false);
+  useEffect(() => {
+    let active = true;
+    if (!formCategory || formCategory === GENERAL) {
+      setFormSeriesOptions([]);
+      setFormSeriesLoading(false);
+      return () => { active = false; };
+    }
+    const loadFormSeries = async () => {
+      setFormSeriesLoading(true);
+      try {
+        const firstPage = await seriesApi.list({ categoryId: formCategory, page: 1, limit: SERIES_PAGE_SIZE });
+        const pageCount = Math.max(1, Number(firstPage.meta?.pagination?.total_pages || 1));
+        const remainingPages = await Promise.all(Array.from({ length: pageCount - 1 }, (_, index) => seriesApi.list({ categoryId: formCategory, page: index + 2, limit: SERIES_PAGE_SIZE })));
+        if (active) setFormSeriesOptions([firstPage.data, ...remainingPages.map((page) => page.data)].flat());
+      } catch (error) {
+        if (active) setTestsError(getMessage(error, 'Unable to load test series for this category.'));
+      } finally {
+        if (active) setFormSeriesLoading(false);
+      }
+    };
+    loadFormSeries();
+    return () => { active = false; };
+  }, [formCategory]);
+
   const categoryById = useMemo(
     () => new Map(categories.map((category) => [String(category.id), category])),
     [categories]
@@ -149,7 +177,11 @@ export function FaqManager({ adminOnly = false }) {
   const nextDisplayOrder = (targetId) => allFaqs
     .filter((faq) => String(faq.targetId) === String(targetId))
     .reduce((max, faq) => Math.max(max, Number(faq.displayOrder) || 0), 0) + 1;
-  const openCreate = () => setForm({ id: null, categoryId: '', testId: '', targetId: testFilter || null, question: '', answer: '', displayOrder: null });
+  const openCreate = () => {
+    setFormCategory('');
+    setFormTest('');
+    setForm({ id: null, categoryId: '', testId: '', targetId: null, question: '', answer: '', displayOrder: null });
+  };
   const openEdit = (faq) => {
     const target = targetDetails(faq);
     setForm({
@@ -165,7 +197,15 @@ export function FaqManager({ adminOnly = false }) {
 
   const saveFaq = async (event) => {
     event.preventDefault();
-    const targetId = form.targetId ?? null;
+    const targetId = form.id ? (form.targetId ?? null) : (formCategory === GENERAL ? null : (formTest || formCategory || null));
+    if (!form.id && !formCategory) {
+      toast.error('Select Homepage FAQs or a category.');
+      return;
+    }
+    if (!form.id && formCategory !== GENERAL && !formTest) {
+      toast.error('Select a test series.');
+      return;
+    }
     if (!form.question.trim() || !form.answer.trim()) {
       toast.error('Enter a question and answer.');
       return;
@@ -214,7 +254,7 @@ export function FaqManager({ adminOnly = false }) {
         <div className="grid gap-4 border-b border-slate-100 p-4 dark:border-slate-800 sm:grid-cols-2">
           <Select label="Filter by category" id="faq-category-filter" value={categoryFilter} disabled={categoriesLoading} onChange={(event) => { setCategoryFilter(event.target.value); setTestFilter(''); }}>
             <option value={ALL}>All categories</option>
-            <option value={GENERAL}>General FAQs</option>
+            <option value={GENERAL}>Homepage FAQs</option>
             {categories.map((category) => <option key={category.id} value={String(category.id)}>{category.name}</option>)}
           </Select>
           <Select label="Filter by test series" id="faq-test-filter" value={testFilter} placeholder={categoryFilter === ALL ? 'Choose a category first' : categoryFilter === GENERAL ? 'Not available for general FAQs' : seriesOptionsLoading ? 'Loading test series…' : seriesForFilter.length ? 'Select a test series' : 'No test series in this category'} disabled={seriesOptionsLoading || categoryFilter === ALL || categoryFilter === GENERAL} onChange={(event) => setTestFilter(event.target.value)}>
@@ -227,7 +267,7 @@ export function FaqManager({ adminOnly = false }) {
             columns={[
               { key: 'question', header: 'Question', render: (faq) => <div className="max-w-xl"><p className="h-10 overflow-hidden break-words font-medium leading-5 text-slate-900 line-clamp-2 dark:text-white">{faq.question}</p><p className="mt-1 h-10 overflow-y-auto whitespace-pre-wrap break-words text-xs leading-4 text-slate-500">{faq.answer}</p></div> },
               { key: 'category', header: 'Category', render: (faq) => targetDetails(faq).categoryName },
-              { key: 'test', header: 'FAQ target', render: (faq) => targetDetails(faq).testName },
+              { key: 'test', header: 'Test series', render: (faq) => targetDetails(faq).testName },
               { key: 'actions', header: '', headerClassName: 'text-right', className: 'text-right', render: (faq) => <div className="flex justify-end gap-2"><button type="button" onClick={() => openEdit(faq)} aria-label="Edit FAQ" className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"><Pencil size={16} /></button><button type="button" onClick={() => setDeleteTarget(faq)} aria-label="Delete FAQ" className="rounded-md p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={16} /></button></div> },
             ]}
             rows={filteredFaqs}
@@ -248,6 +288,15 @@ export function FaqManager({ adminOnly = false }) {
             <form onSubmit={saveFaq}>
               <div className="border-b border-slate-100 px-6 py-5 dark:border-slate-800"><h2 id="faq-form-title" className="text-lg font-semibold text-slate-900 dark:text-white">{form.id ? 'Edit FAQ' : 'Add FAQ'}</h2><p className="mt-1 text-sm text-slate-500">{form.id ? 'Update the FAQ details.' : form.targetId ? 'This FAQ will be added to the selected test series.' : 'Add a General FAQ for the homepage.'}</p></div>
               <div className="space-y-4 px-6 py-5">
+                {!form.id && <>
+                  <Select label="Category" id="faq-form-category" value={formCategory} disabled={categoriesLoading} placeholder="Select a category" onChange={(event) => { setFormCategory(event.target.value); setFormTest(''); }}>
+                    <option value={GENERAL}>Homepage FAQs</option>
+                    {categories.map((category) => <option key={category.id} value={String(category.id)}>{category.name}</option>)}
+                  </Select>
+                  <Select label="Test series" id="faq-form-test" value={formTest} disabled={!formCategory || formCategory === GENERAL || formSeriesLoading} placeholder={!formCategory ? 'Choose a category first' : formCategory === GENERAL ? 'Not available for Homepage FAQs' : formSeriesLoading ? 'Loading test series…' : 'Select a test series'} required={Boolean(formCategory && formCategory !== GENERAL)} onChange={(event) => setFormTest(event.target.value)}>
+                    {formSeriesOptions.map((series) => <option key={series.id} value={String(series.id)}>{series.title}</option>)}
+                  </Select>
+                </>}
                 <Input label="Question" id="faq-question" maxLength={2000} value={form.question} onChange={(event) => setForm({ ...form, question: event.target.value })} required />
                 <Textarea label="Answer" id="faq-answer" rows={6} maxLength={10000} value={form.answer} onChange={(event) => setForm({ ...form, answer: event.target.value })} required />
               </div>
