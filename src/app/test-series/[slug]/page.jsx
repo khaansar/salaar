@@ -152,7 +152,7 @@ export default async function TestSeriesPage({ params }) {
 
             <section id="tests" className={card}>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"><Layers size={20} className="text-brand-600" /> Tests in This Series ({mockTests.length})</h2>
-              <SeriesTestsTable tests={mockTests} />
+              <SeriesTestsTable tests={mockTests} locked={!isFree} />
             </section>
           </div>
 

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Clock, Play, ArrowRight } from 'lucide-react';
+import { Clock, Lock, Play, ArrowRight } from 'lucide-react';
 
 function formatDuration(minutes) {
   if (!minutes) return null;
@@ -10,7 +10,7 @@ function formatDuration(minutes) {
   return `${minutes} min`;
 }
 
-export default function SeriesTestsTable({ tests }) {
+export default function SeriesTestsTable({ tests, locked = false }) {
   if (!tests || tests.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -54,14 +54,21 @@ export default function SeriesTestsTable({ tests }) {
             </div>
           </div>
 
-          <Link
-            href={`/tests/${test.slug}`}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
-          >
-            <Play size={14} />
-            View test
-            <ArrowRight size={14} />
-          </Link>
+          {locked ? (
+            <button type="button" disabled className="inline-flex shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+              START TEST
+              <Lock size={14} aria-hidden="true" />
+            </button>
+          ) : (
+            <Link
+              href={`/tests/${test.slug}`}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
+            >
+              <Play size={14} />
+              View test
+              <ArrowRight size={14} />
+            </Link>
+          )}
         </div>
       ))}
     </div>

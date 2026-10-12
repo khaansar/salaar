@@ -1,35 +1,36 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import {
   ArrowRight,
   Clock,
   Award,
   Rocket,
-  Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
 
-import { useRequireAuth } from '../../hooks/useRequireAuth';
-import { attemptService } from '../../services/attemptService';
 import { formatDuration } from '../../utils/format';
-import { useToast } from '../../components/common/ToastProvider';
+import StartTestButton from '../catalog/StartTestButton';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import { useGetAttemptHistoryQuery } from '../../store/userApi';
+
+function getAttemptRecords(response) {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.content)) return response.content;
+  return [];
+}
 
 export default function StartPracticing({ tests = [] }) {
-  const router = useRouter();
-  const requireAuth = useRequireAuth();
-  const toast = useToast();
-
-  const [startingTestId, setStartingTestId] = useState(null);
-
-  const handleStartTest = requireAuth(
-    (testId, durationMinutes) => {
-      const url = `/tests/${testId}/instructions`;
-      const features = 'popup=1,width=1200,height=800,left=100,top=100,resizable=yes,scrollbars=yes';
-      
-      window.open(url, '_blank', features);
-    }
+  const { user } = useAppSelector((state) => state.auth);
+  const { data: attemptHistory } = useGetAttemptHistoryQuery(
+    { page: 1, perPage: 50 },
+    { skip: !user }
+  );
+  const attemptedTestIds = useMemo(
+    () => new Set(getAttemptRecords(attemptHistory).map((attempt) => String(attempt.testId))),
+    [attemptHistory]
   );
 
   if (!Array.isArray(tests) || tests.length === 0) {
@@ -64,8 +65,7 @@ export default function StartPracticing({ tests = [] }) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
         {tests.map((test) => {
-          const isStarting =
-            startingTestId === test.id;
+          const hasAttempted = test.hasAttempted === true || Number(test.attemptCount ?? test.totalAttempts ?? 0) > 0 || attemptedTestIds.has(String(test.id)) || undefined;
 
           return (
             <div
@@ -97,35 +97,14 @@ export default function StartPracticing({ tests = [] }) {
                 </span>
               </div>
 
-              <button
-                type="button"
-                disabled={isStarting}
-                onClick={() =>
-                  handleStartTest(
-                    test.id,
-                    test.durationMinutes
-                  )
-                }
-                className="mt-auto flex w-full items-center justify-center rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isStarting ? (
-                  <>
-                    <Loader2
-                      size={16}
-                      className="mr-2 animate-spin"
-                    />
-                    Starting...
-                  </>
-                ) : (
-                  <>
-                    Start Test
-                    <ArrowRight
-                      className="ml-1.5"
-                      size={16}
-                    />
-                  </>
-                )}
-              </button>
+              <div className="mt-auto">
+                <StartTestButton
+                  testId={test.id}
+                  variant="home"
+                  locked={test.isFree === false}
+                  hasAttempted={hasAttempted}
+                />
+              </div>
             </div>
           );
         })}

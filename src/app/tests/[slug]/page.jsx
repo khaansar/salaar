@@ -110,8 +110,9 @@ export default async function MockTestPage({ params }) {
 
           <div className="mt-8">
             <StartTestButton
-              testId={slug}
-              durationMinutes={test.durationMinutes}
+              testId={test.id || test.testId || slug}
+              locked={test.isFree === false}
+              hasAttempted={test.hasAttempted === true || Number(test.attemptCount ?? test.totalAttempts ?? 0) > 0 || undefined}
             />
           </div>
         </section>

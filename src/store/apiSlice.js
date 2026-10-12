@@ -13,29 +13,16 @@ const axiosBaseQuery =
   () =>
   async ({ url, method = 'GET', data, params, headers }) => {
     try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-        headers,
-      });
-
-      return {
-        data: result,
-      };
+      const result = await apiClient({ url, method, data, params, headers });
+      return { data: result };
     } catch (error) {
-      return {
-        error,
-      };
+      return { error };
     }
   };
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-
   baseQuery: axiosBaseQuery(),
-
   tagTypes: [
     'Attempt',
     'Auth',
@@ -54,7 +41,9 @@ export const apiSlice = createApi({
     'Payment',
     'Orders',
     'Entitlements',
-
+    'CatalogMockTests',
+    'CatalogCategories',
+    'TestLeaderboard',
     // Admin payment-management cache tags.
     'AdminPayment',
     'AdminOrder',
@@ -62,6 +51,5 @@ export const apiSlice = createApi({
     'AdminRefund',
     'AdminRefundableAmount',
   ],
-
   endpoints: () => ({}),
 });
