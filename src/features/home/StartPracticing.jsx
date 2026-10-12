@@ -101,6 +101,7 @@ export default function StartPracticing({ tests = [] }) {
                 <StartTestButton
                   testId={test.id}
                   variant="home"
+                  isFree={test.isFree === true}
                   locked={test.isFree === false}
                   hasAttempted={hasAttempted}
                 />
