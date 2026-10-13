@@ -2,7 +2,7 @@
 
 import { Moon, Sun, LogOut, Menu, Search, UserRound, ChevronDown, ReceiptText, Settings, CircleHelp } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -21,6 +21,7 @@ const links = [
 ];
 
 export default function StudentHeader({ onMenuClick }) {
+  const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
   const pathname = usePathname();
   const { user } = useAppSelector((state) => state.auth);
@@ -46,6 +47,7 @@ export default function StudentHeader({ onMenuClick }) {
   const handleLogout = async () => {
     await dispatch(logoutUser());
     setDropdownOpen(false);
+    router.push('/login');
   };
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Student';
