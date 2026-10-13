@@ -50,6 +50,8 @@ export const apiSlice = createApi({
     'AdminOrderTimeline',
     'AdminRefund',
     'AdminRefundableAmount',
+    "AdminReview",
+    "AdminReviewStats",
   ],
   endpoints: () => ({}),
 });
