@@ -151,7 +151,7 @@ export const adminApi = apiSlice.injectEndpoints({
           ? [
               ...reviews.map((review) => ({
                 type: "AdminReview",
-                id: review.id,
+                id: review.reviewId ?? review.id,
               })),
               { type: "AdminReview", id: "LIST" },
             ]
@@ -168,11 +168,12 @@ export const adminApi = apiSlice.injectEndpoints({
 
     moderateReview: builder.mutation({
       query: ({ reviewId, ...moderationRequest }) => ({
-        url: `${REVIEW_BASE}/${reviewId}/moderate`,
+        url: `${REVIEW_BASE}/${reviewId}/status`,
         method: "PATCH",
         data: moderationRequest,
       }),
-      invalidatesTags: [
+      invalidatesTags: (result, error, { reviewId }) => [
+        { type: "AdminReview", id: reviewId },
         { type: "AdminReview", id: "LIST" },
         { type: "AdminReviewStats", id: "SUMMARY" },
       ],

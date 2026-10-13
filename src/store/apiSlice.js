@@ -50,6 +50,9 @@ export const apiSlice = createApi({
     'AdminOrderTimeline',
     'AdminRefund',
     'AdminRefundableAmount',
+    // Admin review-moderation cache tags.
+    'AdminReview',
+    'AdminReviewStats',
   ],
   endpoints: () => ({}),
 });
