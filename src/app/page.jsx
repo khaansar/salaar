@@ -22,6 +22,9 @@ export const metadata = {
     'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
 };
 
+// FAQ content is managed in the admin dashboard, so load it at request time.
+export const dynamic = 'force-dynamic';
+
 async function loadCatalog() {
   const results = await Promise.allSettled([
     catalogService.getCategories(),
