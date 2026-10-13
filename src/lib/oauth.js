@@ -2,7 +2,6 @@ import { safeNextPath } from '../utils/redirect';
 
 const SUPPORTED_PROVIDERS = new Set([
   'google',
-  'microsoft',
 ]);
 
 /**
