@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Moon, Sun, Menu, X, Search, UserRound, LogOut, ChevronDown, ReceiptText, Settings, CircleHelp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
@@ -19,6 +19,7 @@ const links = [
 import BrandLogo from '../common/BrandLogo';
 
 export default function PublicNavbar({ minimal = false }) {
+  const router = useRouter();
   const pathname = usePathname();
   const { isDark, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -47,6 +48,7 @@ export default function PublicNavbar({ minimal = false }) {
   const handleLogout = async () => {
     await dispatch(logoutUser());
     setDropdownOpen(false);
+    router.push('/login');
   };
 
   const iconBtn = 'flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200';
