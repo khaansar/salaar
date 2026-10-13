@@ -54,12 +54,13 @@ export default function PublicNavbar({ minimal = false }) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-6">
-          <BrandLogo onClick={() => setMobileOpen(false)} />
-
+        <div className="flex h-16 items-center justify-between gap-4 lg:gap-8">
+          <div className="shrink-0">
+            <BrandLogo onClick={() => setMobileOpen(false)} />
+          </div>
 
           {!minimal && (
-            <div className="hidden h-16 items-center gap-5 lg:flex">
+            <nav className="hidden h-16 flex-1 items-center justify-center gap-6 lg:flex">
               {links.map((link) => (
                 <Link
                   key={link.href}
@@ -73,10 +74,10 @@ export default function PublicNavbar({ minimal = false }) {
                   {link.name}
                 </Link>
               ))}
-            </div>
+            </nav>
           )}
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {!minimal && (
               // TODO: wire to real search (currently submits ?q= to /tests)
               <form action="/tests" className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex">

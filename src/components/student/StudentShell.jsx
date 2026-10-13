@@ -49,16 +49,17 @@ export default function StudentShell({
         {/* Skeleton Navbar */}
         <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex h-16 items-center justify-between gap-4 lg:gap-8">
+              <div className="flex shrink-0 items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse" />
                 <div className="h-6 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
               </div>
-              <div className="flex items-center gap-4">
-                <div className="hidden md:flex gap-6">
-                  <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
-                  <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
-                </div>
+              <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
+                <div className="h-5 w-14 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              </div>
+              <div className="flex shrink-0 items-center gap-4">
                 <div className="h-9 w-20 rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse" />
               </div>
             </div>
