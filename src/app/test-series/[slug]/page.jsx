@@ -10,7 +10,7 @@ import {
 import StudentShell from '../../../components/student/StudentShell';
 import SeriesTestsTable from '../../../features/test-series/SeriesTestsTable';
 import SeriesCheckoutButton from '../../../features/payments/SeriesCheckoutButton';
-import Testimonials from '../../../features/home/Testimonials';
+import SeriesReviews from '../../../features/test-series/SeriesReviews';
 import HomeFaq from '../../../features/home/HomeFaq';
 import { testService } from '../../../services/testService';
 import { catalogService } from '../../../services/catalogService';
@@ -217,7 +217,13 @@ export default async function TestSeriesPage({ params }) {
           </div>
         </section>
 
-        <div id="reviews" className="mt-5"><Testimonials /></div>
+        <div id="reviews" className="mt-5">
+          <SeriesReviews
+            seriesId={series.id}
+            slug={slug}
+            seriesTitle={series.title}
+          />
+        </div>
         <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
       </div>
     </StudentShell>
