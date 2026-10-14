@@ -86,7 +86,13 @@ export const adminApi = apiSlice.injectEndpoints({
       providesTags: (result) => {
         const reviews = Array.isArray(result) ? result : result?.content;
         return Array.isArray(reviews)
-          ? [...reviews.map((review) => ({ type: "AdminReview", id: review.reviewId })), { type: "AdminReview", id: "LIST" }]
+          ? [
+              ...reviews.map((review) => ({
+                type: "AdminReview",
+                id: review.reviewId ?? review.id,
+              })),
+              { type: "AdminReview", id: "LIST" },
+            ]
           : [{ type: "AdminReview", id: "LIST" }];
       },
     }),
@@ -102,7 +108,8 @@ export const adminApi = apiSlice.injectEndpoints({
         method: "PATCH",
         data: moderationRequest,
       }),
-      invalidatesTags: [
+      invalidatesTags: (result, error, { reviewId }) => [
+        { type: "AdminReview", id: reviewId },
         { type: "AdminReview", id: "LIST" },
         { type: "AdminReviewStats", id: "SUMMARY" },
       ],
