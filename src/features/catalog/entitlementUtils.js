@@ -24,3 +24,36 @@ export function hasActiveEntitlementForTest(entitlements, test) {
     return false;
   });
 }
+
+export function hasActiveEntitlementForSeries(entitlements, seriesOrOptions) {
+  if (!seriesOrOptions) return false;
+
+  const options =
+    typeof seriesOrOptions === 'object'
+      ? seriesOrOptions
+      : { seriesId: seriesOrOptions };
+
+  if (options.isFree === true) return true;
+  if (!Array.isArray(entitlements)) return false;
+
+  const targetIds = [options.seriesId, options.id, options.slug]
+    .filter(Boolean)
+    .map(String);
+  if (targetIds.length === 0) return false;
+
+  const now = Date.now();
+  return entitlements.some((entitlement) => {
+    if (String(entitlement?.status ?? '').toUpperCase() !== 'ACTIVE') return false;
+    if (entitlement?.expiresAt) {
+      const expiry = Date.parse(entitlement.expiresAt);
+      if (Number.isFinite(expiry) && expiry <= now) return false;
+    }
+
+    const type = String(entitlement?.productType ?? entitlement?.type ?? '').toUpperCase();
+    const referenceId = String(entitlement?.productReferenceId ?? entitlement?.referenceId ?? '');
+    const isSeries = type === 'TEST_SERIES' || type === 'SERIES';
+
+    return isSeries && targetIds.includes(referenceId);
+  });
+}
+

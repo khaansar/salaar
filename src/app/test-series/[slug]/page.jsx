@@ -10,7 +10,7 @@ import {
 import StudentShell from '../../../components/student/StudentShell';
 import SeriesTestsTable from '../../../features/test-series/SeriesTestsTable';
 import SeriesCheckoutButton from '../../../features/payments/SeriesCheckoutButton';
-import Testimonials from '../../../features/home/Testimonials';
+import SeriesReviews from '../../../features/test-series/SeriesReviews';
 import HomeFaq from '../../../features/home/HomeFaq';
 import { testService } from '../../../services/testService';
 import { catalogService } from '../../../services/catalogService';
@@ -152,7 +152,7 @@ export default async function TestSeriesPage({ params }) {
 
             <section id="tests" className={card}>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"><Layers size={20} className="text-brand-600" /> Tests in This Series ({mockTests.length})</h2>
-              <SeriesTestsTable tests={mockTests} locked={!isFree} />
+              <SeriesTestsTable tests={mockTests} seriesId={series.id} locked={!isFree} />
             </section>
           </div>
 
@@ -217,7 +217,14 @@ export default async function TestSeriesPage({ params }) {
           </div>
         </section>
 
-        <div id="reviews" className="mt-5"><Testimonials /></div>
+        <div id="reviews" className="mt-5">
+          <SeriesReviews
+            seriesId={series.id}
+            slug={slug}
+            seriesTitle={series.title}
+            isFree={isFree}
+          />
+        </div>
         <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
       </div>
     </StudentShell>
