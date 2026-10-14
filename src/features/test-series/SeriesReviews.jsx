@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
   Star,
   MessageSquare,
@@ -17,6 +15,8 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 import { useToast } from '../../components/common/ToastProvider';
 import { Avatar } from '../../components/ui/Avatar';
 import { reviewService } from '../../services/reviewService';
+import { useMyEntitlements } from '../catalog/useMyEntitlements';
+import { hasActiveEntitlementForSeries } from '../catalog/entitlementUtils';
 
 const RATING_LABELS = {
   1: 'Poor',
@@ -37,10 +37,18 @@ function formatDate(dateString) {
   });
 }
 
-export default function SeriesReviews({ seriesId, slug, seriesTitle }) {
+export default function SeriesReviews({ seriesId, slug, seriesTitle, isFree = false }) {
   const { user } = useAppSelector((state) => state.auth);
   const toast = useToast();
-  const pathname = usePathname();
+
+  const { entitlements, isLoading: entitlementsLoading } = useMyEntitlements({
+    enabled: Boolean(user),
+  });
+
+  const canWriteReview =
+    Boolean(user) &&
+    !entitlementsLoading &&
+    hasActiveEntitlementForSeries(entitlements, { seriesId, slug, isFree });
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +82,11 @@ export default function SeriesReviews({ seriesId, slug, seriesTitle }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
+
+    if (!canWriteReview) {
+      setSubmitError('You must purchase this test series before leaving a review.');
+      return;
+    }
 
     if (rating < 1 || rating > 5) {
       setSubmitError('Please select a star rating (1 to 5).');
@@ -173,34 +186,34 @@ export default function SeriesReviews({ seriesId, slug, seriesTitle }) {
       </div>
 
       {/* Box for Posting Review */}
-      <div className="mb-8 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/40 p-5 dark:border-slate-800 dark:from-slate-800/40 dark:via-slate-900 dark:to-slate-900">
-        <div className="flex items-center gap-2 mb-3">
-          <PenLine size={16} className="text-brand-600 dark:text-brand-400" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-            Write a Review
-          </h3>
-        </div>
+      {canWriteReview && (
+        <div className="mb-8 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/40 p-5 dark:border-slate-800 dark:from-slate-800/40 dark:via-slate-900 dark:to-slate-900">
+          <div className="flex items-center gap-2 mb-3">
+            <PenLine size={16} className="text-brand-600 dark:text-brand-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Write a Review
+            </h3>
+          </div>
 
-        {submitSuccess && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-            <div>
-              <p className="font-semibold">Review submitted!</p>
-              <p className="mt-0.5 text-emerald-700 dark:text-emerald-400">
-                Your review has been submitted and will be visible publicly once verified by our moderation team.
-              </p>
+          {submitSuccess && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <CheckCircle2 size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+              <div>
+                <p className="font-semibold">Review submitted!</p>
+                <p className="mt-0.5 text-emerald-700 dark:text-emerald-400">
+                  Your review has been submitted and will be visible publicly once verified by our moderation team.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {submitError && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
-            <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
-            <span>{submitError}</span>
-          </div>
-        )}
+          {submitError && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+              <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
+              <span>{submitError}</span>
+            </div>
+          )}
 
-        {user ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Interactive Star Rating Selector */}
             <div>
@@ -289,25 +302,8 @@ export default function SeriesReviews({ seriesId, slug, seriesTitle }) {
               </button>
             </div>
           </form>
-        ) : (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl bg-white/70 dark:bg-slate-900/70 p-4 border border-indigo-100/60 dark:border-slate-800">
-            <div>
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                Want to leave a review?
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Sign in to rate this test series and share your experience with other aspirants.
-              </p>
-            </div>
-            <Link
-              href={`/login?next=${encodeURIComponent(pathname || '/')}`}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-700"
-            >
-              Sign In to Review
-            </Link>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Reviews List */}
       <div>

@@ -152,7 +152,7 @@ export default async function TestSeriesPage({ params }) {
 
             <section id="tests" className={card}>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"><Layers size={20} className="text-brand-600" /> Tests in This Series ({mockTests.length})</h2>
-              <SeriesTestsTable tests={mockTests} locked={!isFree} />
+              <SeriesTestsTable tests={mockTests} seriesId={series.id} locked={!isFree} />
             </section>
           </div>
 
@@ -222,6 +222,7 @@ export default async function TestSeriesPage({ params }) {
             seriesId={series.id}
             slug={slug}
             seriesTitle={series.title}
+            isFree={isFree}
           />
         </div>
         <div id="faqs" className="mt-5"><HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} /></div>
