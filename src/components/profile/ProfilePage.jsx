@@ -288,7 +288,7 @@ export default function ProfilePage() {
           <div className="group relative h-28 w-28 shrink-0">
             <Avatar
                 name={fullName}
-                avatarUrl={user?.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"}
+                avatarUrl={user?.avatarUrl}
                 size="lg"
                 className="!h-28 !w-28 !text-3xl !border-4 !border-indigo-50 dark:!border-indigo-500/20"
             />

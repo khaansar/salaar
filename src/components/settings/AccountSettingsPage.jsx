@@ -23,7 +23,7 @@ import {
 
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { fetchCurrentUser } from '../../store/slices/authSlice';
+import { fetchCurrentUser, updateUser } from '../../store/slices/authSlice';
 import { useToast } from '../common/ToastProvider';
 import { Avatar } from '../ui/Avatar';
 import { PasswordInput } from '../ui/PasswordInput';
@@ -125,7 +125,10 @@ export default function AccountSettingsPage() {
     setAvatarUploading(true);
 
     try {
-      await uploadAvatar(file);
+      const res = await uploadAvatar(file);
+      if (res?.avatarUrl) {
+        dispatch(updateUser({ avatarUrl: res.avatarUrl }));
+      }
       await dispatch(fetchCurrentUser());
       toast.success('Profile photo updated successfully!');
     } catch (err) {
@@ -144,6 +147,7 @@ export default function AccountSettingsPage() {
 
     try {
       await userService.removeAvatar();
+      dispatch(updateUser({ avatarUrl: null }));
       await dispatch(fetchCurrentUser());
       toast.success('Profile photo removed.');
     } catch (err) {
@@ -169,13 +173,16 @@ export default function AccountSettingsPage() {
     setProfileSaving(true);
 
     try {
-      await userService.updateProfile({
+      const updated = await userService.updateProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
         targetExam: targetExam.trim(),
       });
 
+      if (updated) {
+        dispatch(updateUser(updated));
+      }
       await dispatch(fetchCurrentUser());
       setProfileSuccess('Profile changes saved successfully!');
       toast.success('Profile updated successfully!');
@@ -242,6 +249,14 @@ export default function AccountSettingsPage() {
       setPasswordSaving(false);
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+      </div>
+    );
+  }
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.name || 'Student';
 

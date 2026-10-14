@@ -105,7 +105,7 @@ export default function StudentHeader({ onMenuClick }) {
               aria-expanded={dropdownOpen}
             >
               
-                <Avatar name={fullName} avatarUrl={user?.avatarUrl || "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} size="md" className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30" />
+                <Avatar name={fullName} avatarUrl={user?.avatarUrl} size="md" className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30" />
 
               <ChevronDown size={14} className="hidden text-slate-400 sm:block" />
             </button>

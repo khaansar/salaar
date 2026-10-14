@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const SIZE_CLASSES = {
   sm: 'w-8 h-8 text-xs',
   md: 'w-9 h-9 text-sm',
   lg: 'w-12 h-12 text-base',
+  xl: 'w-20 h-20 text-2xl',
 };
 
 function initialsFor(name) {
@@ -21,6 +22,10 @@ function initialsFor(name) {
 export function Avatar({ name, avatarUrl, size = 'md', className = '' }) {
   const [imgFailed, setImgFailed] = useState(false);
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+
+  useEffect(() => {
+    setImgFailed(false);
+  }, [avatarUrl]);
 
   if (avatarUrl && !imgFailed) {
     return (

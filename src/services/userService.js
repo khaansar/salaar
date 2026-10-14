@@ -150,7 +150,7 @@ export const userService = {
       return await apiClient.delete('/auth-api/users/me/avatar');
     } catch (err) {
       if (err?.status === 404 || err?.status === 405) {
-        return await apiClient.put('/auth-api/users/me', { removeAvatar: true });
+        return await apiClient.put('/auth-api/users/me', { removeAvatar: true, avatarUrl: '' });
       }
       throw err;
     }
