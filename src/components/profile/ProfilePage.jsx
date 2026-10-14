@@ -326,20 +326,25 @@ export default function ProfilePage() {
           <div className="text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{fullName}</h1>
-              <Pencil size={14} className="text-indigo-500 cursor-pointer" />
+              <Link href="/settings" title="Edit Profile" aria-label="Edit Profile">
+                <Pencil size={14} className="text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer" />
+              </Link>
             </div>
-            <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Aspirant for SSC CGL 2025</p>
+            <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Aspirant for {user?.targetExam || 'SSC CGL 2025'}</p>
             <p className="text-slate-500 text-sm mt-1">&quot;Consistent practice today, success tomorrow.&quot;</p>
             
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 mt-4 text-xs font-medium text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-1.5"><MapPin size={14}/> {location}</div>
               <div className="flex items-center gap-1.5"><Calendar size={14}/> Member since {joinedDate}</div>
-              <div className="flex items-center gap-1.5 text-rose-500 dark:text-rose-400"><Target size={14}/> Target: SSC CGL 2025</div>
+              <div className="flex items-center gap-1.5 text-rose-500 dark:text-rose-400"><Target size={14}/> Target: {user?.targetExam || 'SSC CGL 2025'}</div>
             </div>
             
-            <button className="mt-4 px-5 py-1.5 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+            <Link
+              href="/settings"
+              className="mt-4 inline-flex items-center px-5 py-1.5 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+            >
               Edit Profile
-            </button>
+            </Link>
           </div>
         </div>
         
@@ -798,7 +803,7 @@ export default function ProfilePage() {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
+          <Link href="/settings" className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
               <User size={20} className="text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -807,9 +812,9 @@ export default function ProfilePage() {
             <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
               Manage <ArrowRight size={12} />
             </div>
-          </div>
+          </Link>
           
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
+          <Link href="/settings" className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
             <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center mb-4 group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20 transition-colors">
               <Target size={20} className="text-rose-600" />
             </div>
@@ -818,9 +823,9 @@ export default function ProfilePage() {
             <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
               Manage <ArrowRight size={12} />
             </div>
-          </div>
+          </Link>
           
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
+          <Link href="/settings" className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20 transition-colors">
               <Bell size={20} className="text-blue-600 fill-blue-600" />
             </div>
@@ -829,9 +834,9 @@ export default function ProfilePage() {
             <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
               Manage <ArrowRight size={12} />
             </div>
-          </div>
+          </Link>
           
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
+          <Link href="/history" className="bg-white dark:bg-slate-900 p-5 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-colors cursor-pointer flex flex-col group">
             <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-4 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 transition-colors">
               <CreditCard size={20} className="text-orange-600" />
             </div>
@@ -840,7 +845,7 @@ export default function ProfilePage() {
             <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
               Manage <ArrowRight size={12} />
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 

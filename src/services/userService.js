@@ -1,5 +1,5 @@
 
-import { apiClientRaw } from '@/lib/apiClient';
+import apiClient, { apiClientRaw } from '@/lib/apiClient';
 
 const readPagination = (response) => {
   const candidates = [
@@ -106,3 +106,44 @@ export const usersApi = {
     return normalizeUserPage(response);
   },
 };
+
+export const userService = {
+  updateProfile: async (payload) => {
+    try {
+      return await apiClient.put('/auth-api/users/me', payload);
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return await apiClient.patch('/auth-api/users/me', payload);
+      }
+      throw err;
+    }
+  },
+
+  changePassword: async ({ currentPassword, newPassword }) => {
+    try {
+      return await apiClient.post('/auth-api/users/me/change-password', {
+        currentPassword,
+        newPassword,
+      });
+    } catch (err) {
+      if (err?.status === 404) {
+        try {
+          return await apiClient.post('/auth-api/change-password', {
+            currentPassword,
+            newPassword,
+          });
+        } catch (subErr) {
+          if (subErr?.status === 404) {
+            return await apiClient.put('/auth-api/users/me/password', {
+              currentPassword,
+              newPassword,
+            });
+          }
+          throw subErr;
+        }
+      }
+      throw err;
+    }
+  },
+};
+

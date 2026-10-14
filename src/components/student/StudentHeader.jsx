@@ -143,7 +143,7 @@ export default function StudentHeader({ onMenuClick }) {
                   </Link>
                   
                   <Link
-                    href="/profile"
+                    href="/settings"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
