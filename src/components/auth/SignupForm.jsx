@@ -228,13 +228,13 @@ export function SignupForm() {
           </div>
 
           {/* OAuth */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <div className="mb-5">
 
             {/* Google */}
             <button
               type="button"
               onClick={() => handleOAuthSignup('google')}
-              className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-800/80 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex justify-center items-center gap-2 h-11 w-full px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-800/80 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               <svg
                 className="w-4 h-4"
@@ -263,26 +263,6 @@ export function SignupForm() {
               </svg>
 
               Continue with Google
-            </button>
-
-            {/* Microsoft */}
-            <button
-              type="button"
-              onClick={() => handleOAuthSignup('microsoft')}
-              className="flex justify-center items-center gap-2 h-11 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-800/80 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 21 21"
-                aria-hidden="true"
-              >
-                <path fill="#f25022" d="M0 0h10v10H0z" />
-                <path fill="#7fba00" d="M11 0h10v10H11z" />
-                <path fill="#00a4ef" d="M0 11h10v10H0z" />
-                <path fill="#ffb900" d="M11 11h10v10H11z" />
-              </svg>
-
-              Continue with Microsoft
             </button>
 
           </div>
