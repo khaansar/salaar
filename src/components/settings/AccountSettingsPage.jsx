@@ -143,7 +143,7 @@ export default function AccountSettingsPage() {
     setAvatarUploading(true);
 
     try {
-      await userService.updateProfile({ avatarUrl: null });
+      await userService.removeAvatar();
       await dispatch(fetchCurrentUser());
       toast.success('Profile photo removed.');
     } catch (err) {

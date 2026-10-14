@@ -139,8 +139,18 @@ export const userService = {
               newPassword,
             });
           }
-          throw subErr;
         }
+      }
+      throw err;
+    }
+  },
+
+  removeAvatar: async () => {
+    try {
+      return await apiClient.delete('/auth-api/users/me/avatar');
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return await apiClient.put('/auth-api/users/me', { removeAvatar: true });
       }
       throw err;
     }
