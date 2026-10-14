@@ -123,7 +123,7 @@ export default function StudentShell({
                   <Link href="/tests" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
                     Explore Tests
                   </Link>
-                  <Link href="/history" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Link href="/my-learning" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
                     My Learning
                   </Link>
                 </div>
