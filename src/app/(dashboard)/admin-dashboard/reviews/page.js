@@ -48,11 +48,6 @@ const TARGET_CONFIG = {
     icon: Layers,
     badge: 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300',
   },
-  TEST: {
-    label: 'Mock Test',
-    icon: FileText,
-    badge: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300',
-  },
   PLATFORM: {
     label: 'Platform',
     icon: Globe,
@@ -180,7 +175,7 @@ function StatCard({ label, value, description, icon: Icon, tone }) {
 
 export default function ReviewModerationPage() {
   const toast = useToast();
-  const [status, setStatus] = useState('PENDING');
+  const [status, setStatus] = useState('');
   const [targetType, setTargetType] = useState('');
   const [rating, setRating] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -420,7 +415,6 @@ export default function ReviewModerationPage() {
             >
               <option value="">All types</option>
               <option value="SERIES">Test series</option>
-              <option value="TEST">Mock test</option>
               <option value="PLATFORM">Platform</option>
             </select>
           </label>
@@ -522,7 +516,7 @@ export default function ReviewModerationPage() {
                         </span>
                         <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                           <User size={12} className="shrink-0" />
-                          <CopyableId id={review.userId} label="User ID" />
+                          <CopyableId id={review.userName} label="User ID" />
                         </div>
                       </div>
                       <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
@@ -541,7 +535,7 @@ export default function ReviewModerationPage() {
                         <TargetBadge type={review.targetType} />
                       </div>
                       <div className="mt-1.5">
-                        <CopyableId id={review.targetId} label="Target ID" />
+                        <CopyableId id={review.seriesName} label="Target ID" />
                       </div>
                     </td>
 
