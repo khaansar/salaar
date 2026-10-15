@@ -7,8 +7,12 @@ import { siteConfig } from '../../config/site';
 import HomeFaq from '../../features/home/HomeFaq';
 
 export const metadata = {
-  title: siteConfig.formatTitle('Categories'),
-  description: 'Browse mock tests by exam category.',
+  title: siteConfig.formatTitle('Exam Categories'),
+  description:
+    'Browse exam categories and discover mock tests and test series for your target exam.',
+  alternates: {
+    canonical: '/categories',
+  },
 };
 
 // Needs the API at request time, so don't try to prerender it during `next build`.

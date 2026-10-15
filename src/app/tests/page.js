@@ -6,6 +6,11 @@ import HomeFaq from '../../features/home/HomeFaq';
 
 export const metadata = {
   title: siteConfig.formatTitle('Mock Tests'),
+  description:
+    'Explore mock tests and practice questions to prepare for competitive exams.',
+  alternates: {
+    canonical: '/tests',
+  },
 };
 
 export const dynamic = 'force-dynamic';

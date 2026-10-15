@@ -8,7 +8,11 @@ import { siteConfig } from '../../config/site';
 
 export const metadata = {
   title: siteConfig.formatTitle('Test Series'),
-  description: 'Structured mock test series for your exam.',
+  description:
+    'Explore exam test series and practice structured mock tests for your target exam.',
+  alternates: {
+    canonical: '/test-series',
+  },
 };
 
 // Needs the API at request time, so don't try to prerender it during `next build`.

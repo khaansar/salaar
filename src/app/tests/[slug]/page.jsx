@@ -20,7 +20,43 @@ async function loadTest(slug) {
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const test = await loadTest(slug).catch(() => null);
-  return { title: siteConfig.formatTitle(test?.title || 'Mock Test') };
+
+  if (!test) {
+    return {
+      title: siteConfig.formatTitle('Mock Test'),
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = test.title || 'Mock Test';
+  const description =
+    test.description ||
+    `Practice ${title} and prepare with exam-style questions.`;
+
+  return {
+    title: siteConfig.formatTitle(title),
+    description,
+    alternates: {
+      canonical: `/tests/${encodeURIComponent(slug)}`,
+    },
+    openGraph: {
+      type: 'website',
+      title,
+      description,
+      ...(siteConfig.url
+        ? {
+            url: new URL(
+              `/tests/${encodeURIComponent(slug)}`,
+              `${siteConfig.url}/`
+            ).toString(),
+          }
+        : {}),
+      siteName: siteConfig.name || 'Salaar',
+    },
+  };
 }
 
 export default async function MockTestPage({ params }) {
