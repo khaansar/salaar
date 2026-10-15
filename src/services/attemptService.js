@@ -117,10 +117,33 @@ export const attemptService = {
     const questions = {};
     const responses = {};
 
+    const questionOrder = attemptRes.questionOrder;
+
     structureRes.sections?.forEach((section) => {
+      let rawQuestions = section.questions || [];
+
+      if (
+        questionOrder &&
+        Array.isArray(questionOrder[section.sectionId]) &&
+        questionOrder[section.sectionId].length > 0
+      ) {
+        const order = questionOrder[section.sectionId];
+        const qMap = new Map(rawQuestions.map((q) => [q.questionId, q]));
+        const ordered = [];
+        order.forEach((id) => {
+          const q = qMap.get(id);
+          if (q) {
+            ordered.push(q);
+            qMap.delete(id);
+          }
+        });
+        qMap.forEach((q) => ordered.push(q));
+        rawQuestions = ordered;
+      }
+
       const questionIds = [];
 
-      section.questions?.forEach((question) => {
+      rawQuestions.forEach((question) => {
         const questionId = question.questionId;
 
         if (!questionId) {
