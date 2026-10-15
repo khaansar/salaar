@@ -77,51 +77,77 @@ function AccessBadge({ isFree }) {
 /* ------------------------------------------------------------------ */
 
 export async function generateMetadata({ params }) {
-    const { slug } = await params;
-    const baseUrl = siteConfig.url;
+  const { slug } = await params;
 
-    try {
-        const series = await testService.getSeriesBySlug(slug);
+  try {
+    const series = await testService.getSeriesBySlug(slug);
 
-        if (!series) {
-        return {
-            title: siteConfig.formatTitle('Test Series'),
-            robots: { index: false, follow: false },
-        };
-        }
-
-        const title = series.title || 'Test Series';
-        const description =
-        series.description ||
-        `Explore ${title}, practice mock tests, and review your performance.`;
-
-        const canonicalUrl = baseUrl
-        ? new URL(`/test-series/${encodeURIComponent(slug)}`, `${baseUrl}/`).toString()
-        : undefined;
-
-        return {
-        title: siteConfig.formatTitle(title),
-        description,
-        ...(canonicalUrl && {
-            alternates: { canonical: canonicalUrl },
-            openGraph: {
-            type: 'website',
-            title,
-            description,
-            url: canonicalUrl,
-            siteName: siteConfig.name,
-            },
-        }),
-        };
-    } catch (error) {
-        console.error(`Failed to generate metadata for series "${slug}":`, error);
-
-        return {
+    if (!series) {
+      return {
         title: siteConfig.formatTitle('Test Series'),
-        robots: { index: false, follow: true },
-        };
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
     }
+
+    const title = series.title || 'Test Series';
+    const description =
+      series.description ||
+      `Explore ${title}, practice mock tests, and review your performance.`;
+
+    const baseUrl = siteConfig.url;
+    const canonicalUrl = baseUrl
+      ? new URL(
+          `/test-series/${encodeURIComponent(slug)}`,
+          `${baseUrl}/`
+        ).toString()
+      : undefined;
+
+    return {
+      title: siteConfig.formatTitle(title),
+      description,
+      ...(canonicalUrl
+        ? {
+            alternates: {
+              canonical: canonicalUrl,
+            },
+            openGraph: {
+              type: 'website',
+              title,
+              description,
+              url: canonicalUrl,
+              siteName: siteConfig.name,
+            },
+          }
+        : {}),
+    };
+  } catch (error) {
+    if (error?.status === 404) {
+      return {
+        title: siteConfig.formatTitle('Test Series'),
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
     }
+
+    console.error(
+      `Failed to generate metadata for series "${slug}":`,
+      error
+    );
+
+    return {
+      title: siteConfig.formatTitle('Test Series'),
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
