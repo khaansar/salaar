@@ -57,8 +57,8 @@ export default function MockTestsPage({ series = [] }) {
   });
 
   const tests = toList(mockTestsResponse?.data ?? mockTestsResponse);
-  const meta = mockTestsResponse?.meta ?? {};
-  const pages = Math.max(1, Number(meta.totalPages) || 1);
+  const pagination = mockTestsResponse?.meta?.pagination ?? {};
+  const pages = Math.max (1, Number(pagination.total_pages) || 1);
 
   // Debounce typing so the API is not called on every keystroke
   useEffect(() => {
