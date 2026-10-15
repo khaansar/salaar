@@ -51,6 +51,8 @@ export function proxy(request) {
     '/categories',
     '/test-series',
     '/tests',
+    '/profile',
+    '/settings',
   ];
 
   const isStudentRoute = studentRoutes.some((route) =>

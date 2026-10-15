@@ -33,7 +33,7 @@ export default async function RootLayout({ children }) {
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <StoreProvider>
+        <StoreProvider hasSession={hasSession}>
           <AuthProvider hasSession={hasSession}>
             <ToastProvider>{children}</ToastProvider>
           </AuthProvider>

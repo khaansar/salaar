@@ -144,7 +144,7 @@ export default function Palette() {
       {/* User Info */}
       <div className="p-4 border-b border-exam-border bg-exam-panel flex items-center gap-3">
         <div className="w-12 h-12 bg-slate-200 rounded text-slate-500 flex items-center justify-center overflow-hidden shrink-0">
-          <Avatar name={displayName} avatarUrl={user?.avatarUrl ||  "https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png"} size="lg" className="!h-12 !w-12 !rounded-md !border-0" />
+          <Avatar name={displayName} avatarUrl={user?.avatarUrl} size="lg" className="!h-12 !w-12 !rounded-md !border-0" />
         </div>
 
         <div>
