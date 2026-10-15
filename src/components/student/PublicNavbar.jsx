@@ -13,7 +13,6 @@ import { logoutUser } from '../../store/slices/authSlice';
 const links = [
   { name: 'Home', href: '/' },
   { name: 'Explore Tests', href: '/tests' },
-  { name: 'My Learning', href: '/history' },
 ];
 
 import BrandLogo from '../common/BrandLogo';
@@ -62,7 +61,7 @@ export default function PublicNavbar({ minimal = false }) {
           </div>
 
           {!minimal && (
-            <nav className="hidden h-16 flex-1 items-center justify-center gap-6 lg:flex">
+            <nav className="hidden h-16 flex-1 items-center justify-start gap-6 lg:flex">
               {links.map((link) => (
                 <Link
                   key={link.href}

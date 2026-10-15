@@ -1,79 +1,56 @@
-import Link from 'next/link';
-import {
-  ArrowRight, ChevronLeft, ChevronRight, FileText, Clock, Languages,
-  HelpCircle, Trophy,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, HelpCircle } from 'lucide-react';
 import StartTestButton from '../catalog/StartTestButton';
-import { TYPES } from './mock/mockTestsMocks';
 
-const TYPE_TONE = {
-  full: 'bg-emerald-50 text-emerald-600',
-  topic: 'bg-brand-50 text-brand-600',
-  sectional: 'bg-amber-50 text-amber-500',
-  pyp: 'bg-rose-50 text-rose-500',
-};
+function AccessBadge({ isFree }) {
+  return (
+    <span className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${isFree ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30' : 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30'}`}>
+      {isFree ? 'Free' : 'Paid'}
+    </span>
+  );
+}
 
 function TestCard({ test }) {
   const title = test.title || 'Untitled Test';
   const seriesName = test.type || test.categoryName || 'Practice Test';
   const minutes = test.durationMinutes || 0;
-  const questionCount = test.totalMarks ? Math.floor(test.totalMarks) : 0;
-  const type = TYPES[0];
+  // Falls back to totalMarks as before when the API has no explicit question count
+  const questionCount = test.totalQuestions ?? test.questionCount ?? (test.totalMarks ? Math.floor(test.totalMarks) : 0);
+  const isFree = test.free === true;
   const hasAttempted = test.hasAttempted === true ||
     Number(test.attemptCount ?? test.totalAttempts ?? 0) > 0 || undefined;
 
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-      <div className="flex items-start gap-3">
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${TYPE_TONE[type.value]}`}>
-          <FileText size={20} />
-        </span>
-        <div className="min-w-0">
-          <h3 className="text-xs font-bold leading-4 text-slate-900 dark:text-white">{seriesName}</h3>
-          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{title}</p>
-          <span className="mt-1.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-slate-800">{type.short}</span>
-        </div>
+    <article className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 truncate text-xs font-medium text-slate-500 dark:text-slate-400">{seriesName}</p>
+        <AccessBadge isFree={isFree} />
       </div>
 
-      <ul className="mt-4 space-y-1.5 text-[11px] text-slate-500">
-        <li className="flex items-center gap-2"><HelpCircle size={13} />{questionCount} Questions</li>
-        <li className="flex items-center gap-2"><Clock size={13} />{minutes} Minutes</li>
-        <li className="flex items-center gap-2"><Languages size={13} />English + Hindi</li>
+      <h3 className="mt-2 line-clamp-2 min-h-10 text-[15px] font-semibold leading-5 text-slate-900 dark:text-white">{title}</h3>
+
+      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+        <li className="flex items-center gap-1.5"><HelpCircle size={14} className="text-slate-400" />{questionCount} questions</li>
+        <li className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" />{minutes} min</li>
       </ul>
 
-      <p className="mt-3 text-xs font-bold">
-        {test.isFree === true
-          ? <span className="text-emerald-600">Free</span>
-          : <span className="text-amber-500">Paid</span>}
-      </p>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-auto pt-5">
         <StartTestButton
           testId={test.id || test.testId}
           testSlug={test.slug}
           seriesId={test.seriesId || test.parentSeriesId}
-          isFree={test.isFree === true}
+          isFree={isFree}
           variant="outline"
           hasAttempted={hasAttempted}
         />
-        {test.slug && (
-          <Link
-            href={`/leaderboard/${encodeURIComponent(test.slug)}`}
-            className="inline-flex min-w-0 items-center justify-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-2 text-xs font-semibold text-indigo-700 transition hover:border-indigo-400 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
-          >
-            <Trophy size={13} />Leaderboard
-          </Link>
-        )}
       </div>
-    </div>
+    </article>
   );
 }
 
 export default function TestExplorer({
   tests = [],
   isFetching,
-  type,
-  onType,
+  hasError = false,
   page,
   pages,
   onPage,
@@ -82,57 +59,65 @@ export default function TestExplorer({
   const nums = Array.from({ length: pages || 1 }, (_, index) => index + 1)
     .filter((number) => Math.abs(number - page) <= 2 || number === 1 || number === pages);
 
-  return (
-    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-          <FileText size={20} className="text-brand-600" />Explore Tests
-        </h2>
-        <button type="button" onClick={() => onType('all')} className="flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
-          View All Tests<ArrowRight size={14} />
-        </button>
-      </div>
+  const pageBtn = 'flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500';
 
-      <div className="mb-5 flex gap-6 overflow-x-auto border-b border-slate-100 dark:border-slate-800">
-        {TYPES.map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            onClick={() => onType(item.value)}
-            className={`-mb-px whitespace-nowrap border-b-2 pb-3 text-xs font-semibold ${type === item.value ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-          >
-            {item.label}
-          </button>
-        ))}
+  return (
+    <section>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Explore tests</h2>
+        <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Use the filters to find tests for your exam.</p>
       </div>
 
       {isFetching ? (
-        <div className="py-12 text-center text-sm font-semibold text-slate-500">Loading tests...</div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+          {[0, 1, 2, 3, 4, 5].map((item) => (
+            <div key={item} className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+              <div className="h-3 w-1/3 rounded bg-slate-100 dark:bg-slate-800" />
+              <div className="mt-3 h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="mt-2 h-4 w-1/2 rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="mt-5 h-3 w-1/2 rounded bg-slate-100 dark:bg-slate-800" />
+              <div className="mt-6 h-9 rounded-lg bg-slate-100 dark:bg-slate-800" />
+            </div>
+          ))}
+        </div>
+      ) : hasError ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">Unable to load tests</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Something went wrong. Please try again.</p>
+          <button type="button" onClick={onReset} className="mt-3 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400">Reset filters</button>
+        </div>
       ) : tests.length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="text-sm font-semibold text-slate-800 dark:text-white">No tests match your filters</p>
-          <button type="button" onClick={onReset} className="mt-2 text-xs font-semibold text-brand-600">Clear all filters</button>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">No tests match your filters</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Try a different search or category.</p>
+          <button type="button" onClick={onReset} className="mt-3 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400">Clear all filters</button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tests.map((test) => <TestCard key={test.id || test.testId} test={test} />)}
         </div>
       )}
 
-      {pages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <button type="button" aria-label="Previous page" disabled={page === 1} onClick={() => onPage(page - 1)} className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 disabled:opacity-40">
-            <ChevronLeft size={15} />
+      {pages > 1 && !isFetching && (
+        <nav aria-label="Pagination" className="mt-6 flex items-center justify-center gap-1.5">
+          <button type="button" aria-label="Previous page" disabled={page === 1} onClick={() => onPage(page - 1)} className={`${pageBtn} border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800`}>
+            <ChevronLeft size={16} />
           </button>
           {nums.map((number) => (
-            <button key={number} type="button" onClick={() => onPage(number)} className={`h-8 w-8 rounded-md text-xs font-semibold ${number === page ? 'bg-brand-600 text-white' : 'border border-slate-200 text-slate-600 hover:border-brand-600'}`}>
+            <button
+              key={number}
+              type="button"
+              aria-current={number === page ? 'page' : undefined}
+              onClick={() => onPage(number)}
+              className={`${pageBtn} ${number === page ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+            >
               {number}
             </button>
           ))}
-          <button type="button" aria-label="Next page" disabled={page === pages} onClick={() => onPage(page + 1)} className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 disabled:opacity-40">
-            <ChevronRight size={15} />
+          <button type="button" aria-label="Next page" disabled={page === pages} onClick={() => onPage(page + 1)} className={`${pageBtn} border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800`}>
+            <ChevronRight size={16} />
           </button>
-        </div>
+        </nav>
       )}
     </section>
   );
