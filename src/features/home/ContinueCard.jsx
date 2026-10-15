@@ -19,44 +19,58 @@ export default function ContinueCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadContinueAttempt() {
-      if (!isAuthenticated) {
+    if (!isAuthenticated) {
         setAttempt(null);
         setLoading(false);
         return;
-      }
+    }
 
-      setLoading(true);
+    let cancelled = false;
 
-      try {
+    async function loadContinueAttempt() {
+        setLoading(true);
+
+        try {
         const data = await catalogService.getContinueAttempt();
 
         if (!cancelled) {
-          setAttempt(data || null);
+            setAttempt(data || null);
         }
-      } catch (error) {
+        } catch (error) {
         if (!cancelled) {
-          console.error(
+            console.error(
             'Failed to load in-progress attempt',
             error
-          );
-          setAttempt(null);
+            );
+            setAttempt(null);
         }
-      } finally {
+        } finally {
         if (!cancelled) {
-          setLoading(false);
+            setLoading(false);
         }
-      }
+        }
     }
 
-    loadContinueAttempt();
+    const refreshWhenVisible = () => {
+        if (document.visibilityState === 'visible') {
+        void loadContinueAttempt();
+        }
+    };
+
+    void loadContinueAttempt();
+
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
 
     return () => {
-      cancelled = true;
+        cancelled = true;
+        window.removeEventListener('focus', refreshWhenVisible);
+        document.removeEventListener(
+        'visibilitychange',
+        refreshWhenVisible
+        );
     };
-  }, [isAuthenticated]);
+    }, [isAuthenticated]);
 
   if (!isAuthenticated || loading || !attempt) {
     return null;

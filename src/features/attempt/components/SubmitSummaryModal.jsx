@@ -34,35 +34,52 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
+
     setIsSubmitting(true);
+
     try {
-      if (flushAutosave) {
-        try {
-          await flushAutosave();
-        } catch (autosaveErr) {
-          console.warn('Ignoring autosave error during final submit:', autosaveErr);
+        // Do not submit while answers remain unsaved.
+        if (flushAutosave) {
+        await flushAutosave();
         }
-      }
-      await attemptService.submitAttempt(attemptId);
-      router.replace(getSafeAttemptReturnPath());
+
+        const result = await attemptService.submitAttempt(attemptId);
+
+        // Only leave after the submit API succeeds.
+        if (!result) {
+        throw new Error('Submission returned an empty response.');
+        }
+
+        router.replace(getSafeAttemptReturnPath());
     } catch (err) {
-      console.error(err);
-      setIsSubmitting(false);
-      if (err.message === 'ATTEMPT_EXPIRED') {
-        alert('Your attempt has expired and cannot be submitted.');
-      } else if (err.message === 'CONFLICT') {
-        alert('There was a conflict saving your answers. Please try again.');
-      } else {
-        alert('Failed to submit. Please check your connection and try again.');
-      }
+        console.error('Failed to submit attempt:', err);
+
+        setIsSubmitting(false);
+
+        if (
+        err.message === 'ATTEMPT_EXPIRED' ||
+        err.response?.status === 410
+        ) {
+        alert('Your attempt has expired. Please refresh to check its final status.');
+        } else if (
+        err.message === 'CONFLICT' ||
+        err.status === 409 ||
+        err.response?.status === 409
+        ) {
+        alert('Some answers could not be saved. Please retry before submitting.');
+        } else {
+        alert(
+            'Submission failed. Your answers have not been confirmed as submitted. Please retry.'
+        );
+        }
     }
-  };
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <div role="dialog" aria-modal="true" className="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Submit Exam Summary</h2>
+          <h2 className="text-xl font-bold text-slate-800">Submit Exam</h2>
           <button type="button" onClick={() => dispatch(setSubmitModalOpen(false))} disabled={isSubmitting} className="text-slate-400 hover:text-slate-600 focus:outline-none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div className="p-6 overflow-y-auto">
