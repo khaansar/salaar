@@ -45,12 +45,7 @@ export function proxy(request) {
   const studentRoutes = [
     '/attempts',
     '/attempt',
-    '/bookmarks',
-    '/performance',
-    '/study-plan',
     '/categories',
-    '/test-series',
-    '/tests',
     '/profile',
     '/settings',
   ];
