@@ -9,16 +9,34 @@ import apiClient from '../lib/apiClient';
  * and normalizes API errors. Do not add another response-unwrapping layer
  * inside individual endpoint definitions.
  */
-const axiosBaseQuery =
-  () =>
-  async ({ url, method = 'GET', data, params, headers }) => {
-    try {
-      const result = await apiClient({ url, method, data, params, headers });
-      return { data: result };
-    } catch (error) {
-      return { error };
-    }
-  };
+const axiosBaseQuery = () => async ({
+  url,
+  method = 'GET',
+  data,
+  params,
+  headers,
+  preserveResponseEnvelope = false,
+}) => {
+  try {
+    const result = await apiClient({
+      url,
+      method,
+      data,
+      params,
+      headers,
+      preserveResponseEnvelope,
+    });
+
+    return { data: result };
+  } catch (error) {
+    return {
+      error: {
+        status: error.response?.status,
+        data: error.response?.data || error.message,
+      },
+    };
+  }
+};
 
 export const apiSlice = createApi({
   reducerPath: 'api',

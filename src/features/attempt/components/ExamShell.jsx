@@ -47,26 +47,48 @@ export default function ExamShell({ attemptId }) {
   const [submitAttempt] = useSubmitAttemptMutation();
 
   useEffect(() => {
-    if (isExpired && !hasAutoSubmitted) {
-      setHasAutoSubmitted(true);
-      (async () => {
+    if (!isExpired || hasAutoSubmitted) return;
+
+    setHasAutoSubmitted(true);
+
+    let cancelled = false;
+
+    const autoSubmit = async () => {
         try {
-          if (flush) {
+        if (flush) {
             try {
-              await flush();
-            } catch (autosaveErr) {
-              console.warn('Ignoring autosave error during auto-submit:', autosaveErr);
+            await flush();
+            } catch (autosaveError) {
+            console.error(
+                'Some frontend autosaves failed before expiry submission:',
+                autosaveError
+            );
             }
-          }
-          await submitAttempt(attemptId).unwrap();
-        } catch (err) {
-          console.error('Auto-submit failed; returning to the previous page:', err);
-        } finally {
-          window.location.replace(getSafeAttemptReturnPath());
         }
-      })();
-    }
-  }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt]);
+
+        await submitAttempt(attemptId).unwrap();
+
+        if (!cancelled) {
+            window.location.replace(getSafeAttemptReturnPath());
+        }
+        } catch (error) {
+        console.error('Automatic submission failed:', error);
+
+        if (!cancelled) {
+            setHasAutoSubmitted(false);
+            alert(
+            'Automatic submission could not be confirmed. Please keep this page open and retry.'
+            );
+        }
+        }
+    };
+
+    autoSubmit();
+
+    return () => {
+        cancelled = true;
+    };
+    }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt]);
 
   const [isFullscreen, setIsFullscreen] = useState(true);
 

@@ -20,6 +20,9 @@ export const metadata = {
   title: siteConfig.formatTitle(siteConfig.tagline),
   description:
     'Full-length mock tests, previous year papers, AI-powered insights and personalized practice to help you achieve your dream.',
+  alternates: {
+    canonical: '/',
+  },
 };
 
 // FAQ content is managed in the admin dashboard, so load it at request time.

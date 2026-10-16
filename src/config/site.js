@@ -3,6 +3,7 @@ export const siteConfig = {
   shortName: process.env.NEXT_PUBLIC_APP_NAME,
   tagline: process.env.NEXT_PUBLIC_APP_TAGLINE,
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+  url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, ''),
   logo: '/brand/icon.png',
   fullLogo: '/brand/icon.png',
   formatTitle: (pageTitle) => {

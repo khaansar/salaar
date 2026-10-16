@@ -12,6 +12,7 @@ export const catalogApi = apiSlice.injectEndpoints({
           page,
           limit,
         },
+        preserveResponseEnvelope: true,
       }),
       providesTags: ['CatalogMockTests'],
     }),

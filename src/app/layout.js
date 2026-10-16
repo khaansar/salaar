@@ -14,14 +14,27 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+
+
 export const metadata = {
+  metadataBase: siteConfig.url ? new URL(siteConfig.url) : undefined,
   title: siteConfig.name,
-  description: siteConfig.description,
+  description:
+    siteConfig.description,
   icons: {
-    icon: "/brand/icon.png",
-    apple: "/brand/icon.png",
+    icon: '/brand/icon.png',
+    apple: '/brand/icon.png',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description:
+      siteConfig.description,
+    ...(siteConfig.url ? { url: siteConfig.url } : {}),
   },
 };
+
 
 export default async function RootLayout({ children }) {
   const cookieStore = await cookies();
