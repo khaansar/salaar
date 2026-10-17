@@ -3,18 +3,18 @@ import apiClient from '@/lib/apiClient';
 const BASE = '/community-api';
 
 export const faqApi = {
-  listAll: () => apiClient.get(`${BASE}/admins/faq`),
+  listAll: () => apiClient.get(`${BASE}/admin/faq`),
   list: (targetId) =>
     apiClient.get(targetId == null
       ? `${BASE}/public/faq`
       : `${BASE}/public/faq/${encodeURIComponent(targetId)}`),
-  create: (payload) => apiClient.post(`${BASE}/admins/faq`, payload),
+  create: (payload) => apiClient.post(`${BASE}/admin/faq`, payload),
   update: (targetId, faqId, payload) =>
     apiClient.put(targetId == null
-      ? `${BASE}/admins/faq/${faqId}`
-      : `${BASE}/admins/faq/${encodeURIComponent(targetId)}/${faqId}`, payload),
+      ? `${BASE}/admin/faq/${faqId}`
+      : `${BASE}/admin/faq/${encodeURIComponent(targetId)}/${faqId}`, payload),
   remove: (targetId, faqId) =>
     apiClient.delete(targetId == null
-      ? `${BASE}/admins/faq/${faqId}`
-      : `${BASE}/admins/faq/${encodeURIComponent(targetId)}/${faqId}`),
+      ? `${BASE}/admin/faq/${faqId}`
+      : `${BASE}/admin/faq/${encodeURIComponent(targetId)}/${faqId}`),
 };
