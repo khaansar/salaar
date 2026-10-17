@@ -3,7 +3,6 @@ import StudentShell from '../components/student/StudentShell';
 import HeroSection from '../features/home/HeroSection';
 import ValueStrip from '../features/home/ValueStrip';
 import CategoryGrid from '../features/home/CategoryGrid';
-import PremiumCalendar from '../features/home/PremiumCalendar';
 import PopularSeries from '../features/home/PopularSeries';
 import StartPracticing from '../features/home/StartPracticing';
 import ContinueCard from '../features/home/ContinueCard';
@@ -16,6 +15,7 @@ import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
 
 import { siteConfig } from '../config/site';
+import StudentBanner from '@/features/home/StudentBanner';
 
 export const metadata = {
   title: siteConfig.formatTitle(siteConfig.tagline),
@@ -70,18 +70,18 @@ export default async function HomePage() {
   return (
     <StudentShell>
       <div className="pb-10">
+        <StudentBanner
+        activeDays={['2026-10-13', '2026-10-15']}
+        stats={[{ label: 'Tests taken', value: 12 }, { label: 'Avg. score', value: '68%' }]}
+        goal={{ name: 'SSC CGL', date: '2026-12-14' }}
+        />
         <GuestOnly>
           <HeroSection />
         </GuestOnly>
         <ContinueCard />
 
         <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-6">
-          <div className="flex-1 min-w-0">
             <CategoryGrid categories={categories} />
-          </div>
-          <div className="shrink-0 flex flex-col w-full max-w-[310px] mx-auto md:w-auto md:max-w-none">
-            <PremiumCalendar />
-          </div>
         </div>
 
         <ValueStrip />
