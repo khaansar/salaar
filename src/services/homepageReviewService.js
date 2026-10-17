@@ -41,6 +41,7 @@ export function normalizeReviewForHomepage(review) {
     text: review.comment || review.text || 'Great platform and quality practice tests.',
     comment: review.comment || review.text || 'Great platform and quality practice tests.',
     rating: Number(review.rating) || 5,
+    status: review.status || 'APPROVED',
     targetType: review.targetType || 'SERIES',
     targetId: review.targetId || '',
     createdAt: review.createdAt || new Date().toISOString(),
@@ -59,7 +60,9 @@ export const homepageReviewService = {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          return parsed.map(normalizeReviewForHomepage).filter(Boolean);
+          return parsed
+            .map(normalizeReviewForHomepage)
+            .filter((r) => r && r.status === 'APPROVED');
         }
       }
 
@@ -68,7 +71,9 @@ export const homepageReviewService = {
       if (cookieVal) {
         const parsed = JSON.parse(cookieVal);
         if (Array.isArray(parsed)) {
-          return parsed.map(normalizeReviewForHomepage).filter(Boolean);
+          return parsed
+            .map(normalizeReviewForHomepage)
+            .filter((r) => r && r.status === 'APPROVED');
         }
       }
     } catch (e) {
@@ -95,6 +100,12 @@ export const homepageReviewService = {
     if (!review) return [];
     const reviewId = String(review.reviewId ?? review.id ?? '');
     if (!reviewId) return [];
+
+    // Guard: Only approved reviews can be added to the homepage
+    if (onHomepage && review.status && review.status !== 'APPROVED') {
+      console.warn(`Review #${reviewId} is not approved and cannot be added to homepage.`);
+      return this.getHomepageReviews();
+    }
 
     const currentList = this.getHomepageReviews();
     let updatedList;

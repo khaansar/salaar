@@ -268,6 +268,11 @@ export default function ReviewModerationPage() {
   }, []);
 
   const handleToggleHomepage = (review, shouldBeOnHome) => {
+    if (shouldBeOnHome && review.status !== 'APPROVED') {
+      toast.error(`Review #${review.reviewId} must be approved before adding to the home page.`);
+      return;
+    }
+
     const updatedList = homepageReviewService.setReviewOnHomepage(review, shouldBeOnHome);
     setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
 
@@ -373,6 +378,10 @@ export default function ReviewModerationPage() {
       setApprovalModalReview(null);
     } catch (requestError) {
       if (error) {
+        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === approvalModalReview.reviewId);
+        if (idx !== -1) {
+          FALLBACK_REVIEWS[idx].status = 'APPROVED';
+        }
         toast.success(`Review #${approvalModalReview.reviewId} has been approved.`);
         if (selectedReview?.reviewId === approvalModalReview.reviewId) {
           setSelectedReview((prev) =>
@@ -405,6 +414,12 @@ export default function ReviewModerationPage() {
         moderationReason: reasonTrimmed || undefined,
       }).unwrap();
 
+      // If this review was featured on the homepage, automatically remove it
+      if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
+        const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
+        setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+      }
+
       toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
 
       if (selectedReview?.reviewId === rejectionModalReview.reviewId) {
@@ -424,6 +439,15 @@ export default function ReviewModerationPage() {
     } catch (requestError) {
       if (error) {
         const reasonTrimmed = rejectionReason.trim();
+        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === rejectionModalReview.reviewId);
+        if (idx !== -1) {
+          FALLBACK_REVIEWS[idx].status = 'REJECTED';
+          FALLBACK_REVIEWS[idx].moderationReason = reasonTrimmed;
+        }
+        if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
+          const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
+          setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+        }
         toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
         if (selectedReview?.reviewId === rejectionModalReview.reviewId) {
           setSelectedReview((prev) =>
@@ -718,26 +742,43 @@ export default function ReviewModerationPage() {
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <select
-                          value={homepageReviewIds.has(String(review.reviewId)) ? 'YES' : 'NO'}
-                          onChange={(e) => handleToggleHomepage(review, e.target.value === 'YES')}
-                          aria-label={`Homepage setting for review #${review.reviewId}`}
-                          className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition cursor-pointer ${
-                            homepageReviewIds.has(String(review.reviewId))
-                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
-                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900'
-                          }`}
-                        >
-                          <option value="NO">Do not show</option>
-                          <option value="YES">Add to home</option>
-                        </select>
-                        {homepageReviewIds.has(String(review.reviewId)) && (
-                          <span
-                            title="Active on home page"
-                            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 shrink-0"
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            disabled={review.status !== 'APPROVED'}
+                            value={homepageReviewIds.has(String(review.reviewId)) ? 'YES' : 'NO'}
+                            onChange={(e) => handleToggleHomepage(review, e.target.value === 'YES')}
+                            aria-label={`Homepage setting for review #${review.reviewId}`}
+                            title={
+                              review.status !== 'APPROVED'
+                                ? 'Only approved reviews can be added to the homepage'
+                                : undefined
+                            }
+                            className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
+                              review.status !== 'APPROVED'
+                                ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
+                                : homepageReviewIds.has(String(review.reviewId))
+                                ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
+                                : 'cursor-pointer border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900'
+                            }`}
                           >
-                            <Home size={11} />
+                            <option value="NO">Do not show</option>
+                            <option value="YES" disabled={review.status !== 'APPROVED'}>
+                              Add to home
+                            </option>
+                          </select>
+                          {homepageReviewIds.has(String(review.reviewId)) && (
+                            <span
+                              title="Active on home page"
+                              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 shrink-0"
+                            >
+                              <Home size={11} />
+                            </span>
+                          )}
+                        </div>
+                        {review.status !== 'APPROVED' && (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                            (Approve first)
                           </span>
                         )}
                       </div>
@@ -873,20 +914,37 @@ export default function ReviewModerationPage() {
                 <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60 col-span-2">
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">Home Page Display</p>
                   <div className="mt-1.5 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-700 dark:text-slate-300">
-                      Feature this review on the platform homepage
-                    </span>
+                    <div>
+                      <span className="text-xs text-slate-700 dark:text-slate-300">
+                        Feature this review on the platform homepage
+                      </span>
+                      {selectedReview.status !== 'APPROVED' && (
+                        <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
+                          Review must be approved before it can be added to the homepage.
+                        </p>
+                      )}
+                    </div>
                     <select
+                      disabled={selectedReview.status !== 'APPROVED'}
                       value={homepageReviewIds.has(String(selectedReview.reviewId)) ? 'YES' : 'NO'}
                       onChange={(e) => handleToggleHomepage(selectedReview, e.target.value === 'YES')}
-                      className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition cursor-pointer ${
-                        homepageReviewIds.has(String(selectedReview.reviewId))
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
-                          : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
+                      title={
+                        selectedReview.status !== 'APPROVED'
+                          ? 'Review must be approved first'
+                          : undefined
+                      }
+                      className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
+                        selectedReview.status !== 'APPROVED'
+                          ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
+                          : homepageReviewIds.has(String(selectedReview.reviewId))
+                          ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
+                          : 'cursor-pointer border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
                       }`}
                     >
                       <option value="NO">Do not show</option>
-                      <option value="YES">Show on home</option>
+                      <option value="YES" disabled={selectedReview.status !== 'APPROVED'}>
+                        Show on home
+                      </option>
                     </select>
                   </div>
                 </div>

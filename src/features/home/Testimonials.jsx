@@ -42,9 +42,13 @@ export default function Testimonials({ testimonials = [] }) {
     return homepageReviewService.subscribeHomepageReviews(sync);
   }, [testimonials]);
 
-  // When admin designates reviews for the homepage, display them in place of the default hardcoded items
-  const displayItems = activeReviews?.length > 0
-    ? activeReviews.map((t, i) => ({
+  // When admin designates reviews for the homepage, display only approved reviews in place of the default hardcoded items
+  const approvedReviews = (activeReviews || []).filter(
+    (t) => !t.status || t.status === 'APPROVED'
+  );
+
+  const displayItems = approvedReviews.length > 0
+    ? approvedReviews.map((t, i) => ({
         name: t.name || t.authorName || t.userName || 'Student',
         exam: t.exam || t.seriesName || (t.targetType === 'PLATFORM' ? `${siteConfig.name} Platform` : `${siteConfig.name} Student`),
         grad: GRADIENTS[i % GRADIENTS.length],
