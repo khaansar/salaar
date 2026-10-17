@@ -1,18 +1,30 @@
+
 'use client';
 
-import { Moon, Sun, LogOut, Menu, Search, UserRound, ChevronDown, ReceiptText, Settings, CircleHelp } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  LogOut,
+  Menu,
+  Search,
+  UserRound,
+  ChevronDown,
+  ReceiptText,
+  Settings,
+  CircleHelp,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
 
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { logoutUser } from '../../store/slices/authSlice';
 
-import { useState, useRef, useEffect } from 'react';
 import BrandLogo from '../common/BrandLogo';
-
 import { Avatar } from '../ui/Avatar';
+import NotificationBell from './NotificationBell';
 
 const links = [
   { name: 'Home', href: '/' },
@@ -31,7 +43,9 @@ export default function StudentHeader({ onMenuClick }) {
   const dropdownRef = useRef(null);
 
   const isActive = (href) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+    href === '/'
+      ? pathname === '/'
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -50,13 +64,15 @@ export default function StudentHeader({ onMenuClick }) {
     router.push('/login');
   };
 
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Student';
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Student';
 
-  const iconBtn = 'flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200';
+  const iconBtn =
+    'flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200';
 
   return (
     <header className="relative z-50 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
-      <div className="flex h-16 items-center justify-between gap-4 lg:gap-8 px-4 lg:px-8">
+      <div className="flex h-16 items-center justify-between gap-4 px-4 lg:gap-8 lg:px-8">
         <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
@@ -87,34 +103,60 @@ export default function StudentHeader({ onMenuClick }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <form action="/tests" className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex">
+          <form
+            action="/tests"
+            className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex"
+          >
             <Search size={15} className="text-slate-400" />
-            <input name="q" placeholder="Search exams, tests, topics..." className="w-44 bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400" />
+            <input
+              name="q"
+              placeholder="Search exams, tests, topics..."
+              className="w-44 bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
+            />
           </form>
 
-          <button type="button" onClick={toggleTheme} className={iconBtn} aria-label="Toggle theme">
+          {/* Live in-app notifications */}
+          <NotificationBell userId={user?.id ?? user?.userId ?? null} />
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={iconBtn}
+            aria-label="Toggle theme"
+          >
             {isDark ? <Sun size={19} /> : <Moon size={19} />}
           </button>
 
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
-              onClick={() => setDropdownOpen((v) => !v)}
+              onClick={() => setDropdownOpen((value) => !value)}
               className="flex items-center gap-1 rounded-full focus:outline-none"
               aria-label="Open profile menu"
               aria-expanded={dropdownOpen}
             >
-              
-                <Avatar name={fullName} avatarUrl={user?.avatarUrl} size="md" className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30" />
+              <Avatar
+                name={fullName}
+                avatarUrl={user?.avatarUrl}
+                size="md"
+                className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30"
+              />
 
-              <ChevronDown size={14} className="hidden text-slate-400 sm:block" />
+              <ChevronDown
+                size={14}
+                className="hidden text-slate-400 sm:block"
+              />
             </button>
 
             {dropdownOpen && (
               <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#0B0F19]">
                 <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{fullName}</p>
-                  <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                    {fullName}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+                    {user?.email}
+                  </p>
                 </div>
 
                 <div className="flex flex-col py-2">
@@ -123,10 +165,17 @@ export default function StudentHeader({ onMenuClick }) {
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <UserRound size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <UserRound
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
+                    />
                     <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">My Profile</p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Personal details and account information</p>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+                        My Profile
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                        Personal details and account information
+                      </p>
                     </div>
                   </Link>
 
@@ -135,22 +184,36 @@ export default function StudentHeader({ onMenuClick }) {
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <ReceiptText size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <ReceiptText
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
+                    />
                     <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Orders & Payments</p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Receipts and payment status, if not already under My Learning</p>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+                        Orders & Payments
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                        Receipts and payment status, if not already under My Learning
+                      </p>
                     </div>
                   </Link>
-                  
+
                   <Link
                     href="/settings"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <Settings size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <Settings
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
+                    />
                     <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Account Settings</p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">Security, preferences and session management</p>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+                        Account Settings
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                        Security, preferences and session management
+                      </p>
                     </div>
                   </Link>
 
@@ -159,10 +222,17 @@ export default function StudentHeader({ onMenuClick }) {
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <CircleHelp size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <CircleHelp
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
+                    />
                     <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Help & Support</p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">FAQs and assistance</p>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+                        Help & Support
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                        FAQs and assistance
+                      </p>
                     </div>
                   </Link>
 
@@ -171,17 +241,23 @@ export default function StudentHeader({ onMenuClick }) {
                     onClick={handleLogout}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
-                    <LogOut size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200" />
+                    <LogOut
+                      size={18}
+                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
+                    />
                     <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">Logout</p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">End the current session</p>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+                        Logout
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                        End the current session
+                      </p>
                     </div>
                   </button>
                 </div>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </header>
