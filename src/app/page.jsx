@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import StudentShell from '../components/student/StudentShell';
 import HeroSection from '../features/home/HeroSection';
 import ValueStrip from '../features/home/ValueStrip';
@@ -29,6 +30,18 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 async function loadCatalog() {
+  let cookieReviews = [];
+  try {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get('HOMEPAGE_REVIEWS')?.value;
+    if (raw) {
+      const parsed = JSON.parse(decodeURIComponent(raw));
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cookieReviews = parsed;
+      }
+    }
+  } catch {}
+
   const results = await Promise.allSettled([
     catalogService.getCategories(),
     catalogService.getPopularSeries(),
@@ -36,11 +49,18 @@ async function loadCatalog() {
     catalogService.getTestimonials().catch(() => []),
   ]);
 
+  const apiTestimonials =
+    results[3].status === 'fulfilled' && Array.isArray(results[3].value)
+      ? results[3].value
+      : [];
+
+  const testimonials = cookieReviews.length > 0 ? cookieReviews : apiTestimonials;
+
   return {
     categories: results[0].status === 'fulfilled' ? results[0].value : [],
     popularSeries: results[1].status === 'fulfilled' ? results[1].value : [],
     featuredTests: results[2].status === 'fulfilled' ? results[2].value : [],
-    testimonials: results[3].status === 'fulfilled' ? results[3].value : [],
+    testimonials,
   };
 }
 

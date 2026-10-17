@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Star,
   MessageSquareText,
@@ -21,6 +21,7 @@ import {
   Layers,
   FileText,
   Globe,
+  Home,
   AlertCircle,
   ShieldCheck,
   ShieldX,
@@ -30,6 +31,7 @@ import {
   useGetAdminReviewStatsQuery,
   useModerateReviewMutation,
 } from '@/store/adminApi';
+import { homepageReviewService } from '@/services/homepageReviewService';
 import { useToast } from '@/components/common/ToastProvider';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -54,6 +56,69 @@ const TARGET_CONFIG = {
     badge: 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300',
   },
 };
+
+const FALLBACK_REVIEWS = [
+  {
+    reviewId: 101,
+    userName: 'Pooja Hegde',
+    userId: 'usr_8921f0',
+    comment: 'The mock tests and analysis are top-notch. Truly helped boost my confidence for GATE CS!',
+    targetType: 'SERIES',
+    seriesName: 'GATE 2025 Full Length Tests',
+    targetId: 's1',
+    rating: 5,
+    status: 'APPROVED',
+    createdAt: '2026-10-14T10:30:00Z',
+  },
+  {
+    reviewId: 102,
+    userName: 'Rahul Sharma',
+    userId: 'usr_3310b4',
+    comment: 'Comprehensive question bank with detailed explanations. ClearIt is the best platform for exam prep.',
+    targetType: 'SERIES',
+    seriesName: 'Computer Science Mock Series',
+    targetId: 's2',
+    rating: 5,
+    status: 'APPROVED',
+    createdAt: '2026-10-13T14:20:00Z',
+  },
+  {
+    reviewId: 103,
+    userName: 'Sneha Patel',
+    userId: 'usr_1092a7',
+    comment: 'Very realistic exam interface and great sectional timing practice.',
+    targetType: 'SERIES',
+    seriesName: 'Operating Systems Practice Series',
+    targetId: 's3',
+    rating: 4,
+    status: 'APPROVED',
+    createdAt: '2026-10-12T09:15:00Z',
+  },
+  {
+    reviewId: 104,
+    userName: 'Arjun Mehta',
+    userId: 'usr_6641e9',
+    comment: 'High quality previous year questions and insightful performance analytics.',
+    targetType: 'PLATFORM',
+    seriesName: 'Platform Review',
+    targetId: 'PLATFORM',
+    rating: 5,
+    status: 'APPROVED',
+    createdAt: '2026-10-11T16:45:00Z',
+  },
+  {
+    reviewId: 105,
+    userName: 'Vikram Singh',
+    userId: 'usr_4482c1',
+    comment: 'Good test series, but would love to see more explanations for numerical questions.',
+    targetType: 'SERIES',
+    seriesName: 'GATE 2025 Full Length Tests',
+    targetId: 's1',
+    rating: 3,
+    status: 'PENDING',
+    createdAt: '2026-10-15T11:00:00Z',
+  },
+];
 
 function formatDate(value) {
   if (!value) return '—';
@@ -182,11 +247,41 @@ export default function ReviewModerationPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
 
+  // Homepage reviews state (set of review IDs active on homepage)
+  const [homepageReviewIds, setHomepageReviewIds] = useState(() => new Set());
+
   // Drawer & modal states
   const [selectedReview, setSelectedReview] = useState(null);
   const [approvalModalReview, setApprovalModalReview] = useState(null);
   const [rejectionModalReview, setRejectionModalReview] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  // Sync homepage review selections from storage/cookies
+  useEffect(() => {
+    const sync = () => {
+      const list = homepageReviewService.getHomepageReviews();
+      setHomepageReviewIds(new Set(list.map((r) => String(r.reviewId || r.id))));
+    };
+
+    sync();
+    return homepageReviewService.subscribeHomepageReviews(sync);
+  }, []);
+
+  const handleToggleHomepage = (review, shouldBeOnHome) => {
+    if (shouldBeOnHome && review.status !== 'APPROVED') {
+      toast.error(`Review #${review.reviewId} must be approved before adding to the home page.`);
+      return;
+    }
+
+    const updatedList = homepageReviewService.setReviewOnHomepage(review, shouldBeOnHome);
+    setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+
+    if (shouldBeOnHome) {
+      toast.success(`Review #${review.reviewId} has been added to the home page.`);
+    } else {
+      toast.info(`Review #${review.reviewId} removed from the home page.`);
+    }
+  };
 
   const queryArgs = useMemo(
     () => ({
@@ -204,9 +299,48 @@ export default function ReviewModerationPage() {
   const { data: stats, isLoading: statsLoading } = useGetAdminReviewStatsQuery();
   const [moderateReview, { isLoading: isModerating }] = useModerateReviewMutation();
 
-  const reviews = pageData?.content || [];
-  const totalPages = pageData?.totalPages || 0;
-  const totalElements = pageData?.totalElements || 0;
+  // If backend returns data, use it; otherwise provide fallback reviews for local testing
+  const filteredFallback = error
+    ? FALLBACK_REVIEWS.filter((r) => {
+        if (status && r.status !== status) return false;
+        if (targetType && r.targetType !== targetType) return false;
+        if (rating && String(r.rating) !== String(rating)) return false;
+        if (search) {
+          const q = search.toLowerCase();
+          return (
+            String(r.reviewId).includes(q) ||
+            r.userName?.toLowerCase().includes(q) ||
+            r.comment?.toLowerCase().includes(q) ||
+            r.seriesName?.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+    : [];
+
+  const reviews = pageData?.content || filteredFallback;
+  const totalPages = pageData?.totalPages ?? (error ? Math.max(1, Math.ceil(filteredFallback.length / PAGE_SIZE)) : 0);
+  const totalElements = pageData?.totalElements ?? (error ? filteredFallback.length : 0);
+
+  const displayStats = useMemo(() => {
+    if (stats) return stats;
+    if (error) {
+      const total = FALLBACK_REVIEWS.length;
+      const pending = FALLBACK_REVIEWS.filter((r) => r.status === 'PENDING').length;
+      const approved = FALLBACK_REVIEWS.filter((r) => r.status === 'APPROVED').length;
+      const rejected = FALLBACK_REVIEWS.filter((r) => r.status === 'REJECTED').length;
+      const avg =
+        FALLBACK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / (total || 1);
+      return {
+        totalReviews: total,
+        pendingReviews: pending,
+        approvedReviews: approved,
+        rejectedReviews: rejected,
+        averageRating: avg.toFixed(1),
+      };
+    }
+    return null;
+  }, [stats, error]);
 
   const runSearch = (event) => {
     event.preventDefault();
@@ -243,6 +377,20 @@ export default function ReviewModerationPage() {
       }
       setApprovalModalReview(null);
     } catch (requestError) {
+      if (error) {
+        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === approvalModalReview.reviewId);
+        if (idx !== -1) {
+          FALLBACK_REVIEWS[idx].status = 'APPROVED';
+        }
+        toast.success(`Review #${approvalModalReview.reviewId} has been approved.`);
+        if (selectedReview?.reviewId === approvalModalReview.reviewId) {
+          setSelectedReview((prev) =>
+            prev ? { ...prev, status: 'APPROVED', moderatedAt: new Date().toISOString() } : null
+          );
+        }
+        setApprovalModalReview(null);
+        return;
+      }
       const msg =
         requestError?.data?.message ||
         requestError?.message ||
@@ -266,6 +414,12 @@ export default function ReviewModerationPage() {
         moderationReason: reasonTrimmed || undefined,
       }).unwrap();
 
+      // If this review was featured on the homepage, automatically remove it
+      if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
+        const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
+        setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+      }
+
       toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
 
       if (selectedReview?.reviewId === rejectionModalReview.reviewId) {
@@ -283,6 +437,34 @@ export default function ReviewModerationPage() {
       setRejectionModalReview(null);
       setRejectionReason('');
     } catch (requestError) {
+      if (error) {
+        const reasonTrimmed = rejectionReason.trim();
+        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === rejectionModalReview.reviewId);
+        if (idx !== -1) {
+          FALLBACK_REVIEWS[idx].status = 'REJECTED';
+          FALLBACK_REVIEWS[idx].moderationReason = reasonTrimmed;
+        }
+        if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
+          const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
+          setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+        }
+        toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
+        if (selectedReview?.reviewId === rejectionModalReview.reviewId) {
+          setSelectedReview((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: 'REJECTED',
+                  moderationReason: reasonTrimmed,
+                  moderatedAt: new Date().toISOString(),
+                }
+              : null
+          );
+        }
+        setRejectionModalReview(null);
+        setRejectionReason('');
+        return;
+      }
       const msg =
         requestError?.data?.message ||
         requestError?.message ||
@@ -319,29 +501,33 @@ export default function ReviewModerationPage() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total reviews"
-          value={statsLoading ? '…' : stats?.totalReviews}
+          value={statsLoading && !displayStats ? '…' : displayStats?.totalReviews}
           description="All submitted student reviews"
           icon={MessageSquareText}
           tone="violet"
         />
         <StatCard
           label="Pending"
-          value={statsLoading ? '…' : stats?.pendingReviews}
+          value={statsLoading && !displayStats ? '…' : displayStats?.pendingReviews}
           description="Awaiting admin moderation"
           icon={Clock3}
           tone="amber"
         />
         <StatCard
           label="Approved"
-          value={statsLoading ? '…' : stats?.approvedReviews}
-          description="Visible to students"
+          value={statsLoading && !displayStats ? '…' : displayStats?.approvedReviews}
+          description={
+            homepageReviewIds.size > 0
+              ? `${homepageReviewIds.size} featured on homepage`
+              : 'Visible to students'
+          }
           icon={CheckCircle2}
           tone="green"
         />
         <StatCard
           label="Average rating"
-          value={statsLoading ? '…' : `${Number(stats?.averageRating || 0).toFixed(1)} / 5`}
-          description={`${stats?.rejectedReviews ?? 0} rejected reviews`}
+          value={statsLoading && !displayStats ? '…' : `${Number(displayStats?.averageRating || 0).toFixed(1)} / 5`}
+          description={`${displayStats?.rejectedReviews ?? 0} rejected reviews`}
           icon={Star}
           tone="rose"
         />
@@ -370,7 +556,7 @@ export default function ReviewModerationPage() {
               }`}
             >
               {tab.label}
-              {tab.value === 'PENDING' && Number(stats?.pendingReviews) > 0 && (
+              {tab.value === 'PENDING' && Number(displayStats?.pendingReviews) > 0 && (
                 <span
                   className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] ${
                     status === tab.value
@@ -378,7 +564,7 @@ export default function ReviewModerationPage() {
                       : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
                   }`}
                 >
-                  {stats.pendingReviews}
+                  {displayStats.pendingReviews}
                 </span>
               )}
             </button>
@@ -457,10 +643,12 @@ export default function ReviewModerationPage() {
       {error && (
         <div
           role="alert"
-          className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
+          className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
         >
           <AlertCircle size={16} className="shrink-0" />
-          <span>Could not load reviews. Check the Community Service and API Gateway, then retry.</span>
+          <span>
+            API Gateway is unreachable. Displaying demo reviews so you can test moderation and homepage selection.
+          </span>
         </div>
       )}
 
@@ -492,13 +680,14 @@ export default function ReviewModerationPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
+            <table className="w-full min-w-[950px] text-left">
               <thead className="bg-slate-50 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3">Review & Comment</th>
                   <th className="px-4 py-3">Target</th>
                   <th className="px-4 py-3">Rating</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Homepage</th>
                   <th className="px-4 py-3">Submitted</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -550,6 +739,49 @@ export default function ReviewModerationPage() {
                           Reason: {review.moderationReason}
                         </p>
                       )}
+                    </td>
+
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            disabled={review.status !== 'APPROVED'}
+                            value={homepageReviewIds.has(String(review.reviewId)) ? 'YES' : 'NO'}
+                            onChange={(e) => handleToggleHomepage(review, e.target.value === 'YES')}
+                            aria-label={`Homepage setting for review #${review.reviewId}`}
+                            title={
+                              review.status !== 'APPROVED'
+                                ? 'Only approved reviews can be added to the homepage'
+                                : undefined
+                            }
+                            className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
+                              review.status !== 'APPROVED'
+                                ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
+                                : homepageReviewIds.has(String(review.reviewId))
+                                ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
+                                : 'cursor-pointer border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900'
+                            }`}
+                          >
+                            <option value="NO">Do not show</option>
+                            <option value="YES" disabled={review.status !== 'APPROVED'}>
+                              Add to home
+                            </option>
+                          </select>
+                          {homepageReviewIds.has(String(review.reviewId)) && (
+                            <span
+                              title="Active on home page"
+                              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 shrink-0"
+                            >
+                              <Home size={11} />
+                            </span>
+                          )}
+                        </div>
+                        {review.status !== 'APPROVED' && (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                            (Approve first)
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
@@ -660,6 +892,11 @@ export default function ReviewModerationPage() {
                   {selectedReview.rating} / 5
                 </span>
                 <TargetBadge type={selectedReview.targetType} />
+                {homepageReviewIds.has(String(selectedReview.reviewId)) && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    <Home size={12} /> Active on Homepage
+                  </span>
+                )}
               </div>
 
               <div>
@@ -674,6 +911,44 @@ export default function ReviewModerationPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60 col-span-2">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Home Page Display</p>
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-xs text-slate-700 dark:text-slate-300">
+                        Feature this review on the platform homepage
+                      </span>
+                      {selectedReview.status !== 'APPROVED' && (
+                        <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
+                          Review must be approved before it can be added to the homepage.
+                        </p>
+                      )}
+                    </div>
+                    <select
+                      disabled={selectedReview.status !== 'APPROVED'}
+                      value={homepageReviewIds.has(String(selectedReview.reviewId)) ? 'YES' : 'NO'}
+                      onChange={(e) => handleToggleHomepage(selectedReview, e.target.value === 'YES')}
+                      title={
+                        selectedReview.status !== 'APPROVED'
+                          ? 'Review must be approved first'
+                          : undefined
+                      }
+                      className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
+                        selectedReview.status !== 'APPROVED'
+                          ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
+                          : homepageReviewIds.has(String(selectedReview.reviewId))
+                          ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
+                          : 'cursor-pointer border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
+                      }`}
+                    >
+                      <option value="NO">Do not show</option>
+                      <option value="YES" disabled={selectedReview.status !== 'APPROVED'}>
+                        Show on home
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">Reviewer ID</p>
                   <p className="mt-1">
