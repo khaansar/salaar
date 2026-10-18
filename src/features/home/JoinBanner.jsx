@@ -1,53 +1,68 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, Trophy, Rocket } from 'lucide-react';
+import { ArrowRight, Trophy } from 'lucide-react';
 import { useAppSelector } from '@/hooks/useAppSelector';
 
-const stairs = [['Practice', 'h-10'], ['Analyze', 'h-16'], ['Improve', 'h-24'], ['Crack Your Exam', 'h-32']];
+// A real sequence, so the steps are numbered and rise left to right.
+const steps = [
+  { label: 'Practice', height: 'h-14' },
+  { label: 'Analyze', height: 'h-24' },
+  { label: 'Improve', height: 'h-32' },
+  { label: 'Crack your exam', height: 'h-40' },
+];
+
+const ctaClass =
+  'inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600';
 
 export default function JoinBanner() {
   const { user } = useAppSelector((state) => state.auth);
 
   return (
-    <section className="mb-6 overflow-hidden rounded-2xl border border-brand-100 bg-gradient-to-r from-[#f1efff] to-[#e4defd] dark:border-slate-800 dark:from-indigo-950/40 dark:to-purple-950/40">
-      <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2">
-        <div>
-          <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-600">
-            <Rocket size={12} /> Ready to Start?
-          </span>
-          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            Join 100K+ Aspirants<br />and Achieve Your Dream
+    <section className="relative mb-6 overflow-hidden rounded-3xl bg-brand-600 dark:bg-indigo-950 dark:ring-1 dark:ring-white/10">
+      <div className="grid items-center gap-10 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:py-12">
+        {/* Copy */}
+        <div className="lg:col-span-6">
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+            Join 100K+ aspirants and start preparing today.
           </h2>
-          <p className="mt-3 max-w-md text-xs leading-5 text-slate-600">
-            Get access to high-quality mock tests, previous year papers, detailed solutions and AI-powered insights.
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
+            Get full-length mock tests, previous year papers, detailed solutions and AI-powered insights in one place.
           </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+
+          <div className="mt-7">
             {user ? (
-              <button 
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-              >
-                Start Your Preparation <ArrowRight size={15} />
+              <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={ctaClass}>
+                Start your preparation <ArrowRight size={16} aria-hidden="true" />
               </button>
             ) : (
-              <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700">
-                Start Your Preparation <ArrowRight size={15} />
+              <Link href="/signup" className={ctaClass}>
+                Start your preparation <ArrowRight size={16} aria-hidden="true" />
               </Link>
             )}
-            <Link href="/pricing" className="inline-flex items-center justify-center rounded-lg border border-brand-600 bg-white/70 px-5 py-2.5 text-sm font-semibold text-brand-600 hover:bg-white">
-              View Pricing
-            </Link>
           </div>
         </div>
 
-        <div className="hidden items-end justify-end gap-1.5 lg:flex" aria-hidden="true">
-          <Trophy size={44} className="mb-2 mr-2 self-start text-amber-400" />
-          {stairs.map(([label, h]) => (
-            <div key={label} className={`flex w-28 items-start justify-center rounded-t-lg bg-brand-600/90 pt-2 text-[11px] font-bold text-white ${h}`}>
-              {label}
-            </div>
-          ))}
-        </div>
+        {/* Progress steps */}
+        <ol className="flex items-end gap-2 lg:col-span-6 lg:pl-8" aria-label="Your preparation path">
+          {steps.map(({ label, height }, i) => {
+            const last = i === steps.length - 1;
+            return (
+              <li key={label} className="flex min-w-0 flex-1 flex-col items-center">
+                {last && <Trophy size={32} className="mb-2 text-amber-300" aria-hidden="true" />}
+                <div
+                  className={`flex w-full flex-col justify-between rounded-t-xl p-3 ${height} ${
+                    last ? 'bg-white text-brand-700' : 'bg-white/15 text-white'
+                  }`}
+                >
+                  <span className={`text-xs font-semibold tabular-nums ${last ? 'text-brand-600' : 'text-white/60'}`}>
+                    {i + 1}
+                  </span>
+                  <span className="text-xs font-bold leading-4 sm:text-sm">{label}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );

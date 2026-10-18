@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, FileText, Clock, CheckCircle2, BarChart2, Landmark, TrainFront, MapPin } from 'lucide-react';
+import { ArrowRight, FileText, Clock, Layers3 } from 'lucide-react';
 
 function formatDuration(minutes) {
   if (!minutes) return null;
@@ -10,77 +10,95 @@ function formatDuration(minutes) {
   return `${minutes} min`;
 }
 
-const ICONS = [
-  { Icon: Landmark, color: 'text-emerald-600' },
-  { Icon: TrainFront, color: 'text-rose-500' },
-  { Icon: Landmark, color: 'text-amber-500' },
-  { Icon: MapPin, color: 'text-blue-500' },
-];
-
 const BADGE = {
-  popular: 'bg-emerald-50 text-emerald-700',
-  new: 'bg-rose-50 text-rose-600',
-  bestseller: 'bg-amber-50 text-amber-600',
-  recommended: 'bg-emerald-50 text-emerald-700',
+  popular: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
+  new: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300',
+  bestseller: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300',
+  recommended: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
 };
+const BADGE_DEFAULT = 'bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-300';
+
+const focusRing =
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900';
 
 export default function PopularSeries({ series = [] }) {
   if (!Array.isArray(series) || series.length === 0) return null;
 
   return (
-    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-5 flex items-start justify-between gap-4">
+    <section
+      aria-labelledby="featured-series-heading"
+      className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <BarChart2 size={20} className="text-brand-600" /> Featured Test Series
+          <h2 id="featured-series-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Featured test series
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Most popular and highly rated test series to boost your preparation.</p>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+            Popular, highly rated series to boost your preparation.
+          </p>
         </div>
-        <Link href="/test-series" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
-          View All Test Series <ArrowRight size={14} />
+        <Link
+          href="/test-series"
+          className={`inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-indigo-400 dark:hover:text-indigo-300 ${focusRing}`}
+        >
+          View all test series <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {series.map((item, i) => {
-          const { Icon, color } = ICONS[i % ICONS.length];
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {series.map((item) => {
           const duration = formatDuration(item.durationMinutes);
+          const badgeStyle = BADGE[String(item.badge).toLowerCase()] || BADGE_DEFAULT;
+
           return (
-            <Link
-              key={item.id}
-              href={`/test-series/${item.slug}`}
-              className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-brand-100 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
-            >
-              <div className="mb-3 flex items-start justify-between">
-                <Icon size={28} className={color} strokeWidth={1.8} />
-                {item.badge && (
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE[String(item.badge).toLowerCase()] || 'bg-brand-50 text-brand-600'}`}>
-                    {item.badge}
+            <li key={item.id} className="flex">
+              <Link
+                href={`/test-series/${item.slug}`}
+                className={`group flex w-full flex-col rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-brand-600 ${focusRing} dark:border-slate-800 dark:bg-slate-950 dark:hover:border-brand-600`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-400">
+                    <Layers3 size={20} aria-hidden="true" />
                   </span>
-                )}
-              </div>
-              <h3 className="line-clamp-2 text-sm font-bold leading-5 text-slate-900 dark:text-white">{item.title}</h3>
-              {item.subtitle && <p className="mt-0.5 text-xs text-slate-500">{item.subtitle}</p>}
+                  {item.badge && (
+                    <span className={`truncate rounded-full px-2.5 py-1 text-[11px] font-semibold ${badgeStyle}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
 
-              <ul className="mt-4 space-y-2 text-xs text-slate-500">
-                {item.testCount != null && (
-                  <li className="flex items-center gap-2"><FileText size={14} /> {item.testCount} Tests</li>
+                <h3 className="mt-3 line-clamp-2 text-sm font-bold leading-5 text-slate-900 dark:text-white">{item.title}</h3>
+                {item.subtitle && (
+                  <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{item.subtitle}</p>
                 )}
-                {duration && (
-                  <li className="flex items-center gap-2"><Clock size={14} /> {duration}</li>
-                )}
-                <li className="flex items-center gap-2"><CheckCircle2 size={14} /> Updated Regularly</li>
-              </ul>
 
-              <span className="mt-auto pt-4">
-                <span className="flex w-full items-center justify-center gap-1.5 rounded-md border border-brand-600 py-2 text-xs font-semibold text-brand-600 transition-colors group-hover:bg-brand-50">
-                  View Details <ArrowRight size={13} />
-                </span>
-              </span>
-            </Link>
+                {(item.testCount != null || duration) && (
+                  <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    {item.testCount != null && (
+                      <li className="flex items-center gap-1.5">
+                        <FileText size={14} aria-hidden="true" /> {item.testCount} {item.testCount === 1 ? 'test' : 'tests'}
+                      </li>
+                    )}
+                    {duration && (
+                      <li className="flex items-center gap-1.5">
+                        <Clock size={14} aria-hidden="true" /> {duration}
+                      </li>
+                    )}
+                  </ul>
+                )}
+
+                <div className="mt-auto pt-4">
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-sm font-semibold text-brand-600 dark:border-slate-800 dark:text-indigo-400">
+                    <span>View details</span>
+                    <ArrowRight size={15} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </Link>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </section>
   );
 }

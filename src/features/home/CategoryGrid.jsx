@@ -1,49 +1,75 @@
 import Link from 'next/link';
-import { ArrowRight, Flame } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import * as Icons from 'lucide-react';
 
+// Category icons come from the API by name (e.g. "Landmark"), so resolve them dynamically.
 const DynamicIcon = ({ name, ...props }) => {
   const IconComponent = Icons[name] || Icons.HelpCircle;
   return <IconComponent {...props} />;
 };
 
+const focusRing =
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900';
+
 export default function CategoryGrid({ categories = [] }) {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <section className="h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-5 flex items-start justify-between gap-4">
+    <section
+      aria-labelledby="popular-exams-heading"
+      className="h-full rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <Flame size={20} className="fill-orange-500 text-orange-500" /> Popular Exams
+          <h2 id="popular-exams-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Popular exams
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Choose from a wide range of exams and start your preparation today.</p>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+            Choose your exam and start preparing today.
+          </p>
         </div>
-        <Link href="/categories" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
-          View All Exams <ArrowRight size={14} />
+        <Link
+          href="/categories"
+          className={`inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-indigo-400 dark:hover:text-indigo-300 ${focusRing}`}
+        >
+          View all exams <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {categories.map((cat) => (
-          <Link
-            key={cat.id}
-            href={`/test-series?category=${cat.slug}`}
-            className="group flex flex-col items-center rounded-xl border border-slate-200 bg-white p-4 text-center transition-all hover:-translate-y-0.5 hover:border-brand-100 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
-          >
-            <div className={`flex h-12 w-12 items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${cat.bg || 'bg-brand-50'} ${cat.color || 'text-brand-600'}`}>
-              <DynamicIcon name={cat.icon || 'Folder'} size={28} strokeWidth={1.8} />
-            </div>
-            <h3 className="mt-3 truncate text-sm font-bold text-slate-900 dark:text-white">{cat.name}</h3>
-            <p className="mt-0.5 text-[11px] text-slate-500">{cat.description || 'Mock Tests & PYQs'}</p>
-            {cat.testCount != null && (
-              <span className="mt-3 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                {cat.testCount}+ Tests
+          <li key={cat.id} className="flex">
+            <Link
+              href={`/test-series?category=${encodeURIComponent(cat.slug ?? '')}`}
+              className={`group flex w-full flex-col rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-brand-600 ${focusRing} dark:border-slate-800 dark:bg-slate-950 dark:hover:border-brand-600`}
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-400">
+                <DynamicIcon name={cat.icon || 'Folder'} size={18} strokeWidth={1.8} aria-hidden="true" />
               </span>
-            )}
-          </Link>
+
+              <h3 className="mt-3 truncate text-sm font-bold text-slate-900 dark:text-white">{cat.name}</h3>
+              <p className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
+                {cat.description || 'Mock tests and previous year papers'}
+              </p>
+
+              <div className="mt-auto flex items-center justify-between gap-1 pt-3">
+                {cat.testCount != null ? (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    {cat.testCount}+ tests
+                  </span>
+                ) : (
+                  <span />
+                )}
+                <ArrowRight
+                  size={14}
+                  aria-hidden="true"
+                  className="text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-600 dark:text-slate-500 dark:group-hover:text-indigo-400"
+                />
+              </div>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }
