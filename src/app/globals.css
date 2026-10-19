@@ -353,6 +353,43 @@ body {
   color: #f4f4f5;
 }
 
+/*
+ * Hand gesture (cursor: pointer) across all interactive elements throughout the entire application
+ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]):not(:disabled),
+[role="tab"]:not([aria-disabled="true"]):not(:disabled),
+[role="switch"]:not([aria-disabled="true"]):not(:disabled),
+[role="menuitem"]:not([aria-disabled="true"]):not(:disabled),
+[role="option"]:not([aria-disabled="true"]):not(:disabled),
+[type="button"]:not(:disabled),
+[type="submit"]:not(:disabled),
+[type="reset"]:not(:disabled),
+a[href],
+summary,
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled),
+input[type="range"]:not(:disabled),
+label[for],
+label:has(input:not(:disabled)) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[role="button"]:disabled,
+[role="tab"][aria-disabled="true"],
+[role="switch"][aria-disabled="true"],
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 @media print {
   .report-screen {
     display: none !important;
