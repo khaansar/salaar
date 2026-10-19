@@ -391,18 +391,48 @@ select:disabled {
 }
 
 @media print {
+  /* Enforce pure light mode print canvas across all browsers and PDF print engines */
+  :root,
+  html,
+  body {
+    color-scheme: light !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+  }
+
+  /* Reset dark tokens if dark class is still attached during print */
+  html.dark,
+  body.dark,
+  .dark {
+    color-scheme: light !important;
+    --background: #ffffff !important;
+    --foreground: #0f172a !important;
+    --color-slate-950: #020617 !important;
+    --color-slate-900: #0f172a !important;
+    --color-slate-800: #1e293b !important;
+    --color-slate-700: #334155 !important;
+    --color-slate-600: #475569 !important;
+    --color-slate-500: #64748b !important;
+    --color-slate-400: #94a3b8 !important;
+    --color-slate-300: #cbd5e1 !important;
+    --color-slate-200: #e2e8f0 !important;
+    --color-slate-100: #f1f5f9 !important;
+    --color-slate-50: #f8fafc !important;
+    --color-gray-950: #030712 !important;
+    --color-gray-900: #111827 !important;
+    --color-gray-800: #1f2937 !important;
+    --color-gray-700: #374151 !important;
+  }
+
   .report-screen {
     display: none !important;
   }
 
-  .print-dashboard-shell footer {
-    display: none !important;
-  }
-
-  .report-print {
-    display: block !important;
-  }
-
+  .print-dashboard-shell footer,
   .print-dashboard-shell header,
   .print-dashboard-shell aside {
     display: none !important;
@@ -424,13 +454,30 @@ select:disabled {
     min-height: 0 !important;
   }
 
-  body {
-    margin: 0 !important;
-    background: white !important;
+  .report-print {
+    display: block !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .report-print * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .dark .report-print {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  .dark .report-print .dark\:text-white {
+    color: #0f172a !important;
   }
 
   @page {
-    size: A4;
-    margin: 0;
+    size: A4 portrait;
+    margin: 8mm;
   }
 }

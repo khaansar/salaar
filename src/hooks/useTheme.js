@@ -34,10 +34,37 @@ function currentTheme() {
     : "light";
 }
 
+let printListenerAttached = false;
+let wasDarkBeforePrint = false;
+
+function ensurePrintListener() {
+  if (typeof window === "undefined" || printListenerAttached) {
+    return;
+  }
+
+  printListenerAttached = true;
+
+  window.addEventListener("beforeprint", () => {
+    if (document.documentElement.classList.contains("dark")) {
+      wasDarkBeforePrint = true;
+      document.documentElement.classList.remove("dark");
+    }
+  });
+
+  window.addEventListener("afterprint", () => {
+    if (wasDarkBeforePrint) {
+      document.documentElement.classList.add("dark");
+      wasDarkBeforePrint = false;
+    }
+  });
+}
+
 export function useTheme() {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
+    ensurePrintListener();
+
     const preferredTheme = getPreferredTheme();
 
     document.documentElement.classList.toggle(
