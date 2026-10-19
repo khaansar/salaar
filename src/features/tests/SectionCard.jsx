@@ -125,40 +125,58 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-      <div className={`flex items-center justify-between gap-4 px-5 py-4 bg-slate-50/60 transition-colors ${collapsed ? '' : 'border-b border-slate-100'}`}>
-        <div className="flex items-center gap-3 min-w-0">
+    <div className="rounded-xl border border-slate-200 hover:border-indigo-200 bg-white overflow-hidden shadow-sm transition-all duration-200">
+      <div
+        className={`group flex items-center justify-between gap-4 px-5 py-4 bg-slate-50/70 hover:bg-indigo-50/40 cursor-pointer select-none transition-colors duration-200 ${
+          collapsed ? '' : 'border-b border-slate-100'
+        }`}
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-3.5 min-w-0">
           <button
             type="button"
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1 -ml-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCollapsed(!collapsed);
+            }}
+            className="p-1.5 -ml-1 text-slate-500 group-hover:text-indigo-600 hover:bg-indigo-100/70 rounded-lg cursor-pointer transition-all duration-200 shrink-0"
             title={collapsed ? 'Expand section' : 'Collapse section'}
             aria-label={collapsed ? 'Expand section' : 'Collapse section'}
           >
             <ChevronDown
-              size={18}
+              size={24}
+              strokeWidth={2.5}
               className={`transform transition-transform duration-200 ${collapsed ? '-rotate-90' : 'rotate-0'}`}
             />
           </button>
 
-          <div className="flex flex-col -my-1">
-            <button onClick={onMoveUp} disabled={isFirst} className="text-slate-400 hover:text-slate-700 disabled:opacity-25 disabled:pointer-events-none">
+          <div
+            className="flex flex-col -my-1 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={onMoveUp}
+              disabled={isFirst}
+              className="text-slate-400 hover:text-slate-700 disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
+            >
               <ChevronUp size={16} />
             </button>
-            <button onClick={onMoveDown} disabled={isLast} className="text-slate-400 hover:text-slate-700 disabled:opacity-25 disabled:pointer-events-none">
+            <button
+              onClick={onMoveDown}
+              disabled={isLast}
+              className="text-slate-400 hover:text-slate-700 disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
+            >
               <ChevronDown size={16} />
             </button>
           </div>
-          <div
-            className="min-w-0 cursor-pointer select-none"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-slate-900 truncate hover:text-indigo-600 transition-colors">
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 truncate transition-colors">
                 {section.title}
               </h3>
               {collapsed && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600">
+                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-indigo-100/80 text-indigo-700 border border-indigo-200/60">
                   {questions.length} question{questions.length !== 1 ? 's' : ''} (collapsed)
                 </span>
               )}
@@ -183,7 +201,11 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+
+        <div
+          className="flex items-center gap-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button size="sm" variant="outline" onClick={() => setSettingsOpen(true)}>
             <Settings size={14} className="mr-1.5" />
             Settings
