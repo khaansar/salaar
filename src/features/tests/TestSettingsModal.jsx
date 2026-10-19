@@ -8,6 +8,19 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { mockTestsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 
+function toDateTimeLocalValue(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export function TestSettingsModal({ open, onClose, test, onSaved }) {
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
@@ -29,6 +42,9 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
         negativeMarkingEnabled: Boolean(test.negativeMarkingEnabled),
         instructions: test.instructions || '',
         isFree: Boolean(test.isFree),
+        accessCode: test.accessCode || '',
+        windowStartTime: toDateTimeLocalValue(test.windowStartTime),
+        windowEndTime: toDateTimeLocalValue(test.windowEndTime),
       });
       setErrors({});
     }
@@ -53,6 +69,9 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
         ...form,
         durationMinutes: Number(form.durationMinutes),
         instructions: form.instructions.trim(),
+        accessCode: form.accessCode ? form.accessCode.trim().toUpperCase() : null,
+        windowStartTime: form.windowStartTime ? new Date(form.windowStartTime).toISOString() : null,
+        windowEndTime: form.windowEndTime ? new Date(form.windowEndTime).toISOString() : null,
       });
       toast.success('Test settings saved');
       onSaved?.();
@@ -75,6 +94,11 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
         <Input id="settings-title" label="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} error={errors.title} />
         <Input id="settings-duration" label="Duration (minutes)" type="number" min="1" value={form.durationMinutes} onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))} error={errors.durationMinutes} />
         <Textarea id="settings-instructions" label="Instructions" value={form.instructions} onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} />
+        <Input id="settings-access-code" label="Classroom Access Code (optional)" placeholder="e.g. CLASS-10A" value={form.accessCode} onChange={(e) => setForm((f) => ({ ...f, accessCode: e.target.value }))} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input id="settings-window-start" label="Window Opens (optional)" type="datetime-local" value={form.windowStartTime} onChange={(e) => setForm((f) => ({ ...f, windowStartTime: e.target.value }))} />
+          <Input id="settings-window-end" label="Window Closes (optional)" type="datetime-local" value={form.windowEndTime} onChange={(e) => setForm((f) => ({ ...f, windowEndTime: e.target.value }))} />
+        </div>
         <div className="grid grid-cols-2 gap-3 pt-1">
           <Checkbox id="settings-strict-order" label="Strict section order" checked={form.isSectionOrderStrict} onChange={(e) => setForm((f) => ({ ...f, isSectionOrderStrict: e.target.checked }))} />
           <Checkbox id="settings-shuffle-sections" label="Shuffle sections" checked={form.shuffleSections} onChange={(e) => setForm((f) => ({ ...f, shuffleSections: e.target.checked }))} />

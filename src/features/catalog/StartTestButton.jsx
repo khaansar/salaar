@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ArrowRight, Lock, Loader2 } from 'lucide-react';
+import { ArrowRight, Lock, Loader2, CheckCircle } from 'lucide-react';
 
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -25,6 +25,7 @@ export default function StartTestButton({
   isFree = false,
   variant = 'default',
   hasAttempted,
+  hasAccessCode = false,
 }) {
   const requireAuth = useRequireAuth();
   const { user } = useAppSelector((state) => state.auth);
@@ -73,8 +74,11 @@ export default function StartTestButton({
     !isFree &&
     (!user || !entitled || entitlementsError || entitlementPending);
 
-  const disabled = !isFree && locked;
   const retry = hasAttempted ?? attemptedByCurrentUser;
+  const isClassroomTest = Boolean(hasAccessCode);
+  const classroomAttemptBlocked = isClassroomTest && retry;
+
+  const disabled = (!isFree && locked) || classroomAttemptBlocked;
 
   const handleStart = requireAuth(() => {
     // Do not block free tests on paid-access checks.
@@ -97,7 +101,7 @@ export default function StartTestButton({
         ? 'w-full rounded-xl px-3 py-2.5 text-sm'
         : 'w-full gap-2 rounded-xl px-6 py-3 text-sm sm:w-auto';
 
-  const buttonColors = locked
+  const buttonColors = locked || classroomAttemptBlocked
     ? 'border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
     : variant === 'outline'
       ? 'border-brand-600 bg-white text-brand-600 hover:bg-brand-50'
@@ -109,6 +113,8 @@ export default function StartTestButton({
     label = 'Checking access…';
   } else if (locked) {
     label = 'Locked';
+  } else if (classroomAttemptBlocked) {
+    label = 'Attempt Completed';
   } else if (retry) {
     label = 'Attempt test again';
   }
@@ -119,7 +125,9 @@ export default function StartTestButton({
       disabled={disabled}
       aria-disabled={disabled}
       title={
-        locked
+        classroomAttemptBlocked
+          ? 'Classroom code tests allow strictly one attempt per student.'
+          : locked
           ? 'Purchase this test or its test series to unlock access.'
           : undefined
       }
@@ -134,6 +142,14 @@ export default function StartTestButton({
       ) : locked ? (
         <>
           <Lock
+            size={variant === 'outline' ? 13 : 16}
+            aria-hidden="true"
+          />
+          {label}
+        </>
+      ) : classroomAttemptBlocked ? (
+        <>
+          <CheckCircle
             size={variant === 'outline' ? 13 : 16}
             aria-hidden="true"
           />

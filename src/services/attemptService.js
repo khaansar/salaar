@@ -260,10 +260,11 @@ export const attemptService = {
     );
   },
 
-  async startAttempt(testId, durationMinutes) {
+  async startAttempt(testId, durationMinutes, accessCode) {
     return apiClient.post('/attempts-api/', {
       testId,
       durationMinutes,
+      ...(accessCode ? { accessCode: accessCode.trim() } : {}),
     });
   },
 

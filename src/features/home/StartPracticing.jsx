@@ -99,8 +99,10 @@ export default function StartPracticing({ tests = [] }) {
                 <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
                   <StartTestButton
                     testId={test.id}
+                    testSlug={test.slug}
                     variant="home"
                     isFree={test.isFree === true}
+                    hasAccessCode={Boolean(test.hasAccessCode || test.accessCode)}
                     hasAttempted={hasAttempted}
                   />
                 </div>

@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 
-export const Input = forwardRef(({ className = '', variant = 'outline', error, label, id, leftIcon, rightIcon, helpText, ...props }, ref) => {
+export const Input = forwardRef(({ className = '', variant = 'outline', error, label, id, leftIcon, rightIcon, helpText, helperText, ...props }, ref) => {
   const isFlushed = variant === 'flushed';
+  const displayHelp = helpText || helperText;
   
   return (
     <div className="w-full">
@@ -30,7 +31,7 @@ export const Input = forwardRef(({ className = '', variant = 'outline', error, l
       </div>
       
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-      {helpText && !error && <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{helpText}</p>}
+      {displayHelp && !error && <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{displayHelp}</p>}
     </div>
   );
 });
