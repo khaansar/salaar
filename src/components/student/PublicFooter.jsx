@@ -41,12 +41,12 @@ function BrandMark() {
 
 export default function PublicFooter() {
   return (
-    <footer className="relative overflow-hidden bg-white text-slate-900 transition-colors dark:bg-[#0b1020] dark:text-white">
+    <footer className="relative overflow-hidden bg-white text-slate-900 transition-colors dark:bg-[#09090b] dark:border-t dark:border-slate-800 dark:text-white">
       <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl dark:bg-brand-600/15" />
       <div className="pointer-events-none absolute -bottom-48 left-1/4 h-80 w-80 rounded-full bg-indigo-500/5 blur-3xl dark:bg-indigo-500/10" />
 
       <div className="relative mx-auto max-w-7xl px-6 pb-7 pt-14 sm:px-8 lg:px-10 lg:pt-16">
-        <div className="mb-12 flex flex-col gap-5 border-b border-slate-200 pb-9 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-12 flex flex-col gap-5 border-b border-slate-200 pb-9 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-700 dark:text-violet-300">A clearer path to your goal</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Your next milestone starts here.</h2>
@@ -84,7 +84,7 @@ export default function PublicFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-white/10 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>
           <p>Made for the goals you&apos;re working toward.</p>
         </div>

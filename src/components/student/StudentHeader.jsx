@@ -105,13 +105,13 @@ export default function StudentHeader({ onMenuClick }) {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <form
             action="/tests"
-            className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex"
+            className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex dark:border-slate-800 dark:bg-slate-900"
           >
             <Search size={15} className="text-slate-400" />
             <input
               name="q"
               placeholder="Search exams, tests, topics..."
-              className="w-44 bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
+              className="w-44 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </form>
 
@@ -149,7 +149,7 @@ export default function StudentHeader({ onMenuClick }) {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#0B0F19]">
+              <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#121316]">
                 <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                   <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
                     {fullName}

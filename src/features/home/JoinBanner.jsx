@@ -18,7 +18,7 @@ export default function JoinBanner() {
   const { user } = useAppSelector((state) => state.auth);
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-3xl bg-brand-600 dark:bg-indigo-950 dark:ring-1 dark:ring-white/10">
+    <section className="relative mb-6 overflow-hidden rounded-3xl bg-brand-600 dark:bg-gradient-to-br dark:from-[#181920] dark:to-[#121316] dark:border dark:border-slate-800">
       <div className="grid items-center gap-10 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:py-12">
         {/* Copy */}
         <div className="lg:col-span-6">

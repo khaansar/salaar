@@ -273,9 +273,9 @@ export default function NotificationBell({ userId }) {
       {isOpen && (
         <section
           aria-label="Notifications"
-          className="absolute right-0 top-full z-[100] mt-3 w-[min(92vw,420px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#292929]"
+          className="absolute right-0 top-full z-[100] mt-3 w-[min(92vw,420px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#121316]"
         >
-          <header className="flex h-[66px] items-center justify-between border-b border-slate-100 px-5 dark:border-white/10">
+          <header className="flex h-[66px] items-center justify-between border-b border-slate-100 px-5 dark:border-slate-800">
             <div>
               <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 Notifications
@@ -320,7 +320,7 @@ export default function NotificationBell({ userId }) {
             </div>
           ) : visibleNotifications.length === 0 ? (
             <div className="flex min-h-[150px] flex-col items-center justify-center px-6 text-center">
-              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                 <Bell size={20} />
               </div>
               <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
@@ -337,15 +337,15 @@ export default function NotificationBell({ userId }) {
                   key={notification.id}
                   type="button"
                   onClick={() => handleNotificationClick(notification)}
-                  className={`flex min-h-[84px] w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.06] ${
-                    index > 0 ? 'border-t border-slate-100 dark:border-white/10' : ''
+                  className={`flex min-h-[84px] w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                    index > 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''
                   } ${
                     !notification.read
-                      ? 'bg-blue-50/50 dark:bg-blue-500/[0.06]'
+                       ? 'bg-blue-50/50 dark:bg-blue-500/[0.08]'
                       : ''
                   }`}
                 >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-white/[0.08]">
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                     {getNotificationIcon(notification)}
                   </span>
 
@@ -377,7 +377,7 @@ export default function NotificationBell({ userId }) {
             </div>
           )}
 
-          <footer className="flex h-10 items-center justify-center border-t border-slate-100 px-4 dark:border-white/10">
+          <footer className="flex h-10 items-center justify-center border-t border-slate-100 px-4 dark:border-slate-800">
             <span className="text-[11px] text-slate-400 dark:text-slate-500">
               Showing the {visibleNotifications.length} most recent
               {notifications.length > MAX_VISIBLE_NOTIFICATIONS
