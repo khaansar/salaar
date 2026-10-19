@@ -80,9 +80,7 @@ export default async function HomePage() {
         </GuestOnly>
         <ContinueCard />
 
-        <div className="mb-10 sm:mb-12">
-          <CategoryGrid categories={categories} />
-        </div>
+        <CategoryGrid categories={categories} />
 
         <ValueStrip />
         <PopularSeries series={popularSeries} />

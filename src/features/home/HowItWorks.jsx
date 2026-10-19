@@ -11,12 +11,12 @@ export default function HowItWorks() {
   return (
     <section
       aria-labelledby="how-it-works-heading"
-      className="mb-10 sm:mb-12"
+      className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-7 shadow-xs dark:border-zinc-800 dark:bg-[#121316]"
     >
-      <h2 id="how-it-works-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+      <h2 id="how-it-works-heading" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
         How it works
       </h2>
-      <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">Start preparing in four steps.</p>
+      <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">Start preparing in four steps.</p>
 
       <ol className="mt-8 grid lg:grid-cols-4">
         {steps.map(({ icon: Icon, title, text }, i) => {
