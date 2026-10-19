@@ -39,6 +39,7 @@ export function BrandText({
   showTagline = false,
   tagline = siteConfig.tagline,
   className = '',
+  forceLight = false,
 }) {
   const textSizeMap = {
     xs: 'text-sm',
@@ -74,7 +75,13 @@ export function BrandText({
   return (
     <div className={`flex flex-col leading-none ${className}`}>
       <div className={`flex items-center font-black tracking-tight ${textSize}`}>
-        <span className="text-slate-900 dark:text-white transition-colors">
+        <span
+          className={
+            forceLight
+              ? 'text-slate-900'
+              : 'text-slate-900 dark:text-white transition-colors'
+          }
+        >
           {firstPart}
         </span>
 
@@ -92,17 +99,25 @@ export function BrandText({
         ) : null}
 
         {badge ? (
-          <span className="ml-2 inline-flex items-center rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-sky-700 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+          <span
+            className={`ml-2 inline-flex items-center rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-sky-700 ${
+              forceLight ? '' : 'dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
+            }`}
+          >
             {badge}
           </span>
         ) : null}
       </div>
 
       {showTagline && tagline ? (
-        <div className="mt-1 flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-slate-500 dark:text-slate-400">
-          <span className="h-px w-2 bg-slate-300 dark:bg-slate-700" />
+        <div
+          className={`mt-1 flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-slate-500 ${
+            forceLight ? '' : 'dark:text-slate-400'
+          }`}
+        >
+          <span className={`h-px w-2 bg-slate-300 ${forceLight ? '' : 'dark:bg-slate-700'}`} />
           <span>{tagline}</span>
-          <span className="h-px w-2 bg-slate-300 dark:bg-slate-700" />
+          <span className={`h-px w-2 bg-slate-300 ${forceLight ? '' : 'dark:bg-slate-700'}`} />
         </div>
       ) : null}
     </div>
@@ -120,6 +135,7 @@ export default function BrandLogo({
   layout = 'horizontal', // 'horizontal' | 'stacked'
   className = '',
   onClick,
+  forceLight = false,
 }) {
   const isStacked = layout === 'stacked';
 
@@ -138,6 +154,7 @@ export default function BrandLogo({
           badge={badge}
           showTagline={showTagline}
           className={isStacked ? 'items-center' : ''}
+          forceLight={forceLight}
         />
       )}
     </div>

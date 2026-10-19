@@ -124,7 +124,7 @@ export default function StartTestButton({
           : undefined
       }
       onClick={handleStart}
-      className={`inline-flex items-center justify-center gap-1.5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-80 ${buttonLayout} ${buttonColors}`}
+      className={`inline-flex items-center justify-center gap-1.5 font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-80 ${buttonLayout} ${buttonColors}`}
     >
       {!isFree && entitlementPending ? (
         <>

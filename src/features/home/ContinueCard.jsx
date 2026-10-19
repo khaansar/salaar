@@ -86,9 +86,9 @@ export default function ContinueCard() {
   }
 
   return (
-    <div className="group bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-md border border-indigo-100 dark:border-indigo-500/20 py-2.5 px-4 mb-8 shadow-sm hover:shadow transition-all flex flex-col sm:flex-row md:flex-col lg:flex-row items-center justify-between gap-3 relative overflow-hidden">
-      {/* Subtle animated background hint */}
-      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+    <div className="group bg-white dark:bg-[#121316] rounded-xl border border-slate-200/80 dark:border-zinc-800 py-2.5 px-4 mb-6 shadow-xs hover:shadow-sm transition-all flex flex-col sm:flex-row md:flex-col lg:flex-row items-center justify-between gap-3 relative overflow-hidden">
+      {/* Subtle brand indicator line */}
+      <div className="absolute top-0 left-0 w-1 h-full bg-brand-600"></div>
       
       <div className="flex items-center gap-3 flex-1 pl-1 w-full lg:w-auto">
         <div className="w-8 h-8 rounded bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400">

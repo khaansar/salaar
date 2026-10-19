@@ -9,16 +9,18 @@ const stats = [
 
 export default function StatsStrip() {
   return (
-    <section className="mb-6 grid grid-cols-2 gap-4 rounded-2xl border border-brand-100 bg-brand-50/70 p-5 lg:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
-      {stats.map((s) => (
-        <div key={s.label} className="flex items-center justify-center gap-3">
-          <s.icon size={30} className={s.fill ? 'fill-amber-400 text-amber-400' : 'text-brand-600'} />
-          <div>
-            <p className="text-xl font-extrabold text-slate-900 dark:text-white">{s.value}</p>
-            <p className="text-[11px] text-slate-500">{s.label}</p>
+    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white py-4 px-4 sm:px-6 shadow-xs dark:border-zinc-800 dark:bg-[#121316]">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-zinc-800/80">
+        {stats.map((s, idx) => (
+          <div key={s.label} className={`flex items-center justify-center gap-3 ${idx > 0 ? 'pt-3 md:pt-0' : ''}`}>
+            <s.icon size={26} className={s.fill ? 'fill-amber-400 text-amber-400' : 'text-brand-600'} />
+            <div>
+              <p className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">{s.label}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </section>
   );
 }
