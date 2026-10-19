@@ -93,29 +93,38 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
         {displayFaqs.map((faq, i) => {
           const isOpen = openIndex === i;
           return (
-            <div key={faq.id ?? faq.question ?? i} className="w-full">
+            <div
+              key={faq.id ?? faq.question ?? i}
+              className="w-full overflow-hidden rounded-[3px] bg-slate-100 transition-colors duration-200 dark:bg-[#2d2d2d]"
+            >
               <button
                 type="button"
                 onClick={() => toggleFaq(i)}
                 aria-expanded={isOpen}
-                className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-[3px] bg-slate-100 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors duration-200 hover:bg-slate-200 sm:px-6 sm:py-4 sm:text-lg dark:bg-[#2d2d2d] dark:text-white dark:hover:bg-[#4a4a4a]"
+                className="group flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors duration-200 hover:bg-slate-200/90 sm:px-6 sm:py-4 sm:text-lg dark:text-white dark:hover:bg-[#4a4a4a]"
               >
                 <span className="flex-1 leading-snug">{faq.question}</span>
                 <Plus
                   size={22}
                   strokeWidth={2}
-                  className={`shrink-0 text-slate-700 transition-transform duration-300 dark:text-white ${
+                  className={`shrink-0 text-slate-700 transition-transform duration-300 ease-out dark:text-white ${
                     isOpen ? 'rotate-45' : ''
                   }`}
                   aria-hidden="true"
                 />
               </button>
 
-              {isOpen && (
-                <div className="mt-0.5 rounded-[3px] bg-slate-100 px-5 py-4 text-sm leading-relaxed text-slate-700 sm:px-6 sm:py-5 sm:text-base dark:bg-[#2d2d2d] dark:text-zinc-200">
-                  <p className="whitespace-pre-wrap">{faq.answer}</p>
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-slate-200/80 px-5 py-4 text-sm leading-relaxed text-slate-700 sm:px-6 sm:py-5 sm:text-base dark:border-white/10 dark:text-zinc-300">
+                    <p className="whitespace-pre-wrap">{faq.answer}</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
