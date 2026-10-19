@@ -17,22 +17,22 @@ export default function CategoryGrid({ categories = [] }) {
   return (
     <section
       aria-labelledby="popular-exams-heading"
-      className="h-full rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-[#121316]"
     >
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
-          <h2 id="popular-exams-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h2 id="popular-exams-heading" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Popular exams
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Choose your exam and start preparing today.
           </p>
         </div>
         <Link
           href="/categories"
-          className={`inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-indigo-400 dark:hover:text-indigo-300 ${focusRing}`}
+          className={`inline-flex shrink-0 items-center gap-1 text-xs sm:text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 ${focusRing}`}
         >
-          View all exams <ArrowRight size={15} aria-hidden="true" />
+          View all exams <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </div>
 
@@ -41,9 +41,9 @@ export default function CategoryGrid({ categories = [] }) {
           <li key={cat.id} className="flex">
             <Link
               href={`/test-series?category=${encodeURIComponent(cat.slug ?? '')}`}
-              className={`group flex w-full flex-col rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-brand-600 ${focusRing} dark:border-slate-800 dark:bg-slate-950 dark:hover:border-brand-600`}
+              className={`group flex w-full flex-col rounded-xl border border-slate-200/60 bg-slate-50/70 p-3.5 transition-colors hover:border-brand-600 hover:bg-slate-100/80 ${focusRing} dark:border-zinc-800/60 dark:bg-[#18191d] dark:hover:border-zinc-700 dark:hover:bg-[#202127]`}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-400">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand-600 shadow-2xs dark:bg-zinc-800 dark:text-brand-400">
                 <DynamicIcon name={cat.icon || 'Folder'} size={18} strokeWidth={1.8} aria-hidden="true" />
               </span>
 

@@ -10,29 +10,29 @@ export const PasswordInput = forwardRef(({ className = '', variant = 'outline', 
   return (
     <div className="w-full">
       {label && !isFlushed && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
           {label}
         </label>
       )}
       <div className={`relative flex items-center w-full transition-colors ${
         isFlushed 
-          ? 'border-b border-slate-200 pb-3 focus-within:border-[#4F46E5]' 
-          : 'h-10 rounded-[6px] border border-slate-300 bg-white px-3 py-2 focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[#4F46E5] focus-within:border-transparent'
+          ? 'border-b border-slate-200 dark:border-slate-700 pb-3 focus-within:border-[#4F46E5]' 
+          : 'h-10 rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[#4F46E5] focus-within:border-transparent'
       } ${error ? (isFlushed ? 'border-red-500' : 'border-red-500 focus-within:ring-red-500') : ''} shadow-sm`}>
         
-        {leftIcon && <div className="text-slate-400 mr-3 shrink-0 flex items-center">{leftIcon}</div>}
+        {leftIcon && <div className="text-slate-400 dark:text-slate-500 mr-3 shrink-0 flex items-center">{leftIcon}</div>}
         
         <input
           id={id}
           type={showPassword ? "text" : "password"}
           ref={ref}
-          className={`flex-1 w-full bg-transparent text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+          className={`flex-1 w-full bg-transparent text-[14px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
           {...props}
         />
         
         <button
           type="button"
-          className="ml-3 shrink-0 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+          className="ml-3 shrink-0 flex items-center text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 focus:outline-none"
           onClick={() => setShowPassword(!showPassword)}
           tabIndex="-1"
         >

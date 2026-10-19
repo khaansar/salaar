@@ -142,8 +142,8 @@ function MobileSidebar({ pathname, open, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
-      <div className="absolute inset-0 bg-slate-950/40" onClick={onClose} />
-      <aside className="relative h-dvh w-64 bg-white shadow-xl dark:bg-slate-900">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
+      <aside className="relative h-dvh w-64 bg-white shadow-xl dark:border-r dark:border-slate-800 dark:bg-[#121316]">
         <button type="button" onClick={onClose} aria-label="Close menu" className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"><X size={17} /></button>
         <SidebarContent pathname={pathname} expanded onNavigate={onClose} />
       </aside>
