@@ -29,7 +29,7 @@ export function Drawer({ open, onClose, title, description, children, footer, wi
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"

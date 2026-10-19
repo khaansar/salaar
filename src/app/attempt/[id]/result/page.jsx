@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -125,6 +126,47 @@ function ReportContent({ report, userName, userEmail, attemptId }) {
   const scorePercentage = getScorePercentage(summary);
   const gradeInfo = getGradeClassification(scorePercentage);
 
+  const wasDarkRef = useRef(false);
+
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      if (document.documentElement.classList.contains('dark')) {
+        wasDarkRef.current = true;
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    const handleAfterPrint = () => {
+      if (wasDarkRef.current) {
+        document.documentElement.classList.add('dark');
+        wasDarkRef.current = false;
+      }
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+      if (wasDarkRef.current) {
+        document.documentElement.classList.add('dark');
+        wasDarkRef.current = false;
+      }
+    };
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    if (document.documentElement.classList.contains('dark')) {
+      wasDarkRef.current = true;
+      document.documentElement.classList.remove('dark');
+    }
+    // Let browser render in light mode before opening the print/save-as-pdf dialog
+    requestAnimationFrame(() => {
+      window.print();
+    });
+  }, []);
+
   // Question counts across sections
   const totalQuestions = sections.length
     ? sections.reduce((acc, sec) => acc + Number(sec?.totalQuestions || 0), 0)
@@ -151,11 +193,11 @@ function ReportContent({ report, userName, userEmail, attemptId }) {
 
           <button
             type="button"
-            onClick={() => window.print()}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500/50 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-400"
+            onClick={handlePrint}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-sm transition-all cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500/50 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-400"
           >
             <Printer size={14} />
-            <span>Print Official Report</span>
+            <span>Download / Print Report</span>
           </button>
         </div>
 
@@ -569,17 +611,30 @@ function PrintReportCard({
 }) {
   return (
     <div className="report-print hidden print:block bg-white text-slate-900 font-sans">
-      {/* Force Print CSS Dimensions */}
+      {/* Force Print CSS Dimensions & Light Canvas */}
       <style>{`
         @media print {
           @page {
             size: A4 portrait;
             margin: 8mm;
           }
-          body {
+          :root, html, body {
+            color-scheme: light !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             background: #ffffff !important;
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+          }
+          .dark {
+            --background: #ffffff !important;
+            --foreground: #0f172a !important;
+          }
+          .report-print,
+          .report-print * {
+            color-scheme: light !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
@@ -604,7 +659,7 @@ function PrintReportCard({
             </div>
 
             <div className="flex items-center gap-3">
-              <BrandLogo href={null} size="lg" showIcon showText />
+              <BrandLogo href={null} size="lg" showIcon showText forceLight />
             </div>
           </div>
 

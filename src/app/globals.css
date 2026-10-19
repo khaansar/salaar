@@ -35,10 +35,58 @@
 
 /*
  * Application theme tokens.
+ * Clean, modern neutral grey-black dark palette (charcoal / zinc / obsidian)
  */
 .dark {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #09090b;
+  --foreground: #f4f4f5;
+
+  /* Redefine Tailwind palette tokens under .dark so all dark:* utilities use neutral grey-black */
+  --color-slate-950: #09090b;
+  --color-slate-900: #121316;
+  --color-slate-800: #1c1d22;
+  --color-slate-700: #27272a;
+  --color-slate-600: #3f3f46;
+  --color-slate-500: #71717a;
+  --color-slate-400: #a1a1aa;
+  --color-slate-300: #d4d4d8;
+  --color-slate-200: #e4e4e7;
+  --color-slate-100: #f4f4f5;
+  --color-slate-50: #fafafa;
+
+  --color-gray-950: #09090b;
+  --color-gray-900: #121316;
+  --color-gray-800: #1c1d22;
+  --color-gray-700: #27272a;
+  --color-gray-600: #3f3f46;
+  --color-gray-500: #71717a;
+  --color-gray-400: #a1a1aa;
+  --color-gray-300: #d4d4d8;
+  --color-gray-200: #e4e4e7;
+  --color-gray-100: #f4f4f5;
+  --color-gray-50: #fafafa;
+
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #121316;
+  --color-zinc-800: #1c1d22;
+  --color-zinc-700: #27272a;
+  --color-zinc-600: #3f3f46;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-50: #fafafa;
+
+  /* Exam Engine Tokens in Dark Mode */
+  --color-exam-accent: #6366f1;
+  --color-exam-accent-light: rgba(99, 102, 241, 0.15);
+  --color-exam-accent-border: rgba(99, 102, 241, 0.35);
+  --color-exam-bg: #09090b;
+  --color-exam-panel: #121316;
+  --color-exam-border: #27272a;
+  --color-exam-text: #f4f4f5;
+  --color-exam-text-muted: #a1a1aa;
 }
 
 html,
@@ -67,7 +115,8 @@ body {
  *   border-slate-200
  *
  * These overrides prevent those older/light-only utilities from
- * becoming almost invisible when dark mode is enabled.
+ * becoming almost invisible when dark mode is enabled, while
+ * ensuring a unified neutral grey-black aesthetic.
  *
  * Components that explicitly use dark:* utilities will still
  * take precedence according to Tailwind's generated CSS.
@@ -76,77 +125,83 @@ body {
 /* Page / surface backgrounds */
 
 .dark .bg-white {
-  background-color: #0f172a;
+  background-color: #121316;
 }
 
 .dark .bg-gray-50 {
-  background-color: #0f172a;
+  background-color: #121316;
 }
 
 .dark .bg-slate-50 {
-  background-color: #0f172a;
+  background-color: #121316;
 }
 
-.dark .bg-slate-100 {
-  background-color: #1e293b;
+.dark .bg-slate-100,
+.dark .bg-gray-100 {
+  background-color: #1c1d22;
 }
 
-.dark .bg-slate-200 {
-  background-color: #334155;
+.dark .bg-slate-200,
+.dark .bg-gray-200 {
+  background-color: #27272a;
 }
 
 /* Slightly transparent surfaces */
 
 .dark .bg-slate-50\/60 {
-  background-color: rgb(30 41 59 / 0.6);
+  background-color: rgb(28 29 34 / 0.6);
+}
+
+.dark .bg-slate-50\/70 {
+  background-color: rgb(28 29 34 / 0.7);
 }
 
 .dark .bg-slate-50\/90 {
-  background-color: rgb(15 23 42 / 0.9);
+  background-color: rgb(18 19 22 / 0.9);
 }
 
 .dark .bg-white\/70 {
-  background-color: rgb(15 23 42 / 0.7);
+  background-color: rgb(18 19 22 / 0.7);
 }
 
 .dark .bg-white\/80 {
-  background-color: rgb(15 23 42 / 0.8);
+  background-color: rgb(18 19 22 / 0.8);
 }
 
 .dark .bg-white\/90 {
-  background-color: rgb(15 23 42 / 0.9);
+  background-color: rgb(18 19 22 / 0.9);
 }
 
 /* Text */
 
 .dark .text-gray-900,
 .dark .text-slate-900 {
-  color: #f8fafc;
+  color: #f4f4f5;
 }
 
 .dark .text-gray-800,
 .dark .text-slate-800 {
-  color: #f1f5f9;
+  color: #e4e4e7;
 }
 
 .dark .text-gray-700,
 .dark .text-slate-700 {
-  color: #e2e8f0;
+  color: #d4d4d8;
 }
 
 .dark .text-gray-600,
 .dark .text-slate-600 {
-  color: #cbd5e1;
+  color: #a1a1aa;
 }
 
 .dark .text-gray-500,
 .dark .text-slate-500 {
-  color: #94a3b8;
+  color: #a1a1aa;
 }
 
 .dark .text-gray-400,
 .dark .text-slate-400 {
-  color: #64748b;
+  color: #71717a;
 }
 
 /*
@@ -199,27 +254,29 @@ body {
 
 .dark .border-gray-100,
 .dark .border-slate-100 {
-  border-color: #1e293b;
+  border-color: #222328;
 }
 
 .dark .border-gray-200,
 .dark .border-slate-200 {
-  border-color: #334155;
+  border-color: #27272a;
 }
 
 .dark .border-gray-300,
 .dark .border-slate-300 {
-  border-color: #475569;
+  border-color: #3f3f46;
 }
 
 /* Dividers */
 
-.dark .divide-slate-100 > :not(:last-child) {
-  border-color: #1e293b;
+.dark .divide-slate-100 > :not(:last-child),
+.dark .divide-gray-100 > :not(:last-child) {
+  border-color: #222328;
 }
 
-.dark .divide-slate-200 > :not(:last-child) {
-  border-color: #334155;
+.dark .divide-slate-200 > :not(:last-child),
+.dark .divide-gray-200 > :not(:last-child) {
+  border-color: #27272a;
 }
 
 /*
@@ -278,33 +335,104 @@ body {
   color-scheme: dark;
 }
 
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #71717a;
+}
 
 .dark option {
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #121316;
+  color: #f4f4f5;
 }
 
 .dark {
-  scrollbar-color: #475569 #0f172a;
+  scrollbar-color: #3f3f46 #121316;
 }
 
 .dark .katex {
-  color: #f8fafc;
+  color: #f4f4f5;
+}
+
+/*
+ * Hand gesture (cursor: pointer) across all interactive elements throughout the entire application
+ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]):not(:disabled),
+[role="tab"]:not([aria-disabled="true"]):not(:disabled),
+[role="switch"]:not([aria-disabled="true"]):not(:disabled),
+[role="menuitem"]:not([aria-disabled="true"]):not(:disabled),
+[role="option"]:not([aria-disabled="true"]):not(:disabled),
+[type="button"]:not(:disabled),
+[type="submit"]:not(:disabled),
+[type="reset"]:not(:disabled),
+a[href],
+summary,
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled),
+input[type="range"]:not(:disabled),
+label[for],
+label:has(input:not(:disabled)) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[role="button"]:disabled,
+[role="tab"][aria-disabled="true"],
+[role="switch"][aria-disabled="true"],
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
 }
 
 @media print {
+  /* Enforce pure light mode print canvas across all browsers and PDF print engines */
+  :root,
+  html,
+  body {
+    color-scheme: light !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+  }
+
+  /* Reset dark tokens if dark class is still attached during print */
+  html.dark,
+  body.dark,
+  .dark {
+    color-scheme: light !important;
+    --background: #ffffff !important;
+    --foreground: #0f172a !important;
+    --color-slate-950: #020617 !important;
+    --color-slate-900: #0f172a !important;
+    --color-slate-800: #1e293b !important;
+    --color-slate-700: #334155 !important;
+    --color-slate-600: #475569 !important;
+    --color-slate-500: #64748b !important;
+    --color-slate-400: #94a3b8 !important;
+    --color-slate-300: #cbd5e1 !important;
+    --color-slate-200: #e2e8f0 !important;
+    --color-slate-100: #f1f5f9 !important;
+    --color-slate-50: #f8fafc !important;
+    --color-gray-950: #030712 !important;
+    --color-gray-900: #111827 !important;
+    --color-gray-800: #1f2937 !important;
+    --color-gray-700: #374151 !important;
+  }
+
   .report-screen {
     display: none !important;
   }
 
-  .print-dashboard-shell footer {
-    display: none !important;
-  }
-
-  .report-print {
-    display: block !important;
-  }
-
+  .print-dashboard-shell footer,
   .print-dashboard-shell header,
   .print-dashboard-shell aside {
     display: none !important;
@@ -326,13 +454,30 @@ body {
     min-height: 0 !important;
   }
 
-  body {
-    margin: 0 !important;
-    background: white !important;
+  .report-print {
+    display: block !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .report-print * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .dark .report-print {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  .dark .report-print .dark\:text-white {
+    color: #0f172a !important;
   }
 
   @page {
-    size: A4;
-    margin: 0;
+    size: A4 portrait;
+    margin: 8mm;
   }
 }

@@ -1,31 +1,62 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { siteConfig } from '../../config/site';
 import { faqApi } from '../../services/faqService';
+
+const FALLBACK_FAQS = [
+  {
+    id: 'f1',
+    question: `What is ${siteConfig.name}?`,
+    answer: `${siteConfig.name} is a comprehensive mock test and exam prep platform offering realistic computer-based tests, official previous year papers, AI-driven performance insights, and sectional practice for competitive examinations.`,
+  },
+  {
+    id: 'f2',
+    question: 'How do the mock tests work?',
+    answer: 'Our mock tests emulate the exact exam pattern, interface, countdown timers, and negative marking rules of actual examinations. After submission, you receive instant scorecards, topic-level proficiency breakdowns, and detailed step-by-step solutions.',
+  },
+  {
+    id: 'f3',
+    question: 'Are previous year question papers included?',
+    answer: 'Yes! We provide extensive collections of official past year papers solved with verified answer keys and detailed explanations to help you understand question patterns.',
+  },
+  {
+    id: 'f4',
+    question: 'How does AI-powered performance analysis help me?',
+    answer: 'Our analytics engine highlights your accuracy trends, time spent per question, question palette behavior, and subject weaknesses, giving you clear recommendations on where to focus your revision.',
+  },
+  {
+    id: 'f5',
+    question: 'Can I practice on mobile or tablet?',
+    answer: 'Yes, the platform is fully responsive across desktops, laptops, tablets, and mobile devices. Your test progress and streak sync seamlessly across all your devices.',
+  },
+  {
+    id: 'f6',
+    question: 'How do I start practicing?',
+    answer: 'Browse the test series catalog on the home page, select your target exam category, and start attempting free mock tests right away. You can track your daily streak and test history on your dashboard.',
+  },
+];
 
 export default function HomeFaq({ targetId = null, title = 'Frequently Asked Questions', subtitle }) {
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setFailed(false);
 
     faqApi.list(targetId)
       .then((items) => {
         if (!active) return;
         const orderedFaqs = (Array.isArray(items) ? items : [])
           .sort((a, b) => (Number(a.displayOrder) || 0) - (Number(b.displayOrder) || 0));
-        setFaqs(targetId == null ? orderedFaqs.slice(-4) : orderedFaqs);
+        setFaqs(orderedFaqs.length ? orderedFaqs : (targetId == null ? FALLBACK_FAQS : []));
       })
       .catch(() => {
         if (active) {
-          setFaqs([]);
-          setFailed(true);
+          setFaqs(targetId == null ? FALLBACK_FAQS : []);
         }
       })
       .finally(() => {
@@ -35,32 +66,69 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
     return () => { active = false; };
   }, [targetId]);
 
+  const displayFaqs = faqs.length ? faqs : (!loading && targetId == null ? FALLBACK_FAQS : []);
+
+  const toggleFaq = (index) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
+
+  if (!loading && !displayFaqs.length) {
+    return null;
+  }
+
   return (
-    <section className="relative mb-6 overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-white via-[#faf9ff] to-indigo-50/80 p-5 shadow-sm sm:p-8 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/30">
-      <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-200/30 blur-3xl dark:bg-indigo-500/10" />
-      <div className="relative mb-5 flex items-start justify-between gap-4">
-        <div>
-          <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-600 dark:border-indigo-500/20 dark:bg-slate-900/70 dark:text-indigo-300"><Sparkles size={12} /> Quick answers</span>
-          <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-            <HelpCircle size={20} className="text-brand-600" /> {title}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle || `A few helpful answers about ${siteConfig.name}.`}</p>
-        </div>
+    <section className="relative my-6 sm:my-8">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl lg:text-3xl dark:text-white">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+            {subtitle}
+          </p>
+        )}
       </div>
-      {faqs.length ? <div className="relative w-full space-y-3">
-        {faqs.map((faq, i) => (
-          <details key={faq.id ?? faq.question} className="group overflow-hidden rounded-2xl border border-indigo-100/90 bg-white/80 shadow-[0_2px_12px_rgba(79,70,229,0.04)] transition duration-200 open:border-indigo-200 open:bg-white open:shadow-[0_12px_32px_rgba(79,70,229,0.09)] hover:border-indigo-200 dark:border-slate-700 dark:bg-slate-900/70 dark:open:border-indigo-500/40 dark:open:bg-slate-900">
-            <summary className="flex cursor-pointer list-none items-center gap-4 px-4 py-4 text-sm font-semibold leading-6 text-slate-800 sm:px-5 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-violet-100 text-xs font-bold tracking-wide text-indigo-600 dark:from-indigo-500/15 dark:to-violet-500/10 dark:text-indigo-300">{String(i + 1).padStart(2, '0')}</span>
-              <span className="flex-1">{faq.question}</span>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-indigo-500 transition group-open:rotate-180 group-open:bg-indigo-50 dark:bg-slate-800 dark:text-indigo-300 dark:group-open:bg-indigo-500/10"><ChevronDown size={16} /></span>
-            </summary>
-            <div className="ml-[4.25rem] mr-5 border-t border-indigo-50 pb-5 pt-3 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:text-slate-300">
-              <p className="whitespace-pre-wrap">{faq.answer}</p>
+
+      <div className="w-full space-y-1.5 sm:space-y-2">
+        {displayFaqs.map((faq, i) => {
+          const isOpen = openIndex === i;
+          return (
+            <div
+              key={faq.id ?? faq.question ?? i}
+              className="w-full overflow-hidden rounded-[3px] bg-slate-100 transition-colors duration-200 dark:bg-[#2d2d2d]"
+            >
+              <button
+                type="button"
+                onClick={() => toggleFaq(i)}
+                aria-expanded={isOpen}
+                className="group flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors duration-200 hover:bg-slate-200/90 sm:px-6 sm:py-4 sm:text-lg dark:text-white dark:hover:bg-[#4a4a4a]"
+              >
+                <span className="flex-1 leading-snug">{faq.question}</span>
+                <Plus
+                  size={22}
+                  strokeWidth={2}
+                  className={`shrink-0 text-slate-700 transition-transform duration-300 ease-out dark:text-white ${
+                    isOpen ? 'rotate-45' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-slate-200/80 px-5 py-4 text-sm leading-relaxed text-slate-700 sm:px-6 sm:py-5 sm:text-base dark:border-white/10 dark:text-zinc-300">
+                    <p className="whitespace-pre-wrap">{faq.answer}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </details>
-        ))}
-      </div> : <p className="relative rounded-2xl border border-dashed border-indigo-200 bg-white/70 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">{loading ? 'Loading FAQs…' : failed ? 'FAQs are temporarily unavailable.' : 'No FAQs are available yet.'}</p>}
+          );
+        })}
+      </div>
     </section>
   );
 }

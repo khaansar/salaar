@@ -101,10 +101,10 @@ export default function StudentShell({
                 onClick={() =>
                   setMobileNavOpen(false)
                 }
-                className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-xs"
               />
 
-              <aside className="relative flex h-full w-[280px] flex-col bg-white shadow-2xl dark:bg-slate-950">
+              <aside className="relative flex h-full w-[280px] flex-col bg-white shadow-2xl dark:border-r dark:border-slate-800 dark:bg-[#121316]">
                 <button
                   type="button"
                   onClick={() =>
@@ -117,13 +117,13 @@ export default function StudentShell({
                 </button>
 
                 <div className="flex flex-col gap-2 p-6 pt-16">
-                  <Link href="/" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Link href="/" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-800/60">
                     Home
                   </Link>
-                  <Link href="/tests" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Link href="/tests" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-800/60">
                     Explore Tests
                   </Link>
-                  <Link href="/my-learning" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Link href="/my-learning" onClick={() => setMobileNavOpen(false)} className="px-4 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-200 dark:hover:bg-slate-800/60">
                     My Learning
                   </Link>
                 </div>

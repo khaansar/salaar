@@ -60,14 +60,14 @@ export default function Testimonials({ testimonials = [] }) {
   return (
     <section
       aria-labelledby="testimonials-heading"
-      className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-[#121316]"
     >
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 id="testimonials-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h2 id="testimonials-heading" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             What our students say
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Aspirants are reaching their goals with {siteConfig.name}.
           </p>
         </div>
@@ -79,9 +79,9 @@ export default function Testimonials({ testimonials = [] }) {
               type="button"
               aria-label={label}
               onClick={() => scroll(d)}
-              className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-brand-600 hover:text-brand-600 ${focusRing} dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white`}
+              className={`flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-brand-600 hover:text-brand-600 ${focusRing} dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-300 dark:hover:text-white`}
             >
-              <Icon size={16} aria-hidden="true" />
+              <Icon size={14} aria-hidden="true" />
             </button>
           ))}
         </div>
@@ -103,7 +103,7 @@ export default function Testimonials({ testimonials = [] }) {
 
           return (
             <li key={`${t.name}-${idx}`} className="flex min-w-[85%] snap-center sm:min-w-[60%] lg:min-w-0">
-              <figure className="flex w-full flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
+              <figure className="flex w-full flex-col rounded-xl border border-slate-200/60 bg-slate-50/70 p-5 dark:border-zinc-800/60 dark:bg-[#18191d]">
                 <div className="flex gap-0.5 text-amber-400" role="img" aria-label={`${t.rating} out of 5 stars`}>
                   {[...Array(t.rating)].map((_, i) => (
                     <Star key={i} size={15} className="fill-current" aria-hidden="true" />

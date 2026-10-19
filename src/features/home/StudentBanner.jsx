@@ -70,13 +70,23 @@ export default function StudentBanner() {
   return (
     <section
       aria-label="Welcome"
-      className="relative mb-6 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-white via-white to-blue-100/70 dark:border-slate-800 dark:bg-slate-900 dark:bg-none"
+      className="relative mb-6 -mt-4 -ml-4 -mr-4 md:-mt-6 md:-ml-6 md:-mr-6 lg:-ml-8 lg:-mr-8 pt-4 px-4 md:pt-6 md:px-6 lg:px-8 overflow-hidden"
     >
-      {/* Decoration: rings in light mode, a soft blue glow in dark mode */}
-      <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full border-[36px] border-blue-100/70 dark:hidden" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 hidden h-80 w-80 rounded-full bg-blue-500/15 blur-3xl dark:block" />
+      {/* Decoration: concentric rings freely touching navbar and left edge in both light and dark mode */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full border-[36px] border-blue-200/80 dark:border-white/[0.10]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[160px] -top-[160px] h-[480px] w-[480px] rounded-full border-[1.5px] border-blue-200/50 dark:border-white/[0.06]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[240px] -top-[240px] h-[640px] w-[640px] rounded-full border border-blue-200/25 dark:border-white/[0.03]"
+      />
 
-      <div className="relative grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:gap-10 lg:p-10">
+      <div className="relative grid items-center gap-8 py-2 sm:py-4 lg:grid-cols-12 lg:gap-10">
         {/* Greeting */}
         <div className="lg:col-span-6">
           <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
@@ -86,7 +96,7 @@ export default function StudentBanner() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/tests"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:shadow-none dark:ring-offset-slate-900 dark:hover:bg-blue-500"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-500 dark:shadow-none dark:ring-offset-slate-900"
             >
               Start a mock test
             </Link>
@@ -99,12 +109,12 @@ export default function StudentBanner() {
           </div>
         </div>
 
-        {/* Streak week: solid blue in light mode, a quiet slate card with blue accents in dark mode */}
+        {/* Streak week: solid blue in light mode, quiet grey-black card with warm accents in dark mode */}
         <div className="lg:col-span-6 lg:pl-6">
-          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl shadow-blue-600/25 dark:border dark:border-slate-700/70 dark:bg-slate-950/50 dark:shadow-none sm:p-6">
+          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl shadow-blue-600/25 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 dark:bg-blue-500/15 dark:text-blue-400">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 dark:bg-amber-500/15 dark:text-amber-400">
                   <Flame size={22} aria-hidden="true" />
                 </span>
                 <div>
@@ -119,15 +129,15 @@ export default function StudentBanner() {
 
             <ol className={`mt-6 grid grid-cols-7 gap-1.5 pb-2 sm:gap-2 ${isLoading ? 'opacity-50' : ''}`}>
               {week.map((d, i) => {
-                let circle = 'text-white/60 dark:text-slate-500';
-                if (d.checked) circle = 'bg-white text-blue-600 dark:bg-blue-500 dark:text-white';
-                else if (d.today) circle = 'bg-white/25 ring-2 ring-white text-white font-bold dark:bg-blue-500/15 dark:ring-blue-400 dark:text-blue-300';
-                else if (d.future) circle = 'border border-white/25 text-white/50 dark:border-slate-700 dark:text-slate-500';
+                let circle = 'text-white/60 dark:text-slate-400';
+                if (d.checked) circle = 'bg-white text-blue-600 dark:bg-emerald-500 dark:text-white';
+                else if (d.today) circle = 'bg-white/25 ring-2 ring-white text-white font-bold dark:bg-white/15 dark:ring-2 dark:ring-white/40 dark:text-white';
+                else if (d.future) circle = 'border border-white/25 text-white/50 dark:border-slate-800 dark:text-slate-500';
                 else if (d.hasData) circle = 'text-white/90 dark:text-slate-300';
 
                 return (
                   <li key={i} className="flex flex-col items-center gap-2">
-                    <span className="text-xs font-medium text-blue-100 dark:text-slate-500">{DAY_LETTERS[i]}</span>
+                    <span className="text-xs font-medium text-blue-100 dark:text-slate-400">{DAY_LETTERS[i]}</span>
                     <div className="relative">
                       <span
                         className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold sm:h-11 sm:w-11 sm:text-sm ${circle}`}
