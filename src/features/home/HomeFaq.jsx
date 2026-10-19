@@ -98,7 +98,7 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
                 type="button"
                 onClick={() => toggleFaq(i)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 rounded-[3px] bg-slate-100 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors hover:bg-slate-200/90 sm:px-6 sm:py-4 sm:text-lg dark:bg-[#2d2d2d] dark:text-white dark:hover:bg-[#414141]"
+                className="group flex w-full cursor-pointer items-center justify-between gap-4 rounded-[3px] bg-slate-100 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors duration-200 hover:bg-slate-200 sm:px-6 sm:py-4 sm:text-lg dark:bg-[#2d2d2d] dark:text-white dark:hover:bg-[#4a4a4a]"
               >
                 <span className="flex-1 leading-snug">{faq.question}</span>
                 <Plus
