@@ -186,7 +186,7 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
               placeholder="e.g. CLASS-10A or PHY-MIDTERM"
               value={form.accessCode}
               onChange={(e) => setForm((f) => ({ ...f, accessCode: e.target.value }))}
-              helperText="Only students who enter this code can start the test."
+              helpText="Only students who enter this code can start the test."
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
@@ -195,7 +195,7 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
                 type="datetime-local"
                 value={form.windowStartTime}
                 onChange={(e) => setForm((f) => ({ ...f, windowStartTime: e.target.value }))}
-                helperText="Students cannot start before this time."
+                helpText="Students cannot start before this time."
               />
               <Input
                 id="test-window-end"
@@ -203,7 +203,7 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
                 type="datetime-local"
                 value={form.windowEndTime}
                 onChange={(e) => setForm((f) => ({ ...f, windowEndTime: e.target.value }))}
-                helperText="Students cannot start after this time."
+                helpText="Students cannot start after this time."
               />
             </div>
           </CardBody>
