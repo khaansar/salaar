@@ -82,6 +82,7 @@ function MarksEditor({ question, sectionId, onSaved }) {
 
 export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMoveDown, onChanged }) {
   const toast = useToast();
+  const [collapsed, setCollapsed] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -124,9 +125,22 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between gap-4 px-5 py-4 bg-slate-50/60 border-b border-slate-100">
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className={`flex items-center justify-between gap-4 px-5 py-4 bg-slate-50/60 transition-colors ${collapsed ? '' : 'border-b border-slate-100'}`}>
         <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1 -ml-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 transition-colors"
+            title={collapsed ? 'Expand section' : 'Collapse section'}
+            aria-label={collapsed ? 'Expand section' : 'Collapse section'}
+          >
+            <ChevronDown
+              size={18}
+              className={`transform transition-transform duration-200 ${collapsed ? '-rotate-90' : 'rotate-0'}`}
+            />
+          </button>
+
           <div className="flex flex-col -my-1">
             <button onClick={onMoveUp} disabled={isFirst} className="text-slate-400 hover:text-slate-700 disabled:opacity-25 disabled:pointer-events-none">
               <ChevronUp size={16} />
@@ -135,8 +149,20 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
               <ChevronDown size={16} />
             </button>
           </div>
-          <div className="min-w-0">
-            <h3 className="font-semibold text-slate-900 truncate">{section.title}</h3>
+          <div
+            className="min-w-0 cursor-pointer select-none"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-slate-900 truncate hover:text-indigo-600 transition-colors">
+                {section.title}
+              </h3>
+              {collapsed && (
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600">
+                  {questions.length} question{questions.length !== 1 ? 's' : ''} (collapsed)
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
               <span className="inline-flex items-center gap-1">
                 <Clock size={12} /> {section.durationMinutes} min
@@ -173,34 +199,38 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         </div>
       </div>
 
-      {questions.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-slate-400">No questions in this section yet.</div>
-      ) : (
-        <div className="divide-y divide-slate-100">
-          {questions.map((q, i) => (
-            <div key={q.questionId} className="flex items-start gap-3 px-5 py-3">
-              <div className="flex flex-col -my-0.5 pt-0.5">
-                <button onClick={() => moveQuestion(i, -1)} disabled={i === 0 || reordering} className="text-slate-300 hover:text-slate-600 disabled:opacity-25">
-                  <ChevronUp size={14} />
-                </button>
-                <button onClick={() => moveQuestion(i, 1)} disabled={i === questions.length - 1 || reordering} className="text-slate-300 hover:text-slate-600 disabled:opacity-25">
-                  <ChevronDown size={14} />
-                </button>
-              </div>
-              <span className="text-xs font-semibold text-slate-400 w-5 pt-0.5 shrink-0">{i + 1}.</span>
-              <div className="min-w-0 flex-1">
-                <MathText text={q.translations?.[0]?.questionText} className="text-sm text-slate-800 line-clamp-2" />
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{q.questionType}</Badge>
-                  <MarksEditor question={q} sectionId={section.sectionId} onSaved={onChanged} />
+      {!collapsed && (
+        <>
+          {questions.length === 0 ? (
+            <div className="px-5 py-8 text-center text-sm text-slate-400">No questions in this section yet.</div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {questions.map((q, i) => (
+                <div key={q.questionId} className="flex items-start gap-3 px-5 py-3">
+                  <div className="flex flex-col -my-0.5 pt-0.5">
+                    <button onClick={() => moveQuestion(i, -1)} disabled={i === 0 || reordering} className="text-slate-300 hover:text-slate-600 disabled:opacity-25">
+                      <ChevronUp size={14} />
+                    </button>
+                    <button onClick={() => moveQuestion(i, 1)} disabled={i === questions.length - 1 || reordering} className="text-slate-300 hover:text-slate-600 disabled:opacity-25">
+                      <ChevronDown size={14} />
+                    </button>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-400 w-5 pt-0.5 shrink-0">{i + 1}.</span>
+                  <div className="min-w-0 flex-1">
+                    <MathText text={q.translations?.[0]?.questionText} className="text-sm text-slate-800 line-clamp-2" />
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{q.questionType}</Badge>
+                      <MarksEditor question={q} sectionId={section.sectionId} onSaved={onChanged} />
+                    </div>
+                  </div>
+                  <button onClick={() => setRemoveTarget(q)} className="text-slate-300 hover:text-rose-600 shrink-0 mt-0.5">
+                    <X size={16} />
+                  </button>
                 </div>
-              </div>
-              <button onClick={() => setRemoveTarget(q)} className="text-slate-300 hover:text-rose-600 shrink-0 mt-0.5">
-                <X size={16} />
-              </button>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <SectionSettingsModal
@@ -214,7 +244,10 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         sectionId={section.sectionId}
-        onCreated={onChanged}
+        onCreated={() => {
+          setCollapsed(false);
+          onChanged?.();
+        }}
       />
 
       <AttachQuestionsDrawer
@@ -222,7 +255,10 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         onClose={() => setAttachOpen(false)}
         sectionId={section.sectionId}
         existingQuestionIds={questions.map((q) => q.questionId)}
-        onAttached={onChanged}
+        onAttached={() => {
+          setCollapsed(false);
+          onChanged?.();
+        }}
       />
 
       <ConfirmDialog
