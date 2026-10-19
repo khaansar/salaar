@@ -175,8 +175,8 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative mb-12 overflow-hidden rounded-3xl border border-brand-100 bg-[#f6f4ff] dark:border-white/5 dark:bg-slate-900">
-      <div className="grid items-center gap-10 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:gap-8 lg:py-14">
+    <section className="relative mb-12 overflow-hidden">
+      <div className="grid items-center gap-10 py-4 sm:py-6 lg:grid-cols-12 lg:gap-8 lg:py-8">
         {/* Copy */}
         <div className="lg:col-span-5">
           <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-5xl">

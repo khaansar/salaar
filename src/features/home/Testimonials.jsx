@@ -60,7 +60,7 @@ export default function Testimonials({ testimonials = [] }) {
   return (
     <section
       aria-labelledby="testimonials-heading"
-      className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      className="mb-10 sm:mb-12"
     >
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
@@ -103,7 +103,7 @@ export default function Testimonials({ testimonials = [] }) {
 
           return (
             <li key={`${t.name}-${idx}`} className="flex min-w-[85%] snap-center sm:min-w-[60%] lg:min-w-0">
-              <figure className="flex w-full flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
+              <figure className="flex w-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex gap-0.5 text-amber-400" role="img" aria-label={`${t.rating} out of 5 stars`}>
                   {[...Array(t.rating)].map((_, i) => (
                     <Star key={i} size={15} className="fill-current" aria-hidden="true" />

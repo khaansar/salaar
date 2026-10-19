@@ -80,8 +80,8 @@ export default async function HomePage() {
         </GuestOnly>
         <ContinueCard />
 
-        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-stretch mb-6">
-            <CategoryGrid categories={categories} />
+        <div className="mb-10 sm:mb-12">
+          <CategoryGrid categories={categories} />
         </div>
 
         <ValueStrip />

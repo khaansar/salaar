@@ -17,7 +17,7 @@ export default function CategoryGrid({ categories = [] }) {
   return (
     <section
       aria-labelledby="popular-exams-heading"
-      className="h-full rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      className="w-full"
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
@@ -41,7 +41,7 @@ export default function CategoryGrid({ categories = [] }) {
           <li key={cat.id} className="flex">
             <Link
               href={`/test-series?category=${encodeURIComponent(cat.slug ?? '')}`}
-              className={`group flex w-full flex-col rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-brand-600 ${focusRing} dark:border-slate-800 dark:bg-slate-950 dark:hover:border-brand-600`}
+              className={`group flex w-full flex-col rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs transition-colors hover:border-brand-600 ${focusRing} dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600`}
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-400">
                 <DynamicIcon name={cat.icon || 'Folder'} size={18} strokeWidth={1.8} aria-hidden="true" />

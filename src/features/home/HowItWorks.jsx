@@ -11,7 +11,7 @@ export default function HowItWorks() {
   return (
     <section
       aria-labelledby="how-it-works-heading"
-      className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900"
+      className="mb-10 sm:mb-12"
     >
       <h2 id="how-it-works-heading" className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
         How it works

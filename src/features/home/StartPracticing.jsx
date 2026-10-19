@@ -38,7 +38,7 @@ export default function StartPracticing({ tests = [] }) {
   return (
     <section
       aria-labelledby="start-practicing-heading"
-      className="mb-6 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      className="mb-10 sm:mb-12"
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
@@ -69,7 +69,7 @@ export default function StartPracticing({ tests = [] }) {
           return (
             <li
               key={test.id}
-              className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950"
+              className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex items-center gap-2">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-indigo-400">
