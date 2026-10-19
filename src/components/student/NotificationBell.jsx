@@ -287,7 +287,7 @@ export default function NotificationBell({ userId }) {
 
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
-                <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 dark:bg-brand-500/15 dark:text-brand-300">
                   {unreadCount > 99 ? '99+' : unreadCount} new
                 </span>
               )}
@@ -296,7 +296,7 @@ export default function NotificationBell({ userId }) {
                 type="button"
                 onClick={refreshNotifications}
                 disabled={isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/10"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800"
                 aria-label="Refresh notifications"
                 title="Refresh"
               >
@@ -341,7 +341,7 @@ export default function NotificationBell({ userId }) {
                     index > 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''
                   } ${
                     !notification.read
-                       ? 'bg-blue-50/50 dark:bg-blue-500/[0.08]'
+                       ? 'bg-blue-50/50 dark:bg-brand-500/[0.08]'
                       : ''
                   }`}
                 >
@@ -368,7 +368,7 @@ export default function NotificationBell({ userId }) {
 
                   {!notification.read && (
                     <span
-                      className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500"
+                      className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-600"
                       aria-label="Unread"
                     />
                   )}

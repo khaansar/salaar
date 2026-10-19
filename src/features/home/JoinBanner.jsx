@@ -12,20 +12,20 @@ const steps = [
 ];
 
 const ctaClass =
-  'inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600';
+  'inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600 dark:bg-brand-600 dark:text-white dark:hover:bg-brand-500 dark:focus-visible:ring-offset-slate-900';
 
 export default function JoinBanner() {
   const { user } = useAppSelector((state) => state.auth);
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-3xl bg-brand-600 dark:bg-gradient-to-br dark:from-[#181920] dark:to-[#121316] dark:border dark:border-slate-800">
+    <section className="relative mb-6 overflow-hidden rounded-3xl bg-brand-600 text-white dark:border dark:border-slate-800 dark:bg-[#121316] dark:text-slate-100">
       <div className="grid items-center gap-10 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:py-12">
         {/* Copy */}
         <div className="lg:col-span-6">
-          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white dark:text-white sm:text-4xl">
             Join 100K+ aspirants and start preparing today.
           </h2>
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/80 dark:text-slate-400">
             Get full-length mock tests, previous year papers, detailed solutions and AI-powered insights in one place.
           </p>
 
@@ -50,14 +50,22 @@ export default function JoinBanner() {
               <li key={label} className="flex min-w-0 flex-1 flex-col items-center">
                 {last && <Trophy size={32} className="mb-2 text-amber-300" aria-hidden="true" />}
                 <div
-                  className={`flex w-full flex-col justify-between rounded-t-xl p-3 ${height} ${
-                    last ? 'bg-white text-brand-700' : 'bg-white/15 text-white'
+                  className={`flex w-full flex-col justify-between rounded-t-xl p-3 ${height} transition-colors ${
+                    last
+                      ? 'bg-white text-brand-700 dark:bg-brand-600 dark:text-white dark:shadow-lg dark:shadow-brand-600/30'
+                      : 'bg-white/15 text-white dark:bg-slate-800 dark:border dark:border-slate-700 dark:text-slate-100'
                   }`}
                 >
-                  <span className={`text-xs font-semibold tabular-nums ${last ? 'text-brand-600' : 'text-white/60'}`}>
+                  <span className={`text-xs font-semibold tabular-nums ${
+                    last ? 'text-brand-600 dark:text-brand-200' : 'text-white/60 dark:text-slate-400'
+                  }`}>
                     {i + 1}
                   </span>
-                  <span className="text-xs font-bold leading-4 sm:text-sm">{label}</span>
+                  <span className={`text-xs font-bold leading-4 sm:text-sm ${
+                    last ? 'text-brand-700 dark:text-white' : 'text-white dark:text-slate-100'
+                  }`}>
+                    {label}
+                  </span>
                 </div>
               </li>
             );
