@@ -99,6 +99,9 @@ export default async function InstructionsPage({ params }) {
           <InstructionsClient 
             testId={testDetails?.id || testDetails?.testId} 
             durationMinutes={testDetails?.durationMinutes || 180} 
+            windowStartTime={testDetails?.windowStartTime}
+            windowEndTime={testDetails?.windowEndTime}
+            hasAccessCode={Boolean(testDetails?.hasAccessCode)}
             disabled={hasError || !testDetails}
           />
         </div>

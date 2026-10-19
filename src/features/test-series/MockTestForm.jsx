@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Settings, Save } from 'lucide-react';
+import { FileText, Settings, Save, CalendarClock } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -18,6 +18,9 @@ const emptyForm = {
   negativeMarkingEnabled: true,
   instructions: '',
   isFree: false,
+  accessCode: '',
+  windowStartTime: '',
+  windowEndTime: '',
 };
 
 function Toggle({ checked, onChange, label, description }) {
@@ -68,6 +71,9 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
         negativeMarkingEnabled: form.negativeMarkingEnabled,
         instructions: form.instructions.trim(),
         isFree: form.isFree,
+        accessCode: form.accessCode ? form.accessCode.trim().toUpperCase() : null,
+        windowStartTime: form.windowStartTime ? new Date(form.windowStartTime).toISOString() : null,
+        windowEndTime: form.windowEndTime ? new Date(form.windowEndTime).toISOString() : null,
       };
       const created = await mockTestsApi.create(seriesId, payload);
       toast.success('Mock test created');
@@ -160,6 +166,46 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
               label="Shuffle Sections"
               description="Randomize section order for each attempt"
             />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <CalendarClock size={18} />
+            </div>
+            <div>
+              <h2 className="font-semibold text-slate-900">Schedule &amp; Classroom Access</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Restrict exam access to a scheduled time window or classroom code.</p>
+            </div>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <Input
+              id="test-access-code"
+              label="Classroom Access Code (optional)"
+              placeholder="e.g. CLASS-10A or PHY-MIDTERM"
+              value={form.accessCode}
+              onChange={(e) => setForm((f) => ({ ...f, accessCode: e.target.value }))}
+              helperText="Only students who enter this code can start the test."
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                id="test-window-start"
+                label="Window Opens (optional)"
+                type="datetime-local"
+                value={form.windowStartTime}
+                onChange={(e) => setForm((f) => ({ ...f, windowStartTime: e.target.value }))}
+                helperText="Students cannot start before this time."
+              />
+              <Input
+                id="test-window-end"
+                label="Window Closes (optional)"
+                type="datetime-local"
+                value={form.windowEndTime}
+                onChange={(e) => setForm((f) => ({ ...f, windowEndTime: e.target.value }))}
+                helperText="Students cannot start after this time."
+              />
+            </div>
           </CardBody>
         </Card>
 
