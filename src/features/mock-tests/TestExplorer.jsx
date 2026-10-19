@@ -40,6 +40,7 @@ function TestCard({ test }) {
           seriesId={test.seriesId || test.parentSeriesId}
           isFree={isFree}
           variant="outline"
+          hasAccessCode={Boolean(test.hasAccessCode || test.accessCode)}
           hasAttempted={hasAttempted}
         />
       </div>

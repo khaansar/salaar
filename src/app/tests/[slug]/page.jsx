@@ -105,6 +105,7 @@ export default async function MockTestPage({ params }) {
               testSlug={test.slug || slug}
               seriesId={seriesId}
               isFree={test.isFree === true}
+              hasAccessCode={Boolean(test.hasAccessCode || test.accessCode)}
               hasAttempted={test.hasAttempted === true || Number(test.attemptCount ?? test.totalAttempts ?? 0) > 0 || undefined}
             />
             {test.isFree === false && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Paid test access is checked against your active test or test-series entitlement.</p>}

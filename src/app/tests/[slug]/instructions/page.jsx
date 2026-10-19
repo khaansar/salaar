@@ -12,6 +12,7 @@ export default async function InstructionsPage({ params }) {
   
   let testDetails = null;
   let hasError = false;
+  let userAttempt = null;
 
   const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(slug);
 
@@ -32,6 +33,41 @@ export default async function InstructionsPage({ params }) {
     );
     
     testDetails = res;
+
+    if (token) {
+      try {
+        const historyRes = await fetchWithCache(
+          '/attempts-api/history?page=1&perPage=100',
+          {
+            revalidate: 0,
+            headers: { Cookie: `ACCESS_TOKEN=${token}` },
+          }
+        );
+        const records = Array.isArray(historyRes)
+          ? historyRes
+          : Array.isArray(historyRes?.content)
+          ? historyRes.content
+          : Array.isArray(historyRes?.data)
+          ? historyRes.data
+          : Array.isArray(historyRes?.data?.content)
+          ? historyRes.data.content
+          : Array.isArray(historyRes?.items)
+          ? historyRes.items
+          : [];
+        const resolvedTestId = testDetails?.id || testDetails?.testId || (isUuid ? slug : null);
+        userAttempt = records.find((a) =>
+          [a?.testId, a?.testSlug].some(
+            (v) =>
+              Boolean(v) &&
+              ((resolvedTestId && String(v) === String(resolvedTestId)) ||
+                (slug && String(v) === String(slug)) ||
+                (testDetails?.slug && String(v) === String(testDetails.slug)))
+          )
+        ) || null;
+      } catch {
+        // Fallback to client query
+      }
+    }
   } catch (error) {
     console.error('Failed to load test structure for instructions on server:', error.message);
     hasError = true;
@@ -98,10 +134,13 @@ export default async function InstructionsPage({ params }) {
         <div className="max-w-4xl mx-auto">
           <InstructionsClient 
             testId={testDetails?.id || testDetails?.testId} 
+            testSlug={testDetails?.slug || slug}
             durationMinutes={testDetails?.durationMinutes || 180} 
             windowStartTime={testDetails?.windowStartTime}
             windowEndTime={testDetails?.windowEndTime}
-            hasAccessCode={Boolean(testDetails?.hasAccessCode)}
+            serverTime={new Date().toISOString()}
+            hasAccessCode={Boolean(testDetails?.hasAccessCode || testDetails?.accessCode)}
+            initialUserAttempt={userAttempt}
             disabled={hasError || !testDetails}
           />
         </div>

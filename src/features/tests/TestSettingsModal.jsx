@@ -8,6 +8,19 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { mockTestsApi } from '@/services/adminService';
 import { useToast } from '@/components/common/ToastProvider';
 
+function toDateTimeLocalValue(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export function TestSettingsModal({ open, onClose, test, onSaved }) {
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
@@ -30,8 +43,8 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
         instructions: test.instructions || '',
         isFree: Boolean(test.isFree),
         accessCode: test.accessCode || '',
-        windowStartTime: test.windowStartTime ? new Date(test.windowStartTime).toISOString().slice(0, 16) : '',
-        windowEndTime: test.windowEndTime ? new Date(test.windowEndTime).toISOString().slice(0, 16) : '',
+        windowStartTime: toDateTimeLocalValue(test.windowStartTime),
+        windowEndTime: toDateTimeLocalValue(test.windowEndTime),
       });
       setErrors({});
     }
