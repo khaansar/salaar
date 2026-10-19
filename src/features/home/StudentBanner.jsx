@@ -70,13 +70,23 @@ export default function StudentBanner() {
   return (
     <section
       aria-label="Welcome"
-      className="relative mb-6 overflow-hidden"
+      className="relative mb-6 -mt-4 -ml-4 -mr-4 md:-mt-6 md:-ml-6 md:-mr-6 lg:-ml-8 lg:-mr-8 pt-4 px-4 md:pt-6 md:px-6 lg:px-8 overflow-hidden"
     >
-      {/* Decoration: rings in both light and dark mode */}
-      <div aria-hidden="true" className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full border-[36px] border-indigo-200/50 dark:border-white/[0.08]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -left-10 -top-10 h-[420px] w-[420px] rounded-full border-[1.5px] border-indigo-200/30 dark:border-white/[0.05]" />
+      {/* Decoration: concentric rings freely touching navbar and left edge in both light and dark mode */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full border-[36px] border-blue-200/80 dark:border-white/[0.10]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[160px] -top-[160px] h-[480px] w-[480px] rounded-full border-[1.5px] border-blue-200/50 dark:border-white/[0.06]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[240px] -top-[240px] h-[640px] w-[640px] rounded-full border border-blue-200/25 dark:border-white/[0.03]"
+      />
 
-      <div className="relative grid items-center gap-8 py-4 sm:py-6 lg:grid-cols-12 lg:gap-10">
+      <div className="relative grid items-center gap-8 py-2 sm:py-4 lg:grid-cols-12 lg:gap-10">
         {/* Greeting */}
         <div className="lg:col-span-6">
           <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
