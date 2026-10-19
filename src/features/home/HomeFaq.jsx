@@ -77,19 +77,19 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
   }
 
   return (
-    <section className="relative my-8 sm:my-12">
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl dark:text-white">
+    <section className="relative my-6 sm:my-8">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl lg:text-3xl dark:text-white">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-2 text-base text-slate-600 dark:text-slate-400">
+          <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
             {subtitle}
           </p>
         )}
       </div>
 
-      <div className="w-full space-y-2">
+      <div className="w-full space-y-1.5 sm:space-y-2">
         {displayFaqs.map((faq, i) => {
           const isOpen = openIndex === i;
           return (
@@ -98,13 +98,13 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
                 type="button"
                 onClick={() => toggleFaq(i)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 rounded-[2px] bg-slate-100 px-6 py-5 text-left text-lg font-medium text-slate-900 transition-colors hover:bg-slate-200/90 sm:py-6 sm:text-xl lg:text-2xl dark:bg-[#2d2d2d] dark:text-white dark:hover:bg-[#414141]"
+                className="flex w-full items-center justify-between gap-4 rounded-[3px] bg-slate-100 px-5 py-3.5 text-left text-base font-medium text-slate-900 transition-colors hover:bg-slate-200/90 sm:px-6 sm:py-4 sm:text-lg dark:bg-[#2d2d2d] dark:text-white dark:hover:bg-[#414141]"
               >
                 <span className="flex-1 leading-snug">{faq.question}</span>
                 <Plus
-                  size={28}
-                  strokeWidth={1.5}
-                  className={`shrink-0 text-slate-800 transition-transform duration-300 dark:text-white ${
+                  size={22}
+                  strokeWidth={2}
+                  className={`shrink-0 text-slate-700 transition-transform duration-300 dark:text-white ${
                     isOpen ? 'rotate-45' : ''
                   }`}
                   aria-hidden="true"
@@ -112,7 +112,7 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
               </button>
 
               {isOpen && (
-                <div className="mt-0.5 rounded-[2px] bg-slate-100 p-6 text-base leading-relaxed text-slate-700 sm:p-7 sm:text-lg lg:text-xl dark:bg-[#2d2d2d] dark:text-zinc-200">
+                <div className="mt-0.5 rounded-[3px] bg-slate-100 px-5 py-4 text-sm leading-relaxed text-slate-700 sm:px-6 sm:py-5 sm:text-base dark:bg-[#2d2d2d] dark:text-zinc-200">
                   <p className="whitespace-pre-wrap">{faq.answer}</p>
                 </div>
               )}
