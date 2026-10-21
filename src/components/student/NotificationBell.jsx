@@ -16,6 +16,42 @@ function getStreamUrl() {
   return `${getApiBaseUrl()}${NOTIFICATIONS_PATH}/stream`;
 }
 
+function createNotificationApiError(response, fallbackMessage) {
+  const error = new Error(response?.message || fallbackMessage);
+
+  error.status = response?.status;
+  error.code = response?.error?.code;
+  error.details = response?.error?.details || [];
+
+  return error;
+}
+
+function getNotificationResponseData(response, fallbackMessage) {
+  if (response?.success !== true) {
+    throw createNotificationApiError(response, fallbackMessage);
+  }
+
+  return response.data;
+}
+
+function getNotificationList(data) {
+  if (Array.isArray(data)) return data;
+
+  // The notifications endpoint now returns its collection inside the
+  // standard response envelope's data object.
+  if (Array.isArray(data?.notifications)) return data.notifications;
+
+  return [];
+}
+
+function getStreamNotification(payload) {
+  if (payload?.success === false) {
+    throw createNotificationApiError(payload, 'Could not receive notification.');
+  }
+
+  return payload?.success === true ? payload.data : payload;
+}
+
 function normalizeNotification(notification) {
   return {
     ...notification,
@@ -109,12 +145,24 @@ export default function NotificationBell({ userId }) {
 
     try {
       const [listResponse, countResponse] = await Promise.all([
-        apiClient.get(NOTIFICATIONS_PATH),
-        apiClient.get(`${NOTIFICATIONS_PATH}/unread-count`),
+        apiClient.get(NOTIFICATIONS_PATH, { preserveResponseEnvelope: true }),
+        apiClient.get(`${NOTIFICATIONS_PATH}/unread-count`, {
+          preserveResponseEnvelope: true,
+        }),
       ]);
 
-      const list = Array.isArray(listResponse) ? listResponse : [];
-      const count = Number(countResponse);
+      const list = getNotificationList(
+        getNotificationResponseData(
+          listResponse,
+          'Could not load notifications. Please try again.'
+        )
+      );
+      const count = Number(
+        getNotificationResponseData(
+          countResponse,
+          'Could not load the unread notification count. Please try again.'
+        )
+      );
 
       setNotifications((current) => mergeNotifications(current, list));
       setUnreadCount(
@@ -145,7 +193,9 @@ export default function NotificationBell({ userId }) {
 
     source.addEventListener('notification', (event) => {
       try {
-        const incoming = normalizeNotification(JSON.parse(event.data));
+        const incoming = normalizeNotification(
+          getStreamNotification(JSON.parse(event.data))
+        );
 
         setNotifications((current) => mergeNotifications(current, [incoming]));
 
@@ -215,8 +265,15 @@ export default function NotificationBell({ userId }) {
       setUnreadCount((count) => Math.max(0, count - 1));
 
       try {
-        await apiClient.patch(
-          `${NOTIFICATIONS_PATH}/${encodeURIComponent(notification.id)}/read`
+        const response = await apiClient.patch(
+          `${NOTIFICATIONS_PATH}/${encodeURIComponent(notification.id)}/read`,
+          null,
+          { preserveResponseEnvelope: true }
+        );
+
+        getNotificationResponseData(
+          response,
+          'Could not mark this notification as read. Please try again.'
         );
       } catch (error) {
         setNotifications((current) =>

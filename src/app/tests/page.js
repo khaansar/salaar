@@ -48,7 +48,7 @@ export default async function Page() {
       <MockTestsPage series={series} />
       <div className="mx-auto max-w-7xl pb-12">
         <HomeFaq
-          title="Mock test FAQs"
+          title="FAQs"
           subtitle="Quick answers before you start practicing."
         />
       </div>

@@ -11,6 +11,14 @@ const DynamicIcon = ({ name, ...props }) => {
 const focusRing =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900';
 
+const categoryVisibility = [
+  'flex',
+  'flex',
+  'hidden sm:flex',
+  'hidden lg:flex',
+  'hidden xl:flex',
+];
+
 export default function CategoryGrid({ categories = [] }) {
   if (!categories || categories.length === 0) return null;
 
@@ -36,9 +44,9 @@ export default function CategoryGrid({ categories = [] }) {
         </Link>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {categories.map((cat) => (
-          <li key={cat.id} className="flex">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {categories.map((cat, index) => (
+          <li key={cat.id} className={categoryVisibility[index] || 'hidden'}>
             <Link
               href={`/test-series?category=${encodeURIComponent(cat.slug ?? '')}`}
               className={`group flex w-full flex-col rounded-xl border border-slate-200/60 bg-slate-50/70 p-3.5 transition-colors hover:border-brand-600 hover:bg-slate-100/80 ${focusRing} dark:border-zinc-800/60 dark:bg-[#18191d] dark:hover:border-zinc-700 dark:hover:bg-[#202127]`}
