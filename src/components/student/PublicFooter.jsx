@@ -1,92 +1,127 @@
 import Link from 'next/link';
-import { ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowUp, Mail } from 'lucide-react';
 import { siteConfig } from '../../config/site';
 import BrandLogo from '../common/BrandLogo';
 
+const CONTACT_EMAIL = 'clearit.root@gmail.com';
+
+// Static, user-facing routes only (no auth, dynamic or flow pages).
 const linkGroups = [
   {
-    title: 'Explore',
+    title: 'Practice',
     links: [
-      ['Mock Tests', '/tests'],
-      ['Test Series', '/test-series'],
-      ['Previous Year Papers', '/previous-year-papers'],
-      ['Categories', '/categories'],
+      { label: 'Mock tests', href: '/tests' },
+      { label: 'Test series', href: '/test-series' },
+      { label: 'Categories', href: '/categories' },
     ],
   },
   {
-    title: 'Your progress',
+    title: 'Your space',
     links: [
-      ['Analytics', '/analytics'],
-      ['Test History', '/history'],
-      ['My Profile', '/profile'],
-      ['Pricing', '/pricing'],
-    ],
-  },
-  {
-    title: 'Support',
-    links: [
-      ['FAQs', '/faqs'],
-      ['Contact us', 'mailto:clearit.root@gmail.com'],
+      { label: 'My learning', href: '/my-learning' },
+      { label: 'Analytics', href: '/analytics' },
+      { label: 'Test history', href: '/history' },
+      { label: 'Profile', href: '/profile' },
+      { label: 'Settings', href: '/settings' },
     ],
   },
 ];
 
-function BrandMark() {
-  return (
-    <svg viewBox="0 0 32 20" className="h-5 w-8" aria-hidden="true">
-      <polygon points="0,20 8,2 16,14 24,2 32,20 26,20 24,13 16,20 8,13 6,20" fill="currentColor" />
-    </svg>
-  );
-}
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600';
 
 export default function PublicFooter() {
   return (
-    <footer className="relative overflow-hidden bg-white text-slate-900 transition-colors dark:bg-[#09090b] dark:border-t dark:border-slate-800 dark:text-white">
-      <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl dark:bg-brand-600/15" />
-      <div className="pointer-events-none absolute -bottom-48 left-1/4 h-80 w-80 rounded-full bg-indigo-500/5 blur-3xl dark:bg-indigo-500/10" />
+    <footer className="relative mt-10 border-t border-zinc-200 bg-zinc-50 transition-colors dark:border-white/5 dark:bg-black/30">
+      {/* Brand accent line along the top edge */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-600/70 to-transparent"
+      />
 
-      <div className="relative mx-auto max-w-7xl px-6 pb-7 pt-14 sm:px-8 lg:px-10 lg:pt-16">
-        <div className="mb-12 flex flex-col gap-5 border-b border-slate-200 pb-9 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-700 dark:text-violet-300">A clearer path to your goal</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Your next milestone starts here.</h2>
-          </div>
-          <Link href="/tests" className="inline-flex w-fit items-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700">
-            Explore mock tests <ArrowUpRight size={16} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-5 md:gap-10">
-          <div className="col-span-2 md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2.5 text-violet-700 dark:text-violet-300" aria-label={`${siteConfig.name} home`}>
-                <BrandLogo href={null} />
+      <div className="w-full px-6 pt-12 sm:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
+          {/* Brand */}
+          <div className="sm:col-span-2 lg:col-span-4">
+            <Link
+              href="/"
+              className={`inline-flex items-center rounded-md ${focusRing}`}
+              aria-label={`${siteConfig.name} home`}
+            >
+              <BrandLogo href={null} />
             </Link>
-            <p className="mt-3 text-sm font-medium text-violet-700 dark:text-violet-300">{siteConfig.tagline}</p>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-slate-400">
+            <p className="mt-4 text-sm font-semibold text-zinc-900 dark:text-white">
+              {siteConfig.tagline}
+            </p>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-600 dark:text-zinc-400">
               {siteConfig.description}
             </p>
-            <a href="mailto:clearit.root@gmail.com" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-700 transition hover:text-brand-700 dark:text-slate-300 dark:hover:text-white">
-              <Mail size={16} className="text-violet-700 dark:text-violet-300" /> clearit.root@gmail.com
-            </a>
           </div>
 
-          {linkGroups.map((group) => (
-            <nav key={group.title} aria-label={group.title}>
-              <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-800 dark:text-slate-200">{group.title}</h3>
+          {/* Link columns */}
+          {linkGroups.map((group, i) => (
+            <nav
+              key={group.title}
+              aria-label={group.title}
+              className={i === 0 ? 'lg:col-span-2 lg:col-start-6' : 'lg:col-span-2'}
+            >
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                {group.title}
+              </h3>
               <ul className="mt-4 space-y-3">
-                {group.links.map(([label, href]) => (
+                {group.links.map(({ label, href }) => (
                   <li key={label}>
-                    <Link href={href} className="text-sm text-slate-600 transition hover:text-brand-700 dark:text-slate-400 dark:hover:text-white">{label}</Link>
+                    <Link
+                      href={href}
+                      className={`group inline-flex items-center rounded-sm text-sm text-zinc-600 transition-colors hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-300 ${focusRing}`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-px w-0 bg-brand-600 transition-all duration-200 group-hover:mr-2 group-hover:w-3 dark:bg-brand-400"
+                      />
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </nav>
           ))}
+
+          {/* Contact */}
+          <div className="sm:col-span-2 lg:col-span-3 lg:col-start-10">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Need help?</h3>
+            <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              Questions, feedback or a test that needs fixing? Write to us and we&apos;ll get back to you.
+            </p>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className={`group mt-4 inline-flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 transition-colors hover:border-brand-600/50 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-brand-500/50 ${focusRing}`}
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600/10 text-brand-600 transition-colors group-hover:bg-brand-600 group-hover:text-white dark:text-brand-400 dark:group-hover:text-white">
+                <Mail size={16} aria-hidden="true" />
+              </span>
+              <span className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                {CONTACT_EMAIL}
+              </span>
+            </a>
+          </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>
-          <p>Made for the goals you&apos;re working toward.</p>
+        {/* Bottom bar */}
+        <div className="mt-12 flex flex-col gap-3 border-t border-zinc-200 py-5 text-xs text-zinc-500 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4">
+            <p>Made for the goals you&apos;re working toward.</p>
+            <a
+              href="#"
+              aria-label="Back to top"
+              className={`flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:border-brand-600 hover:bg-brand-600 hover:text-white dark:border-white/10 dark:text-zinc-300 dark:hover:border-brand-600 ${focusRing}`}
+            >
+              <ArrowUp size={15} aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -329,7 +329,7 @@ export default async function TestSeriesPage({ params }) {
           <SeriesReviews seriesId={series.id} slug={slug} seriesTitle={series.title} isFree={isFree} />
         </div>
         <div id="faqs" className="mt-6 scroll-mt-24">
-          <HomeFaq targetId={series.id} title={`${series.title} FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} />
+          <HomeFaq targetId={series.id} title={`FAQs`} subtitle={`Helpful answers about the ${series.title} test series.`} />
         </div>
       </div>
     </StudentShell>

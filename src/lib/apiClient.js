@@ -22,18 +22,22 @@ const refreshClient = axios.create({
 
 const normalizeErrorObject = (error) => {
   const status = error?.response?.status || 500;
+  const responseBody = error?.response?.data;
 
   const message =
-    error?.response?.data?.message ||
+    responseBody?.message ||
     error?.message ||
     'An unexpected network error occurred';
 
-  const errors = error?.response?.data?.errors || [];
+  // APIs using the standard envelope expose structured error information as
+  // `error: { code, details }`, while older endpoints still use `errors`.
+  const errors = responseBody?.errors || responseBody?.error?.details || [];
 
   return {
     message,
     status,
     errors,
+    code: responseBody?.error?.code,
   };
 };
 

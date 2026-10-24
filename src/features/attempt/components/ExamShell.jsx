@@ -36,6 +36,7 @@ export default function ExamShell({ attemptId }) {
   const { data, error, isLoading } = useGetAttemptStateQuery(attemptId);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
+  const [isFocusBlocked, setIsFocusBlocked] = useState(false);
 
   useEffect(() => {
     if (data) dispatch(setAttemptData(data));
@@ -90,44 +91,88 @@ export default function ExamShell({ attemptId }) {
     };
     }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt]);
 
+  const isActiveAttempt = data?.attempt?.status === 'IN_PROGRESS';
   const [isFullscreen, setIsFullscreen] = useState(true);
 
   useEffect(() => {
+    if (!isActiveAttempt) {
+      setIsFullscreen(true);
+      return undefined;
+    }
+
     const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     setIsFullscreen(!!document.fullscreenElement);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  }, [isActiveAttempt]);
 
-  const requestFullscreen = () => {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(err => console.warn('Could not request fullscreen:', err));
+  const requestFullscreen = async () => {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.warn('Could not request fullscreen:', err);
+      }
     }
   };
 
   useEffect(() => {
+    if (!isActiveAttempt) return undefined;
+
     const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
       if (e.key === 'PrintScreen') {
         e.preventDefault();
-        navigator.clipboard.writeText('Screenshots are disabled during the examination.').catch(() => {});
+        setIsFocusBlocked(true);
         return;
       }
-      if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67)) || (e.metaKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.metaKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 67))) e.preventDefault();
+      const key = e.key.toLowerCase();
+      const isDevToolsShortcut =
+        e.key === 'F12' ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j'].includes(key));
+      const isProtectedShortcut =
+        (e.ctrlKey || e.metaKey) && ['c', 'p', 's', 'u'].includes(key);
+
+      if (isDevToolsShortcut || isProtectedShortcut) e.preventDefault();
     };
     const handleCopy = (e) => {
       e.preventDefault();
       if (e.clipboardData) e.clipboardData.setData('text/plain', 'Copying is disabled during the examination.');
     };
+    const handleCut = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('copy', handleCopy);
+    document.addEventListener('cut', handleCut);
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('cut', handleCut);
     };
-  }, []);
+  }, [isActiveAttempt]);
+
+  useEffect(() => {
+    if (!isActiveAttempt) {
+      setIsFocusBlocked(false);
+      return undefined;
+    }
+
+    const blockExam = () => setIsFocusBlocked(true);
+    const handleVisibilityChange = () => {
+      if (document.hidden) blockExam();
+    };
+
+    window.addEventListener('blur', blockExam);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeprint', blockExam);
+
+    return () => {
+      window.removeEventListener('blur', blockExam);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeprint', blockExam);
+    };
+  }, [isActiveAttempt]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-exam-bg text-exam-primary">Loading your exam...</div>;
 
@@ -144,15 +189,27 @@ export default function ExamShell({ attemptId }) {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6] select-none">
+    <div id="exam-protected-root" className="flex flex-col h-screen overflow-hidden font-sans tabular-nums text-[17px] leading-[1.6] select-none">
+      <style>{`
+        @media print {
+          #exam-protected-root {
+            display: none !important;
+          }
+        }
+      `}</style>
       <DynamicWatermark />
-      {!isFullscreen && (
+      {isActiveAttempt && !isFullscreen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-exam-bg/90 backdrop-blur-sm">
           <div className="bg-exam-panel border border-exam-border rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
             <h2 className="text-xl font-bold text-red-600 mb-3">Fullscreen Required</h2>
             <p className="text-exam-text-muted mb-6">You have exited fullscreen mode. This exam must be taken in fullscreen to prevent cheating. Please return to fullscreen to continue.</p>
             <button onClick={requestFullscreen} className="w-full bg-exam-accent hover:bg-exam-accent/90 text-white font-bold py-3 px-6 rounded-xl transition-colors">Return to Fullscreen</button>
           </div>
+        </div>
+      )}
+      {isActiveAttempt && isFocusBlocked && (
+        <div className="fixed inset-0 z-[60] bg-black" role="alert" aria-label="Exam content blocked">
+          <span className="sr-only">Exam content is blocked.</span>
         </div>
       )}
       <ExamHeader />

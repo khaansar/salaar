@@ -92,7 +92,7 @@ export default async function TestSeriesIndexPage({ searchParams }) {
 
   return (
     <StudentShell>
-      <div className="pb-12">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Link href="/" className="hover:text-brand-600 dark:hover:text-white">Home</Link>
           <ChevronRight size={12} aria-hidden="true" />
