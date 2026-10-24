@@ -5,20 +5,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   User,
-  ShieldCheck,
   Lock,
   Camera,
+  Pencil,
   CheckCircle2,
   AlertCircle,
-  ArrowLeft,
-  ChevronRight,
   Phone,
   Target,
   Loader2,
   Trash2,
   Check,
   X,
-  ExternalLink,
+  Mail,
 } from 'lucide-react';
 
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -30,6 +28,7 @@ import { PasswordInput } from '../ui/PasswordInput';
 import { uploadAvatar } from '../../lib/avatarUpload';
 import { userService } from '../../services/userService';
 import { validatePassword } from '../../utils/validators';
+import BackButton from '../common/BackButton';
 
 const POPULAR_EXAMS = [
   'SSC CGL 2025',
@@ -44,6 +43,82 @@ const POPULAR_EXAMS = [
   'CDS / NDA',
 ];
 
+/* ---------- Theme tokens (light / dark pairs) ---------- */
+const T = {
+  card: 'rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900',
+  inset: 'rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40',
+  divider: 'border-slate-200 dark:border-slate-800',
+  text: 'text-slate-900 dark:text-slate-50',
+  body: 'text-slate-700 dark:text-slate-300',
+  muted: 'text-slate-500 dark:text-slate-400',
+  focus:
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900',
+};
+
+const INPUT =
+  'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:placeholder:text-slate-500';
+const LABEL = 'mb-1.5 block text-sm font-medium text-slate-800 dark:text-slate-200';
+const HINT = 'mt-1.5 text-xs text-slate-500 dark:text-slate-400';
+const BTN_PRIMARY =
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 dark:text-slate-950';
+
+/* ---------- Small building blocks ---------- */
+function Alert({ tone, title, children }) {
+  const success = tone === 'success';
+  const Icon = success ? CheckCircle2 : AlertCircle;
+  return (
+    <div
+      role={success ? 'status' : 'alert'}
+      className={`flex items-start gap-3 rounded-xl border p-3.5 text-sm ${
+        success
+          ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200'
+          : 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200'
+      }`}
+    >
+      <Icon size={18} className="mt-0.5 shrink-0" aria-hidden />
+      <div>
+        <p className="font-semibold">{title}</p>
+        {children && <p className="mt-0.5 opacity-90">{children}</p>}
+      </div>
+    </div>
+  );
+}
+
+function SectionCard({ id, icon: Icon, tone = 'brand', title, description, children }) {
+  const tones = {
+    brand: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
+    amber: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  };
+  return (
+    <section id={id} className={`${T.card} scroll-mt-6`}>
+      <header className={`flex items-center gap-3.5 border-b px-6 py-5 sm:px-8 ${T.divider}`}>
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <Icon size={20} aria-hidden />
+        </div>
+        <div className="min-w-0">
+          <h2 className={`text-base font-semibold ${T.text}`}>{title}</h2>
+          <p className={`text-sm ${T.muted}`}>{description}</p>
+        </div>
+      </header>
+      <div className="space-y-6 px-6 py-6 sm:px-8">{children}</div>
+    </section>
+  );
+}
+
+function Requirement({ met, children }) {
+  return (
+    <li className={`flex items-center gap-2 ${met ? 'text-slate-800 dark:text-slate-200' : T.muted}`}>
+      {met ? (
+        <Check size={14} className="shrink-0 stroke-[3] text-emerald-600 dark:text-emerald-400" aria-hidden />
+      ) : (
+        <X size={14} className="shrink-0 text-slate-400 dark:text-slate-600" aria-hidden />
+      )}
+      <span>{children}</span>
+      <span className="sr-only">{met ? '(met)' : '(not met)'}</span>
+    </li>
+  );
+}
+
 export default function AccountSettingsPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -51,6 +126,25 @@ export default function AccountSettingsPage() {
   const { user, isInitialized } = useAppSelector((state) => state.auth);
 
   const fileInputRef = useRef(null);
+  const avatarMenuRef = useRef(null);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+
+  // Close the photo menu on outside click or Escape
+  useEffect(() => {
+    if (!avatarMenuOpen) return undefined;
+    const onPointerDown = (e) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target)) setAvatarMenuOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setAvatarMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [avatarMenuOpen]);
 
   // Profile Form States
   const [firstName, setFirstName] = useState('');
@@ -252,576 +346,508 @@ export default function AccountSettingsPage() {
 
   if (!isInitialized) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+      <div className="flex min-h-[60vh] items-center justify-center" role="status">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
+        <span className="sr-only">Loading settings</span>
       </div>
     );
   }
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.name || 'Student';
 
+  const navLink = `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${T.body} transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${T.focus}`;
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">
-        <Link href="/" className="hover:text-brand-600 transition-colors">
-          Home
-        </Link>
-        <ChevronRight size={12} />
-        <Link href="/profile" className="hover:text-brand-600 transition-colors">
-          My Profile
-        </Link>
-        <ChevronRight size={12} />
-        <span className="font-semibold text-slate-800 dark:text-slate-200">
-          Account Settings
-        </span>
-      </nav>
-
+    <div className="mx-auto w-full max-w-[1280px] px-6 pb-8 pt-2 sm:px-8 lg:px-10">
       {/* Page Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Account Settings
-          </h1>
-          <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            Manage your personal profile, target exam preferences, and login security.
-          </p>
-        </div>
-
-        <Link
-          href="/profile"
-          className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          <ArrowLeft size={14} />
-          Back to Profile
-        </Link>
+      <div className="mb-6">
+        <BackButton
+          fallbackHref="/profile"
+          className={`mb-2 inline-flex items-center gap-1.5 rounded-md py-1 pr-1 text-sm font-semibold text-slate-600 transition-colors hover:text-brand-700 hover:underline dark:text-slate-300 dark:hover:text-brand-300 ${T.focus}`}
+          iconSize={14}
+        />
+        <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${T.text}`}>Account Settings</h1>
+        <p className={`mt-1.5 text-sm ${T.muted}`}>
+          Manage your personal profile, target exam preferences, and login security.
+        </p>
       </div>
 
-      <div className="space-y-8">
-        {/* ========================================================================= */}
-        {/* CARD 1: PERSONAL DETAILS & EXAM TARGET                                    */}
-        {/* ========================================================================= */}
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-          <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-5 dark:border-slate-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-              <User size={20} />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                Personal Details & Exam Target
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Update your name, profile photo, contact details, and current exam goal.
-              </p>
+      <div className="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:gap-8">
+        {/* ---------- Sidebar: identity + in-page navigation ---------- */}
+        <aside className="space-y-4 lg:sticky lg:top-6">
+          <div className={`${T.card} flex items-center gap-4 p-5 lg:flex-col lg:text-center`}>
+            <Avatar
+              name={fullName}
+              avatarUrl={user?.avatarUrl}
+              size="xl"
+              className="h-16 w-16 shrink-0 ring-4 ring-slate-100 dark:ring-slate-800 lg:h-24 lg:w-24"
+            />
+            <div className="min-w-0">
+              <p className={`truncate text-base font-semibold ${T.text}`}>{fullName}</p>
+              <p className={`truncate text-sm ${T.muted}`}>{user?.email}</p>
+              {user?.targetExam && (
+                <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 dark:bg-brand-500/15 dark:text-brand-200">
+                  <Target size={12} aria-hidden />
+                  <span className="truncate">{user.targetExam}</span>
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Avatar / Profile Picture Management */}
-          <div className="mb-8 rounded-xl border border-slate-100 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-800/40">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Profile Photo
-            </p>
+          <nav
+            aria-label="Settings sections"
+            className={`${T.card} flex gap-1 overflow-x-auto p-2 lg:flex-col lg:overflow-visible`}
+          >
+            <a href="#profile" className={navLink}>Personal details</a>
+            <a href="#exam" className={navLink}>Target exam</a>
+            <a href="#security" className={navLink}>Password &amp; security</a>
+          </nav>
+        </aside>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="relative group shrink-0">
+        {/* ---------- Main content ---------- */}
+        <div className="min-w-0 space-y-6">
+          {/* CARD 1: PERSONAL DETAILS & EXAM TARGET */}
+          <SectionCard
+            id="profile"
+            icon={User}
+            title="Personal Details & Exam Target"
+            description="Update your name, profile photo, contact details, and current exam goal."
+          >
+            {/* Avatar / Profile Picture Management */}
+            <div className={`${T.inset} flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:p-5`}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAvatarSelect}
+                disabled={avatarUploading}
+                className="hidden"
+              />
+
+              <div ref={avatarMenuRef} className="group relative shrink-0 self-start sm:self-auto">
                 <Avatar
                   name={fullName}
                   avatarUrl={user?.avatarUrl}
                   size="xl"
-                  className="h-20 w-20 ring-4 ring-white dark:ring-slate-800 shadow-sm"
+                  className="h-24 w-24 shadow-sm ring-4 ring-white dark:ring-slate-800"
                 />
+
+                {/* Pencil overlay: appears on hover / focus (always visible on touch screens) */}
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setAvatarMenuOpen((open) => !open)}
                   disabled={avatarUploading}
-                  aria-label="Upload profile photo"
-                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-0"
+                  aria-label="Edit profile photo"
+                  aria-haspopup="menu"
+                  aria-expanded={avatarMenuOpen}
+                  className={`absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/55 text-white transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100 [@media(hover:none)]:bg-transparent ${
+                    avatarMenuOpen || avatarUploading ? 'opacity-100' : 'opacity-0'
+                  } ${T.focus}`}
                 >
-                  <Camera size={20} />
+                  {avatarUploading ? (
+                    <Loader2 size={22} className="animate-spin" aria-hidden />
+                  ) : (
+                    <Pencil size={20} aria-hidden className="[@media(hover:none)]:hidden" />
+                  )}
                 </button>
-              </div>
 
-              <div className="flex-1 space-y-2">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    onChange={handleAvatarSelect}
-                    disabled={avatarUploading}
-                    className="hidden"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={avatarUploading}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                {/* Touch devices have no hover, so show a small pencil badge instead */}
+                {!avatarUploading && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute bottom-0 right-0 hidden h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-600 text-white dark:border-slate-800 dark:bg-brand-500 dark:text-slate-950 [@media(hover:none)]:flex"
                   >
-                    {avatarUploading ? (
-                      <>
-                        <Loader2 size={13} className="animate-spin" />
-                        Uploading photo...
-                      </>
-                    ) : (
-                      <>
-                        <Camera size={13} />
-                        Change Photo
-                      </>
-                    )}
-                  </button>
+                    <Pencil size={14} />
+                  </span>
+                )}
 
-                  {user?.avatarUrl && (
+                {avatarMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-label="Profile photo options"
+                    className="absolute left-0 top-full z-20 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+                  >
                     <button
                       type="button"
-                      onClick={handleRemoveAvatar}
-                      disabled={avatarUploading}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 dark:border-slate-700 dark:bg-slate-900 dark:text-rose-400 dark:hover:bg-rose-950/30 disabled:opacity-50"
+                      role="menuitem"
+                      onClick={() => {
+                        setAvatarMenuOpen(false);
+                        fileInputRef.current?.click();
+                      }}
+                      className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium ${T.body} hover:bg-slate-100 dark:hover:bg-slate-800 ${T.focus}`}
                     >
-                      <Trash2 size={13} />
-                      Remove
+                      <Camera size={15} aria-hidden />
+                      Change photo
                     </button>
-                  )}
-                </div>
+                    {user?.avatarUrl && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setAvatarMenuOpen(false);
+                          handleRemoveAvatar();
+                        }}
+                        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10 ${T.focus}`}
+                      >
+                        <Trash2 size={15} aria-hidden />
+                        Delete photo
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
 
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex-1 space-y-1.5">
+                <p className={`text-sm font-semibold ${T.text}`}>Profile photo</p>
+                <p className={`text-sm ${T.muted}`}>
+                  Use the pencil on your photo to change or delete it.
+                </p>
+                <p className={`text-xs ${T.muted}`}>
                   Recommended: Square JPG, PNG, or WebP. Maximum file size: 5 MB.
                 </p>
 
                 {avatarError && (
-                  <p className="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium">
-                    <AlertCircle size={13} />
+                  <p role="alert" className="flex items-center gap-1.5 text-sm font-medium text-rose-700 dark:text-rose-300">
+                    <AlertCircle size={14} />
                     {avatarError}
                   </p>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Profile Success / Error Feedback */}
-          {profileSuccess && (
-            <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <CheckCircle2 size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-              <div>
-                <p className="font-semibold">{profileSuccess}</p>
-                <p className="mt-0.5 text-emerald-700 dark:text-emerald-400">
-                  Your profile and learning goal have been updated across Salaar.
-                </p>
-              </div>
-            </div>
-          )}
+            {/* Profile Success / Error Feedback */}
+            {profileSuccess && (
+              <Alert tone="success" title={profileSuccess}>
+                Your profile and learning goal have been updated across Salaar.
+              </Alert>
+            )}
+            {profileError && <Alert tone="error" title={profileError} />}
 
-          {profileError && (
-            <div className="mb-6 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
-              <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
-              <span>{profileError}</span>
-            </div>
-          )}
-
-          {/* Profile Form */}
-          <form onSubmit={handleProfileSubmit} className="space-y-5">
-            {/* First & Last Name */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="settings-first-name"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
-                >
-                  First Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  id="settings-first-name"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    setProfileSuccess('');
-                  }}
-                  placeholder="e.g. Rohit"
-                  required
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="settings-last-name"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="settings-last-name"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    setProfileSuccess('');
-                  }}
-                  placeholder="e.g. Sharma"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
-                />
-              </div>
-            </div>
-
-            {/* Email Address (Read-only reference) & Phone Number */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label
-                    htmlFor="settings-email"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-                  >
-                    Email Address
+            {/* Profile Form */}
+            <form onSubmit={handleProfileSubmit} className="space-y-6">
+              {/* First & Last Name */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="settings-first-name" className={LABEL}>
+                    First Name <span className="text-rose-600 dark:text-rose-400">*</span>
                   </label>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                    <CheckCircle2 size={11} /> Verified
-                  </span>
-                </div>
-                <div className="relative">
                   <input
-                    id="settings-email"
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    readOnly
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400 cursor-not-allowed"
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                  Account email address cannot be changed directly.
-                </p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="settings-phone"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
-                >
-                  Phone Number
-                </label>
-                <div className="relative flex rounded-xl border border-slate-200 bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 dark:border-slate-800 dark:bg-slate-950">
-                  <span className="inline-flex items-center border-r border-slate-200 px-3 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:text-slate-400 select-none">
-                    +91
-                  </span>
-                  <input
-                    id="settings-phone"
-                    type="tel"
-                    value={phone}
+                    id="settings-first-name"
+                    type="text"
+                    value={firstName}
                     onChange={(e) => {
-                      setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10));
+                      setFirstName(e.target.value);
                       setProfileSuccess('');
                     }}
-                    placeholder="9876543210"
-                    maxLength={10}
-                    className="w-full rounded-r-xl bg-transparent px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-white dark:placeholder:text-slate-500"
+                    placeholder="e.g. Rohit"
+                    required
+                    className={INPUT}
                   />
-                  <div className="flex items-center pr-3 text-slate-400 pointer-events-none">
-                    <Phone size={14} />
-                  </div>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                  Used for exam updates and result notifications.
-                </p>
+
+                <div>
+                  <label htmlFor="settings-last-name" className={LABEL}>
+                    Last Name
+                  </label>
+                  <input
+                    id="settings-last-name"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      setProfileSuccess('');
+                    }}
+                    placeholder="e.g. Sharma"
+                    className={INPUT}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Target Exam Section */}
-            <div className="pt-2">
-              <label
-                htmlFor="settings-target-exam"
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2"
-              >
-                <Target size={14} className="text-brand-600 dark:text-brand-400" />
-                Target Exam Goal
-              </label>
+              {/* Email Address (Read-only reference) & Phone Number */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <label htmlFor="settings-email" className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                      Email Address
+                    </label>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">
+                      <CheckCircle2 size={12} aria-hidden /> Verified
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="settings-email"
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      readOnly
+                      className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 pr-10 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400"
+                    />
+                    <Mail size={15} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden />
+                  </div>
+                  <p className={HINT}>Account email address cannot be changed directly.</p>
+                </div>
 
-              {/* Quick Select Exam Chips */}
-              <div className="mb-3 flex flex-wrap gap-2">
-                {POPULAR_EXAMS.map((exam) => {
-                  const isSelected = targetExam.trim().toLowerCase() === exam.toLowerCase();
-                  return (
-                    <button
-                      key={exam}
-                      type="button"
-                      onClick={() => {
-                        setTargetExam(exam);
+                <div>
+                  <label htmlFor="settings-phone" className={LABEL}>
+                    Phone Number
+                  </label>
+                  <div className="relative flex rounded-xl border border-slate-300 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-950">
+                    <span className="inline-flex select-none items-center border-r border-slate-300 px-3 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-400">
+                      +91
+                    </span>
+                    <input
+                      id="settings-phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10));
                         setProfileSuccess('');
                       }}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-                        isSelected
-                          ? 'border border-brand-600 bg-brand-50 text-brand-700 dark:border-brand-500/50 dark:bg-brand-500/15 dark:text-brand-300 font-bold'
-                          : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900'
-                      }`}
-                    >
-                      {isSelected && <Check size={12} className="stroke-[3]" />}
-                      {exam}
-                    </button>
-                  );
-                })}
+                      placeholder="9876543210"
+                      maxLength={10}
+                      className="w-full rounded-r-xl bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-500"
+                    />
+                    <div className="pointer-events-none flex items-center pr-3 text-slate-400">
+                      <Phone size={15} aria-hidden />
+                    </div>
+                  </div>
+                  <p className={HINT}>Used for exam updates and result notifications.</p>
+                </div>
               </div>
 
-              {/* Custom Input for Target Exam */}
-              <input
-                id="settings-target-exam"
-                type="text"
-                value={targetExam}
-                onChange={(e) => {
-                  setTargetExam(e.target.value);
-                  setProfileSuccess('');
-                }}
-                placeholder="Or type another target exam (e.g. State Police SI, CAT, CLAT)..."
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
-              />
-              <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                Helps tailor your exam countdown and mock test recommendations.
-              </p>
-            </div>
-
-            {/* Profile Action Footer */}
-            <div className="flex items-center justify-end pt-3">
-              <button
-                type="submit"
-                disabled={profileSaving || !isProfileDirty}
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {profileSaving ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Saving changes...
-                  </>
-                ) : (
-                  'Save Profile Changes'
-                )}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* CARD 2: PASSWORD & SECURITY                                               */}
-        {/* ========================================================================= */}
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-          <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
-                <Lock size={20} />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Password & Security
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Ensure your account is protected with a secure and unique password.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Password Success / Error Feedback */}
-          {passwordSuccess && (
-            <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <CheckCircle2 size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-              <div>
-                <p className="font-semibold">{passwordSuccess}</p>
-                <p className="mt-0.5 text-emerald-700 dark:text-emerald-400">
-                  Your password has been changed. Use your new password on your next login.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {passwordError && (
-            <div className="mb-6 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
-              <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
-              <span>{passwordError}</span>
-            </div>
-          )}
-
-          {/* Password Form */}
-          <form onSubmit={handlePasswordSubmit} className="space-y-5">
-            {/* Current Password */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label
-                  htmlFor="settings-current-password"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Current Password <span className="text-rose-500">*</span>
+              {/* Target Exam Section */}
+              <div id="exam" className={`scroll-mt-6 border-t pt-6 ${T.divider}`}>
+                <label htmlFor="settings-target-exam" className={`${LABEL} flex items-center gap-1.5`}>
+                  <Target size={15} className="text-brand-600 dark:text-brand-400" aria-hidden />
+                  Target Exam Goal
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-[11px] font-semibold text-brand-600 hover:text-brand-700 transition dark:text-brand-400"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <PasswordInput
-                id="settings-current-password"
-                value={currentPassword}
-                onChange={(e) => {
-                  setCurrentPassword(e.target.value);
-                  setPasswordError('');
-                  setPasswordSuccess('');
-                }}
-                placeholder="Enter your current password"
-                required
-              />
-            </div>
 
-            {/* New Password & Strength */}
-            <div>
-              <label
-                htmlFor="settings-new-password"
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
-              >
-                New Password <span className="text-rose-500">*</span>
-              </label>
-              <PasswordInput
-                id="settings-new-password"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setPasswordError('');
-                  setPasswordSuccess('');
-                }}
-                placeholder="Enter new strong password"
-                required
-              />
+                {/* Quick Select Exam Chips */}
+                <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Popular exams">
+                  {POPULAR_EXAMS.map((exam) => {
+                    const isSelected = targetExam.trim().toLowerCase() === exam.toLowerCase();
+                    return (
+                      <button
+                        key={exam}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          setTargetExam(exam);
+                          setProfileSuccess('');
+                        }}
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${T.focus} ${
+                          isSelected
+                            ? 'border-brand-600 bg-brand-50 font-semibold text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-200'
+                            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {isSelected && <Check size={13} className="stroke-[3]" aria-hidden />}
+                        {exam}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Input for Target Exam */}
+                <input
+                  id="settings-target-exam"
+                  type="text"
+                  value={targetExam}
+                  onChange={(e) => {
+                    setTargetExam(e.target.value);
+                    setProfileSuccess('');
+                  }}
+                  placeholder="Or type another target exam (e.g. State Police SI, CAT, CLAT)..."
+                  className={INPUT}
+                />
+                <p className={HINT}>Helps tailor your exam countdown and mock test recommendations.</p>
+              </div>
+
+              {/* Profile Action Footer */}
+              <div className={`flex flex-wrap items-center justify-end gap-4 border-t pt-5 ${T.divider}`}>
+                {isProfileDirty && !profileSaving && (
+                  <span className={`mr-auto text-sm ${T.muted}`}>You have unsaved changes</span>
+                )}
+                <button type="submit" disabled={profileSaving || !isProfileDirty} className={BTN_PRIMARY}>
+                  {profileSaving ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Saving changes...
+                    </>
+                  ) : (
+                    'Save Profile Changes'
+                  )}
+                </button>
+              </div>
+            </form>
+          </SectionCard>
+
+          {/* CARD 2: PASSWORD & SECURITY */}
+          <SectionCard
+            id="security"
+            icon={Lock}
+            tone="amber"
+            title="Password & Security"
+            description="Ensure your account is protected with a secure and unique password."
+          >
+            {/* Password Success / Error Feedback */}
+            {passwordSuccess && (
+              <Alert tone="success" title={passwordSuccess}>
+                Your password has been changed. Use your new password on your next login.
+              </Alert>
+            )}
+            {passwordError && <Alert tone="error" title={passwordError} />}
+
+            {/* Password Form */}
+            <form onSubmit={handlePasswordSubmit} className="space-y-6">
+              {/* Current Password */}
+              <div className="max-w-xl">
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <label htmlFor="settings-current-password" className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                    Current Password <span className="text-rose-600 dark:text-rose-400">*</span>
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className={`rounded text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300 ${T.focus}`}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <PasswordInput
+                  id="settings-current-password"
+                  value={currentPassword}
+                  onChange={(e) => {
+                    setCurrentPassword(e.target.value);
+                    setPasswordError('');
+                    setPasswordSuccess('');
+                  }}
+                  placeholder="Enter your current password"
+                  required
+                />
+              </div>
+
+              {/* New + Confirm side by side on wide screens */}
+              <div className={`grid gap-5 border-t pt-6 lg:grid-cols-2 ${T.divider}`}>
+                {/* New Password & Strength */}
+                <div>
+                  <label htmlFor="settings-new-password" className={LABEL}>
+                    New Password <span className="text-rose-600 dark:text-rose-400">*</span>
+                  </label>
+                  <PasswordInput
+                    id="settings-new-password"
+                    value={newPassword}
+                    onChange={(e) => {
+                      setNewPassword(e.target.value);
+                      setPasswordError('');
+                      setPasswordSuccess('');
+                    }}
+                    placeholder="Enter new strong password"
+                    required
+                  />
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label htmlFor="settings-confirm-password" className={LABEL}>
+                    Confirm New Password <span className="text-rose-600 dark:text-rose-400">*</span>
+                  </label>
+                  <PasswordInput
+                    id="settings-confirm-password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setPasswordError('');
+                      setPasswordSuccess('');
+                    }}
+                    placeholder="Re-enter your new password"
+                    required
+                  />
+
+                  {confirmPassword && (
+                    <p className="mt-1.5 text-sm" aria-live="polite">
+                      {passwordsMatch ? (
+                        <span className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                          <Check size={14} className="stroke-[3]" aria-hidden /> Passwords match
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 font-medium text-rose-700 dark:text-rose-300">
+                          <X size={14} aria-hidden /> Passwords do not match
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
 
               {/* Password Strength Meter */}
               {newPassword && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-medium text-slate-500 dark:text-slate-400">
-                      Password strength:
-                    </span>
+                <div className={`${T.inset} space-y-3 p-4`}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={`font-medium ${T.muted}`}>Password strength</span>
                     <span
-                      className={`font-bold ${
+                      className={`font-semibold ${
                         strengthScore >= 4
-                          ? 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-emerald-700 dark:text-emerald-300'
                           : strengthScore >= 3
-                          ? 'text-blue-600 dark:text-blue-400'
+                          ? 'text-blue-700 dark:text-blue-300'
                           : strengthScore >= 2
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
+                          ? 'text-amber-700 dark:text-amber-300'
+                          : 'text-rose-700 dark:text-rose-300'
                       }`}
                     >
                       {strengthLabels[strengthScore]}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-4 gap-1.5" aria-hidden>
                     {[1, 2, 3, 4].map((step) => (
                       <div
                         key={step}
                         className={`h-1.5 rounded-full transition-all ${
                           strengthScore >= step
                             ? strengthColors[strengthScore]
-                            : 'bg-slate-100 dark:bg-slate-800'
+                            : 'bg-slate-200 dark:bg-slate-700'
                         }`}
                       />
                     ))}
                   </div>
 
                   {/* Requirements Checklist */}
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                    <li className="flex items-center gap-1.5">
-                      {hasMinLength ? (
-                        <Check size={12} className="text-emerald-500 stroke-[3]" />
-                      ) : (
-                        <X size={12} className="text-slate-300 dark:text-slate-600" />
-                      )}
-                      <span>At least 8 characters</span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      {hasUppercase ? (
-                        <Check size={12} className="text-emerald-500 stroke-[3]" />
-                      ) : (
-                        <X size={12} className="text-slate-300 dark:text-slate-600" />
-                      )}
-                      <span>At least one uppercase letter (A-Z)</span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      {hasLowercase ? (
-                        <Check size={12} className="text-emerald-500 stroke-[3]" />
-                      ) : (
-                        <X size={12} className="text-slate-300 dark:text-slate-600" />
-                      )}
-                      <span>At least one lowercase letter (a-z)</span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      {hasNumber ? (
-                        <Check size={12} className="text-emerald-500 stroke-[3]" />
-                      ) : (
-                        <X size={12} className="text-slate-300 dark:text-slate-600" />
-                      )}
-                      <span>At least one number (0-9)</span>
-                    </li>
+                  <ul className="grid grid-cols-1 gap-2 pt-1 text-sm sm:grid-cols-2">
+                    <Requirement met={hasMinLength}>At least 8 characters</Requirement>
+                    <Requirement met={hasUppercase}>At least one uppercase letter (A-Z)</Requirement>
+                    <Requirement met={hasLowercase}>At least one lowercase letter (a-z)</Requirement>
+                    <Requirement met={hasNumber}>At least one number (0-9)</Requirement>
                   </ul>
                 </div>
               )}
-            </div>
 
-            {/* Confirm New Password */}
-            <div>
-              <label
-                htmlFor="settings-confirm-password"
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
-              >
-                Confirm New Password <span className="text-rose-500">*</span>
-              </label>
-              <PasswordInput
-                id="settings-confirm-password"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setPasswordError('');
-                  setPasswordSuccess('');
-                }}
-                placeholder="Re-enter your new password"
-                required
-              />
-
-              {confirmPassword && (
-                <p className="mt-1.5 flex items-center gap-1 text-[11px]">
-                  {passwordsMatch ? (
-                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                      <Check size={12} className="stroke-[3]" /> Passwords match
-                    </span>
+              {/* Password Action Footer */}
+              <div className={`flex items-center justify-end border-t pt-5 ${T.divider}`}>
+                <button
+                  type="submit"
+                  disabled={
+                    passwordSaving ||
+                    !currentPassword ||
+                    strengthScore < 4 ||
+                    !passwordsMatch
+                  }
+                  className={BTN_PRIMARY}
+                >
+                  {passwordSaving ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Updating password...
+                    </>
                   ) : (
-                    <span className="flex items-center gap-1 text-rose-500 font-medium">
-                      <X size={12} /> Passwords do not match
-                    </span>
+                    'Update Password'
                   )}
-                </p>
-              )}
-            </div>
-
-            {/* Password Action Footer */}
-            <div className="flex items-center justify-end pt-3">
-              <button
-                type="submit"
-                disabled={
-                  passwordSaving ||
-                  !currentPassword ||
-                  strengthScore < 4 ||
-                  !passwordsMatch
-                }
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {passwordSaving ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Updating password...
-                  </>
-                ) : (
-                  'Update Password'
-                )}
-              </button>
-            </div>
-          </form>
-        </section>
+                </button>
+              </div>
+            </form>
+          </SectionCard>
+        </div>
       </div>
     </div>
   );

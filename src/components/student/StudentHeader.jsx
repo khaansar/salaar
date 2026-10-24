@@ -139,7 +139,7 @@ export default function StudentHeader({ onMenuClick }) {
                 name={fullName}
                 avatarUrl={user?.avatarUrl}
                 size="md"
-                className="!h-9 !w-9 !border-0 ring-1 ring-brand-100 transition-all hover:ring-2 hover:ring-brand-600/30"
+                className="!h-9 !w-9 transition-all"
               />
 
               <ChevronDown
@@ -180,25 +180,6 @@ export default function StudentHeader({ onMenuClick }) {
                   </Link>
 
                   <Link
-                    href="/history"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  >
-                    <ReceiptText
-                      size={18}
-                      className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-200"
-                    />
-                    <div>
-                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
-                        Orders & Payments
-                      </p>
-                      <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
-                        Receipts and payment status, if not already under My Learning
-                      </p>
-                    </div>
-                  </Link>
-
-                  <Link
                     href="/settings"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -218,7 +199,7 @@ export default function StudentHeader({ onMenuClick }) {
                   </Link>
 
                   <Link
-                    href="/faqs"
+                    href="/support"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >

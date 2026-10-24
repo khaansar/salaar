@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BookOpenCheck, CheckCircle2, CircleHelp, LoaderCircle,
+  BookOpenCheck, CheckCircle2, CircleHelp, LoaderCircle,
   RefreshCw, Search, SlidersHorizontal, X, XCircle,
 } from 'lucide-react';
 import StudentShell from '@/components/student/StudentShell';
 import attemptReviewService from '@/services/attemptReviewService';
+import BackButton from '@/components/common/BackButton';
 
 /* ------------------------------------------------------------------ */
 /* Theme tokens                                                        */
@@ -432,9 +433,7 @@ function ErrorState({ message, onRetry }) {
             className={`inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:text-slate-950 ${T.focus}`}>
             <RefreshCw size={15} />Try again
           </button>
-          <Link href="/history" className={`inline-flex items-center rounded-lg border px-4 py-2 text-sm font-semibold ${T.borderStrong} ${T.body} hover:bg-slate-100 dark:hover:bg-slate-800 ${T.focus}`}>
-            Back to attempts
-          </Link>
+          <BackButton fallbackHref="/history" className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold ${T.borderStrong} ${T.body} hover:bg-slate-100 dark:hover:bg-slate-800 ${T.focus}`} iconSize={15} />
         </div>
       </div>
     </div>
@@ -545,9 +544,7 @@ export default function AttemptReviewPage({ attemptId }) {
       <main className={`min-h-full ${T.text}`}>
         <div className="mx-auto max-w-6xl space-y-6 pb-10">
           <header>
-            <Link href="/history" className={`inline-flex items-center gap-2 rounded text-sm font-medium ${T.muted} hover:text-indigo-700 dark:hover:text-indigo-300 ${T.focus}`}>
-              <ArrowLeft size={16} aria-hidden />Back to attempts
-            </Link>
+            <BackButton fallbackHref="/history" className={`inline-flex items-center gap-2 rounded text-sm font-medium ${T.muted} hover:text-indigo-700 dark:hover:text-indigo-300 ${T.focus}`} />
             <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Attempt review</h1>

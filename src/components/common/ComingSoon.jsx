@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { ArrowLeft, Hourglass } from 'lucide-react';
+import { Hourglass } from 'lucide-react';
+import BackButton from './BackButton';
 
 export default function ComingSoon({
   title = 'Coming soon',
@@ -19,13 +19,10 @@ export default function ComingSoon({
         {description}
       </p>
 
-      <Link
-        href="/"
+      <BackButton
+        fallbackHref="/"
         className="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-      >
-        <ArrowLeft size={16} />
-        Back to home
-      </Link>
+      />
     </div>
   );
 }
