@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { ArrowUp, Mail } from 'lucide-react';
 import { siteConfig } from '../../config/site';
@@ -31,6 +32,27 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600';
 
 export default function PublicFooter() {
+  const handleBackToTop = () => {
+    // Authenticated pages scroll inside StudentShell's <main>.
+    const scrollContainer = document.querySelector(
+      'main.overflow-y-auto'
+    );
+
+    if (scrollContainer) {
+      scrollContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+      return;
+    }
+
+    // Public pages use normal document scrolling.
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   return (
     <footer className="relative mt-10 border-t border-zinc-200 bg-zinc-50 transition-colors dark:border-white/5 dark:bg-black/30">
       {/* Brand accent line along the top edge */}
@@ -63,7 +85,11 @@ export default function PublicFooter() {
             <nav
               key={group.title}
               aria-label={group.title}
-              className={i === 0 ? 'lg:col-span-2 lg:col-start-6' : 'lg:col-span-2'}
+              className={
+                i === 0
+                  ? 'lg:col-span-2 lg:col-start-6'
+                  : 'lg:col-span-2'
+              }
             >
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                 {group.title}
@@ -89,9 +115,11 @@ export default function PublicFooter() {
 
           {/* Contact */}
           <div className="sm:col-span-2 lg:col-span-3 lg:col-start-10">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Need help?</h3>
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+              Need help?
+            </h3>
             <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              Questions, feedback or a test that needs fixing? Write to us and we&apos;ll get back to you.
+              Questions, feedback or a test that needs fixing? Write to us and we'll get back to you.
             </p>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
@@ -113,14 +141,15 @@ export default function PublicFooter() {
             © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <p>Made for the goals you&apos;re working toward.</p>
-            <a
-              href="#"
+            <p>Made for the goals you're working toward.</p>
+            <button
+              type="button"
+              onClick={handleBackToTop}
               aria-label="Back to top"
               className={`flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:border-brand-600 hover:bg-brand-600 hover:text-white dark:border-white/10 dark:text-zinc-300 dark:hover:border-brand-600 ${focusRing}`}
             >
               <ArrowUp size={15} aria-hidden="true" />
-            </a>
+            </button>
           </div>
         </div>
       </div>

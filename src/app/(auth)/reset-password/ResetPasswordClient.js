@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import BrandLogo from '@/components/common/BrandLogo';
+import BackButton from '@/components/common/BackButton';
 import {
   resetPassword,
   validatePasswordResetToken,
@@ -250,13 +251,11 @@ export default function ResetPasswordClient() {
                 <ArrowRight size={17} />
               </button>
 
-              <button
-                type="button"
-                onClick={() => router.push('/login')}
+              <BackButton
+                fallbackHref="/login"
                 className="mt-3 flex w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                Back to login
-              </button>
+                iconSize={17}
+              />
             </div>
 
             <p className="mt-6 text-center text-xs text-slate-400">

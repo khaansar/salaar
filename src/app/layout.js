@@ -1,11 +1,13 @@
 import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 
 import "./globals.css";
 
 import StoreProvider from "../store/StoreProvider";
 import AuthProvider from "../components/auth/AuthProvider";
 import { ToastProvider } from "../components/common/ToastProvider";
+import { NavigationHistoryProvider, NavigationHistoryTracker } from "../components/common/NavigationHistory";
 import { siteConfig } from "@/config/site";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -58,7 +60,12 @@ export default async function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <StoreProvider hasSession={hasSession}>
           <AuthProvider hasSession={hasSession}>
-            <ToastProvider>{children}</ToastProvider>
+            <NavigationHistoryProvider>
+              <ToastProvider>{children}</ToastProvider>
+              <Suspense fallback={null}>
+                <NavigationHistoryTracker />
+              </Suspense>
+            </NavigationHistoryProvider>
           </AuthProvider>
         </StoreProvider>
       </body>
