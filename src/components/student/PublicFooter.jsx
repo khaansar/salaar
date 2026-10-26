@@ -100,7 +100,7 @@ export default function PublicFooter() {
               Need help?
             </h3>
             <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              Questions, feedback or a test that needs fixing? Write to us and we'll get back to you.
+              Questions, feedback or a test that needs fixing? Write to us and we&apos;ll get back to you.
             </p>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
@@ -122,7 +122,7 @@ export default function PublicFooter() {
             © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <p>Made for the goals you're working toward.</p>
+            <p>Made for the goals you&apos;re working toward.</p>
                 <BackToTopButton />
           </div>
         </div>
