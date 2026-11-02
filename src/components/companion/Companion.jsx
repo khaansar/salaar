@@ -11,7 +11,7 @@ import {
   companionService,
 } from '../../services/companionService';
 import CompanionCard from './CompanionCard';
-import CompanionCharacter from './CompanionCharacter';
+import CompanionWalker from './CompanionWalker';
 
 const FIRST_CHECK_MS = 2000;
 const CHECK_INTERVAL_MS = Number(process.env.NEXT_PUBLIC_COMPANION_POLL_MS) || 300000;
@@ -102,34 +102,26 @@ export default function Companion() {
     setLeaving(true);
   };
 
-  const stopped = open || leaving;
-
   return (
     <>
       {open && prompt && (
         <CompanionCard key={prompt.id} prompt={prompt} onClose={close} onSleep={sleep} />
       )}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-52 overflow-hidden">
-        <div className={`companion-walk absolute bottom-0 ${stopped ? 'companion-paused' : ''}`}>
-          {prompt && !open && (
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="pointer-events-auto mb-1 block whitespace-nowrap rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
-            >
-              Quick question?
-            </button>
-          )}
-          <div
-            className={`companion-turn flex justify-center ${stopped ? 'companion-idle' : ''} ${leaving ? 'companion-fade' : ''}`}
-            onAnimationEnd={(event) => {
-              if (event.animationName === 'companion-fade') setLeaving(false);
-            }}
+      <CompanionWalker
+        stopped={open || leaving}
+        leaving={leaving}
+        onLeft={() => setLeaving(false)}
+      >
+        {prompt && !open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="pointer-events-auto mx-auto mb-1 block whitespace-nowrap rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
           >
-            <CompanionCharacter />
-          </div>
-        </div>
-      </div>
+            Quick question?
+          </button>
+        )}
+      </CompanionWalker>
     </>
   );
 }

@@ -531,131 +531,10 @@ select:disabled {
 }
 
 /* Kalki study buddy */
-@property --companion-facing {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 1;
-}
-
-@property --companion-front {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-@keyframes companion-walk {
-  0% {
-    left: 0%;
-    transform: translateX(-0%);
-    --companion-front: 0;
-    --companion-facing: 1;
-  }
-  13.99% {
-    --companion-front: 0;
-  }
-  14% {
-    left: 35%;
-    transform: translateX(-35%);
-    --companion-front: 1;
-  }
-  19% {
-    left: 35%;
-    transform: translateX(-35%);
-    --companion-front: 1;
-  }
-  19.01% {
-    --companion-front: 0;
-  }
-  30.99% {
-    --companion-front: 0;
-  }
-  31% {
-    left: 65%;
-    transform: translateX(-65%);
-    --companion-front: 1;
-  }
-  35% {
-    left: 65%;
-    transform: translateX(-65%);
-    --companion-front: 1;
-  }
-  35.01% {
-    --companion-front: 0;
-  }
-  48.99% {
-    --companion-front: 0;
-  }
-  49% {
-    left: 100%;
-    transform: translateX(-100%);
-    --companion-front: 1;
-  }
-  49.99% {
-    --companion-facing: 1;
-  }
-  50% {
-    --companion-facing: -1;
-  }
-  51% {
-    left: 100%;
-    transform: translateX(-100%);
-    --companion-front: 1;
-  }
-  51.01% {
-    --companion-front: 0;
-  }
-  64.99% {
-    --companion-front: 0;
-  }
-  65% {
-    left: 65%;
-    transform: translateX(-65%);
-    --companion-front: 1;
-  }
-  69% {
-    left: 65%;
-    transform: translateX(-65%);
-    --companion-front: 1;
-  }
-  69.01% {
-    --companion-front: 0;
-  }
-  80.99% {
-    --companion-front: 0;
-  }
-  81% {
-    left: 35%;
-    transform: translateX(-35%);
-    --companion-front: 1;
-  }
-  85% {
-    left: 35%;
-    transform: translateX(-35%);
-    --companion-front: 1;
-  }
-  85.01% {
-    --companion-front: 0;
-  }
-  98.99% {
-    --companion-front: 0;
-  }
-  99% {
-    left: 0%;
-    transform: translateX(-0%);
-    --companion-front: 1;
-  }
-  100% {
-    left: 0%;
-    transform: translateX(-0%);
-    --companion-front: 1;
-    --companion-facing: -1;
-  }
-}
-
 @keyframes companion-fade {
   to {
     opacity: 0;
-    transform: scaleX(var(--companion-facing)) translateY(12px);
+    transform: translateY(12px);
   }
 }
 
@@ -750,6 +629,16 @@ select:disabled {
   }
 }
 
+@keyframes companion-run-bob {
+  0%,
+  100% {
+    transform: translateY(3px) rotate(7deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(5deg);
+  }
+}
+
 @keyframes companion-head {
   0%,
   100% {
@@ -791,6 +680,137 @@ select:disabled {
   }
 }
 
+@keyframes companion-pop-in {
+  from {
+    opacity: 0.4;
+  }
+}
+
+@keyframes companion-wave {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes companion-look-head {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-7deg);
+  }
+  70% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes companion-look-eyes {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2.5px);
+  }
+  70% {
+    transform: translateX(2.5px);
+  }
+}
+
+@keyframes companion-think-tilt {
+  0%,
+  100% {
+    transform: rotate(4deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes companion-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes companion-stomp {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(1.5deg);
+  }
+}
+
+@keyframes companion-flush {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes companion-steam {
+  from {
+    opacity: 0.8;
+    transform: translateY(0) scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(1.5);
+  }
+}
+
+@keyframes companion-jump {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-26px);
+  }
+}
+
+@keyframes companion-jump-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: scaleX(0.6);
+    opacity: 0.1;
+  }
+}
+
+@keyframes companion-sparkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .companion-figure {
   width: 72px;
   overflow: visible;
@@ -806,103 +826,199 @@ select:disabled {
   transform-box: view-box;
 }
 
-.companion-walk {
-  animation: companion-walk 64s linear infinite;
-}
-
-.companion-paused {
-  animation-play-state: paused;
-}
-
-.companion-side {
-  opacity: calc(1 - var(--companion-front));
-}
-
-.companion-facing-user {
-  opacity: var(--companion-front);
-}
-
-.companion-breathing {
-  animation: companion-breathe 3s ease-in-out infinite;
-}
-
-.companion-idle {
-  --companion-front: 1;
-}
-
-.companion-turn {
-  transform: scaleX(var(--companion-facing));
-}
-
 .companion-fade {
   animation: companion-fade 0.8s ease-in forwards;
 }
 
+.companion-flipped {
+  transform: scaleX(-1);
+  transform-origin: 65px 100px;
+}
+
 .companion-body {
-  animation: companion-bob 0.55s ease-in-out infinite;
+  --companion-stride: 1.1s;
+  animation: companion-bob calc(var(--companion-stride) / 2) ease-in-out infinite;
   transform-origin: 62px 196px;
 }
 
+.companion-running {
+  --companion-stride: 0.55s;
+  animation-name: companion-run-bob;
+}
+
 .companion-head {
-  animation: companion-head 1.1s ease-in-out infinite;
-  transform-origin: 63px 56px;
+  animation: companion-head var(--companion-stride) ease-in-out infinite;
+  transform-origin: 66px 58px;
 }
 
 .companion-shadow {
   animation: companion-shadow 0.55s ease-in-out infinite;
-  transform-origin: 62px 198px;
+  transform-origin: 65px 198px;
+}
+
+.companion-shadow-jump {
+  animation: companion-jump-shadow 0.6s ease-in-out infinite;
 }
 
 .companion-thigh {
-  animation: companion-thigh 1.1s linear infinite;
-  transform-origin: 60px 108px;
+  animation: companion-thigh var(--companion-stride) linear infinite;
+  transform-origin: 62px 112px;
 }
 
 .companion-shin {
-  animation: companion-shin 1.1s linear infinite;
-  transform-origin: 61px 143px;
+  animation: companion-shin var(--companion-stride) linear infinite;
+  transform-origin: 62px 146px;
 }
 
 .companion-foot {
-  animation: companion-foot 1.1s linear infinite;
-  transform-origin: 60px 178px;
+  animation: companion-foot var(--companion-stride) linear infinite;
+  transform-origin: 62px 180px;
 }
 
 .companion-arm {
-  animation: companion-arm 1.1s ease-in-out infinite;
-  transform-origin: 56px 72px;
+  animation: companion-arm var(--companion-stride) ease-in-out infinite;
+  transform-origin: 58px 74px;
 }
 
 .companion-forearm {
-  animation: companion-forearm 1.1s ease-in-out infinite;
-  transform-origin: 56px 104px;
+  animation: companion-forearm var(--companion-stride) ease-in-out infinite;
+  transform-origin: 58px 104px;
 }
 
 .companion-far,
 .companion-far .companion-shin,
 .companion-far .companion-foot,
 .companion-far .companion-forearm {
-  animation-delay: -0.55s;
+  animation-delay: calc(var(--companion-stride) / -2);
 }
 
 .companion-eyelids {
   animation: companion-blink 4.5s linear infinite;
-  transform-origin: 78px 25px;
+  transform-origin: 65px 26px;
+}
+
+.companion-front {
+  animation: companion-pop-in 0.2s ease-out;
+}
+
+.companion-front-body {
+  animation: companion-breathe 3s ease-in-out infinite;
+}
+
+.companion-front-head {
+  transform-origin: 65px 58px;
+  transition: transform 0.3s ease;
+}
+
+.companion-front-arm-left,
+.companion-front-forearm-left,
+.companion-front-arm-right,
+.companion-front-forearm-right {
+  transition: transform 0.3s ease;
+}
+
+.companion-front-arm-left {
+  transform-origin: 38px 72px;
+}
+
+.companion-front-forearm-left {
+  transform-origin: 36px 96px;
+}
+
+.companion-front-arm-right {
+  transform-origin: 92px 72px;
+}
+
+.companion-front-forearm-right {
+  transform-origin: 94px 96px;
+}
+
+.companion-mood-wave .companion-front-arm-right {
+  transform: rotate(-150deg);
+}
+
+.companion-mood-wave .companion-front-forearm-right {
+  animation: companion-wave 0.5s ease-in-out infinite;
+}
+
+.companion-mood-look .companion-front-head {
+  animation: companion-look-head 3s ease-in-out infinite;
+}
+
+.companion-mood-look .companion-pupils {
+  animation: companion-look-eyes 3s ease-in-out infinite;
+}
+
+.companion-mood-think .companion-front-head {
+  animation: companion-think-tilt 3s ease-in-out infinite;
+}
+
+.companion-mood-think .companion-pupils {
+  transform: translate(2px, -2px);
+}
+
+.companion-mood-think .companion-front-arm-right {
+  transform: rotate(25deg);
+}
+
+.companion-mood-think .companion-front-forearm-right {
+  transform: rotate(135deg);
+}
+
+.companion-thought {
+  animation: companion-float 2s ease-in-out infinite;
+}
+
+.companion-mood-angry .companion-front-body {
+  animation: companion-stomp 0.5s ease-in-out infinite;
+}
+
+.companion-mood-angry .companion-front-arm-left {
+  transform: rotate(32deg);
+}
+
+.companion-mood-angry .companion-front-forearm-left {
+  transform: rotate(-88deg);
+}
+
+.companion-mood-angry .companion-front-arm-right {
+  transform: rotate(-32deg);
+}
+
+.companion-mood-angry .companion-front-forearm-right {
+  transform: rotate(88deg);
+}
+
+.companion-flush {
+  animation: companion-flush 0.8s ease-in-out infinite;
+}
+
+.companion-steam {
+  animation: companion-steam 1.1s ease-out infinite;
+}
+
+.companion-steam-late {
+  animation-delay: -0.55s;
+}
+
+.companion-mood-jump .companion-front-body,
+.companion-mood-jump .companion-front-legs {
+  animation: companion-jump 0.6s ease-in-out infinite;
+}
+
+.companion-mood-jump .companion-front-arm-left {
+  transform: rotate(145deg);
+}
+
+.companion-mood-jump .companion-front-arm-right {
+  transform: rotate(-145deg);
+}
+
+.companion-sparkles {
+  animation: companion-sparkle 0.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .companion-walk {
-    left: auto;
-    right: 1.5rem;
-    animation: none;
-    --companion-front: 1;
-  }
-
-  .companion-fade {
-    animation-duration: 0.01s;
-  }
-
-  .companion-breathing,
   .companion-body,
   .companion-head,
   .companion-shadow,
@@ -911,11 +1027,16 @@ select:disabled {
   .companion-foot,
   .companion-arm,
   .companion-forearm,
+  .companion-front-body,
   .companion-eyelids {
     animation: none;
   }
 
   .companion-eyelids {
     transform: scaleY(0);
+  }
+
+  .companion-fade {
+    animation-duration: 0.01s;
   }
 }
