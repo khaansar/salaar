@@ -529,3 +529,57 @@ select:disabled {
 .dark .note-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(113, 113, 122, 0.4);
 }
+
+/* Kalki study buddy */
+@keyframes companion-walk {
+  0% {
+    left: 0;
+    transform: translateX(0) scaleX(1);
+  }
+  49% {
+    left: 100%;
+    transform: translateX(-100%) scaleX(1);
+  }
+  50% {
+    left: 100%;
+    transform: translateX(-100%) scaleX(-1);
+  }
+  99% {
+    left: 0;
+    transform: translateX(0) scaleX(-1);
+  }
+  100% {
+    left: 0;
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@keyframes companion-step {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.companion-walk {
+  animation: companion-walk 50s linear infinite;
+}
+
+.companion-leg {
+  animation: companion-step 0.5s ease-in-out infinite;
+}
+
+.companion-leg-back {
+  animation-delay: 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-walk {
+    left: auto;
+    right: 1.5rem;
+    animation: none;
+  }
+
+  .companion-leg {
+    animation: none;
+  }
+}
