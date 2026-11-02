@@ -30,6 +30,7 @@ export default function Companion() {
   const user = useAppSelector((state) => state.auth.user);
   const [prompt, setPrompt] = useState(null);
   const [open, setOpen] = useState(false);
+  const [strolling, setStrolling] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   const visible = Boolean(user) && !isHiddenPath(pathname);
@@ -44,6 +45,7 @@ export default function Companion() {
       if (data === TEST_STARTED) {
         setPrompt(null);
         setOpen(false);
+        setStrolling(false);
       }
     };
     if (onLiveTest) channel.postMessage(TEST_STARTED);
@@ -69,36 +71,45 @@ export default function Companion() {
     };
   }, [visible, hasPrompt]);
 
-  if (!visible || (!prompt && !leaving)) return null;
+  if (!visible || (!prompt && !strolling && !leaving)) return null;
 
   const close = () => {
     setPrompt(null);
     setOpen(false);
+    setStrolling(true);
+  };
+
+  const sleep = () => {
+    setPrompt(null);
+    setOpen(false);
+    setStrolling(false);
     setLeaving(true);
   };
 
-  const walkClass = leaving ? 'right-6 companion-exit' : open ? 'right-6' : 'companion-walk';
+  const stopped = open || leaving;
 
   return (
     <>
-      {open && prompt && <CompanionCard key={prompt.id} prompt={prompt} onClose={close} />}
+      {open && prompt && (
+        <CompanionCard key={prompt.id} prompt={prompt} onClose={close} onSleep={sleep} />
+      )}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-52 overflow-hidden">
-        <div
-          className={`absolute bottom-0 ${walkClass}`}
-          onAnimationEnd={(event) => {
-            if (event.animationName === 'companion-exit') setLeaving(false);
-          }}
-        >
-          {!leaving && (
+        <div className={`companion-walk absolute bottom-0 ${stopped ? 'companion-paused' : ''}`}>
+          {prompt && !open && (
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="pointer-events-auto mb-1 block whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow dark:bg-slate-800 dark:text-slate-100"
+              className="pointer-events-auto mb-1 block whitespace-nowrap rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
             >
               Quick question?
             </button>
           )}
-          <div className={open ? 'companion-idle flex justify-center' : 'companion-turn flex justify-center'}>
+          <div
+            className={`companion-turn flex justify-center ${stopped ? 'companion-idle' : ''} ${leaving ? 'companion-fade' : ''}`}
+            onAnimationEnd={(event) => {
+              if (event.animationName === 'companion-fade') setLeaving(false);
+            }}
+          >
             <CompanionCharacter />
           </div>
         </div>

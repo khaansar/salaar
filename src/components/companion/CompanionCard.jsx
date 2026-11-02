@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '../ui/Button';
 import { MathText } from '../common/MathText';
 import { companionService } from '../../services/companionService';
-
-const BUTTON =
-  'rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
-const QUIET_BUTTON = `${BUTTON} text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`;
 
 function formatMinutes(minutes) {
   if (minutes < 60) return `${minutes} min`;
@@ -14,7 +11,7 @@ function formatMinutes(minutes) {
   return `${minutes / 1440} day`;
 }
 
-export default function CompanionCard({ prompt, onClose }) {
+export default function CompanionCard({ prompt, onClose, onSleep }) {
   const [selected, setSelected] = useState(null);
   const [result, setResult] = useState(null);
   const [sleepOptions, setSleepOptions] = useState([]);
@@ -27,14 +24,14 @@ export default function CompanionCard({ prompt, onClose }) {
       .catch(() => setSleepOptions([]));
   }, []);
 
-  const closeAfter = async (action) => {
+  const finishAfter = async (action, finish) => {
     setBusy(true);
     try {
       await action();
     } catch {
       // A failed companion call must never interrupt the student.
     }
-    onClose();
+    finish();
   };
 
   const submitAnswer = async () => {
@@ -51,24 +48,27 @@ export default function CompanionCard({ prompt, onClose }) {
     <div
       role="dialog"
       aria-label="Practice question from Kalki"
-      className="fixed inset-x-4 bottom-52 z-50 max-h-[calc(100vh-14rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:left-auto sm:right-6 sm:w-[26rem] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+      className="fixed inset-x-4 bottom-52 z-50 max-h-[calc(100vh-14rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:left-auto sm:right-6 sm:w-[26rem] dark:border-slate-800 dark:bg-slate-900"
     >
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-100">
         Quick question
       </p>
-      <MathText text={prompt.questionText} className="mb-5 text-base font-medium leading-relaxed" />
+      <MathText
+        text={prompt.questionText}
+        className="mb-5 text-base font-semibold leading-relaxed text-slate-900 dark:text-slate-50"
+      />
 
       <div className="flex flex-col gap-3">
         {prompt.options.map((option) => {
           const isChosen = selected === option.key;
           const isAnswer = result?.correctOption === option.key;
           const tone = isAnswer
-            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950'
+            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
             : result && isChosen
-              ? 'border-rose-500 bg-rose-50 dark:bg-rose-950'
+              ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/10'
               : isChosen
-                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
-                : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600';
+                ? 'border-brand-600 bg-brand-50 dark:bg-brand-600/20'
+                : 'border-slate-200 hover:border-brand-600 dark:border-slate-800 dark:bg-slate-800/40';
 
           return (
             <button
@@ -77,7 +77,7 @@ export default function CompanionCard({ prompt, onClose }) {
               disabled={Boolean(result) || busy}
               aria-pressed={isChosen}
               onClick={() => setSelected(option.key)}
-              className={`rounded-xl border px-4 py-3 text-left text-sm leading-relaxed transition-colors ${tone}`}
+              className={`rounded-xl border px-4 py-3 text-left text-sm leading-relaxed text-slate-700 transition dark:text-slate-300 ${tone}`}
             >
               <MathText text={option.text} />
             </button>
@@ -87,37 +87,31 @@ export default function CompanionCard({ prompt, onClose }) {
 
       {result ? (
         <div className="mt-5 text-sm leading-relaxed" role="status">
-          <p className="font-semibold">{result.correct ? 'Correct!' : 'Not quite.'}</p>
-          <MathText text={result.explanation} className="mt-2 text-slate-600 dark:text-slate-300" />
+          <p className={`font-semibold ${result.correct ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {result.correct ? 'Correct!' : 'Not quite.'}
+          </p>
+          <MathText text={result.explanation} className="mt-2 text-slate-700 dark:text-slate-300" />
           <div className="mt-4 flex justify-end">
-            <button type="button" onClick={onClose} className={QUIET_BUTTON}>
-              Close
-            </button>
+            <Button onClick={onClose}>Close</Button>
           </div>
         </div>
       ) : (
         <>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               disabled={busy}
-              onClick={() => closeAfter(() => companionService.skip(prompt.id))}
-              className={QUIET_BUTTON}
+              onClick={() => finishAfter(() => companionService.skip(prompt.id), onClose)}
             >
               Skip
-            </button>
-            <button
-              type="button"
-              disabled={!selected || busy}
-              onClick={submitAnswer}
-              className={`${BUTTON} bg-orange-500 text-white hover:bg-orange-600`}
-            >
+            </Button>
+            <Button disabled={!selected || busy} onClick={submitAnswer}>
               Answer
-            </button>
+            </Button>
           </div>
 
           {sleepOptions.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <span className="mr-1">Sleep for</span>
               {sleepOptions.map((minutes) => (
                 <button
@@ -125,9 +119,12 @@ export default function CompanionCard({ prompt, onClose }) {
                   type="button"
                   disabled={busy}
                   onClick={() =>
-                    closeAfter(() => companionService.updateSettings({ sleepMinutes: minutes }))
+                    finishAfter(
+                      () => companionService.updateSettings({ sleepMinutes: minutes }),
+                      onSleep
+                    )
                   }
-                  className="rounded-md px-2.5 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="rounded-md px-2.5 py-1.5 transition hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 >
                   {formatMinutes(minutes)}
                 </button>

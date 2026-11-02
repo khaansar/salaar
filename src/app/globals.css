@@ -537,33 +537,125 @@ select:disabled {
   initial-value: 1;
 }
 
+@property --companion-front {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 @keyframes companion-walk {
   0% {
-    left: 0;
-    transform: translateX(0);
+    left: 0%;
+    transform: translateX(-0%);
+    --companion-front: 0;
     --companion-facing: 1;
   }
-  49.9% {
+  13.99% {
+    --companion-front: 0;
+  }
+  14% {
+    left: 35%;
+    transform: translateX(-35%);
+    --companion-front: 1;
+  }
+  19% {
+    left: 35%;
+    transform: translateX(-35%);
+    --companion-front: 1;
+  }
+  19.01% {
+    --companion-front: 0;
+  }
+  30.99% {
+    --companion-front: 0;
+  }
+  31% {
+    left: 65%;
+    transform: translateX(-65%);
+    --companion-front: 1;
+  }
+  35% {
+    left: 65%;
+    transform: translateX(-65%);
+    --companion-front: 1;
+  }
+  35.01% {
+    --companion-front: 0;
+  }
+  48.99% {
+    --companion-front: 0;
+  }
+  49% {
+    left: 100%;
+    transform: translateX(-100%);
+    --companion-front: 1;
+  }
+  49.99% {
     --companion-facing: 1;
   }
   50% {
+    --companion-facing: -1;
+  }
+  51% {
     left: 100%;
     transform: translateX(-100%);
-    --companion-facing: -1;
+    --companion-front: 1;
   }
-  99.9% {
-    --companion-facing: -1;
+  51.01% {
+    --companion-front: 0;
+  }
+  64.99% {
+    --companion-front: 0;
+  }
+  65% {
+    left: 65%;
+    transform: translateX(-65%);
+    --companion-front: 1;
+  }
+  69% {
+    left: 65%;
+    transform: translateX(-65%);
+    --companion-front: 1;
+  }
+  69.01% {
+    --companion-front: 0;
+  }
+  80.99% {
+    --companion-front: 0;
+  }
+  81% {
+    left: 35%;
+    transform: translateX(-35%);
+    --companion-front: 1;
+  }
+  85% {
+    left: 35%;
+    transform: translateX(-35%);
+    --companion-front: 1;
+  }
+  85.01% {
+    --companion-front: 0;
+  }
+  98.99% {
+    --companion-front: 0;
+  }
+  99% {
+    left: 0%;
+    transform: translateX(-0%);
+    --companion-front: 1;
   }
   100% {
-    left: 0;
-    transform: translateX(0);
-    --companion-facing: 1;
+    left: 0%;
+    transform: translateX(-0%);
+    --companion-front: 1;
+    --companion-facing: -1;
   }
 }
 
-@keyframes companion-exit {
+@keyframes companion-fade {
   to {
-    transform: translateX(100vw);
+    opacity: 0;
+    transform: scaleX(var(--companion-facing)) translateY(12px);
   }
 }
 
@@ -715,15 +807,35 @@ select:disabled {
 }
 
 .companion-walk {
-  animation: companion-walk 44s linear infinite;
+  animation: companion-walk 64s linear infinite;
+}
+
+.companion-paused {
+  animation-play-state: paused;
+}
+
+.companion-side {
+  opacity: calc(1 - var(--companion-front));
+}
+
+.companion-facing-user {
+  opacity: var(--companion-front);
+}
+
+.companion-breathing {
+  animation: companion-breathe 3s ease-in-out infinite;
+}
+
+.companion-idle {
+  --companion-front: 1;
 }
 
 .companion-turn {
   transform: scaleX(var(--companion-facing));
 }
 
-.companion-exit {
-  animation: companion-exit 6s linear forwards;
+.companion-fade {
+  animation: companion-fade 0.8s ease-in forwards;
 }
 
 .companion-body {
@@ -778,31 +890,19 @@ select:disabled {
   transform-origin: 78px 25px;
 }
 
-.companion-idle .companion-thigh,
-.companion-idle .companion-shin,
-.companion-idle .companion-foot,
-.companion-idle .companion-arm,
-.companion-idle .companion-forearm,
-.companion-idle .companion-head,
-.companion-idle .companion-shadow {
-  animation: none;
-}
-
-.companion-idle .companion-body {
-  animation: companion-breathe 3s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .companion-walk {
     left: auto;
     right: 1.5rem;
     animation: none;
+    --companion-front: 1;
   }
 
-  .companion-exit {
+  .companion-fade {
     animation-duration: 0.01s;
   }
 
+  .companion-breathing,
   .companion-body,
   .companion-head,
   .companion-shadow,
