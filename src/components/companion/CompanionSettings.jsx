@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { companionService } from '../../services/companionService';
+import {
+  COMPANION_SETTINGS_CHANGED,
+  announceToCompanion,
+  companionService,
+} from '../../services/companionService';
 
 export default function CompanionSettings() {
   const [settings, setSettings] = useState(null);
@@ -13,7 +17,13 @@ export default function CompanionSettings() {
 
   const update = (changes) => {
     setFailed(false);
-    companionService.updateSettings(changes).then(setSettings).catch(() => setFailed(true));
+    companionService
+      .updateSettings(changes)
+      .then((updated) => {
+        setSettings(updated);
+        announceToCompanion(COMPANION_SETTINGS_CHANGED);
+      })
+      .catch(() => setFailed(true));
   };
 
   if (failed) {

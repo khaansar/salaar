@@ -1,7 +1,18 @@
 import { apiClientRaw } from '../lib/apiClient';
 
 const BASE_PATH = '/companion-api';
+export const COMPANION_CHANNEL = 'clearit-companion';
+export const COMPANION_TEST_STARTED = 'test-started';
+export const COMPANION_SETTINGS_CHANGED = 'settings-changed';
 const config = { timeout: 5000 };
+
+export function announceToCompanion(message) {
+  if (typeof BroadcastChannel === 'undefined') return;
+
+  const channel = new BroadcastChannel(COMPANION_CHANNEL);
+  channel.postMessage(message);
+  channel.close();
+}
 
 export const companionService = {
   getNext: () => apiClientRaw.get(`${BASE_PATH}/next`, config),

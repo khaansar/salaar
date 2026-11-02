@@ -1,16 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { companionService } from '../../services/companionService';
+import {
+  COMPANION_CHANNEL,
+  COMPANION_SETTINGS_CHANGED,
+  COMPANION_TEST_STARTED,
+  announceToCompanion,
+  companionService,
+} from '../../services/companionService';
 import CompanionCard from './CompanionCard';
 import CompanionCharacter from './CompanionCharacter';
 
-const FIRST_CHECK_MS = 20000;
+const FIRST_CHECK_MS = 2000;
 const CHECK_INTERVAL_MS = Number(process.env.NEXT_PUBLIC_COMPANION_POLL_MS) || 300000;
-const CHANNEL = 'clearit-companion';
-const TEST_STARTED = 'test-started';
 const LIVE_TEST_PATH = /^\/attempt\/[^/]+\/?$/;
 const HIDDEN_PREFIXES = [
   '/login',
@@ -30,37 +34,50 @@ export default function Companion() {
   const user = useAppSelector((state) => state.auth.user);
   const [prompt, setPrompt] = useState(null);
   const [open, setOpen] = useState(false);
-  const [strolling, setStrolling] = useState(false);
+  const [present, setPresent] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   const visible = Boolean(user) && !isHiddenPath(pathname);
   const onLiveTest = LIVE_TEST_PATH.test(pathname);
   const hasPrompt = Boolean(prompt);
 
+  const check = useCallback(
+    () =>
+      companionService
+        .getNext()
+        .then((response) => {
+          setPresent(Boolean(response?.visible));
+          setPrompt(response?.prompt ?? null);
+        })
+        .catch(() => {
+          setPresent(false);
+          setPrompt(null);
+        }),
+    []
+  );
+
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return undefined;
 
-    const channel = new BroadcastChannel(CHANNEL);
+    const channel = new BroadcastChannel(COMPANION_CHANNEL);
     channel.onmessage = ({ data }) => {
-      if (data === TEST_STARTED) {
+      if (data === COMPANION_TEST_STARTED) {
         setPrompt(null);
         setOpen(false);
-        setStrolling(false);
+        setPresent(false);
       }
+      if (data === COMPANION_SETTINGS_CHANGED) check();
     };
-    if (onLiveTest) channel.postMessage(TEST_STARTED);
 
     return () => channel.close();
+  }, [check]);
+
+  useEffect(() => {
+    if (onLiveTest) announceToCompanion(COMPANION_TEST_STARTED);
   }, [onLiveTest]);
 
   useEffect(() => {
     if (!visible || hasPrompt) return undefined;
-
-    const check = () =>
-      companionService
-        .getNext()
-        .then((response) => setPrompt(response?.prompt ?? null))
-        .catch(() => setPrompt(null));
 
     const firstCheck = setTimeout(check, FIRST_CHECK_MS);
     const interval = setInterval(check, CHECK_INTERVAL_MS);
@@ -69,20 +86,19 @@ export default function Companion() {
       clearTimeout(firstCheck);
       clearInterval(interval);
     };
-  }, [visible, hasPrompt]);
+  }, [visible, hasPrompt, check]);
 
-  if (!visible || (!prompt && !strolling && !leaving)) return null;
+  if (!visible || (!present && !leaving)) return null;
 
   const close = () => {
     setPrompt(null);
     setOpen(false);
-    setStrolling(true);
   };
 
   const sleep = () => {
     setPrompt(null);
     setOpen(false);
-    setStrolling(false);
+    setPresent(false);
     setLeaving(true);
   };
 
