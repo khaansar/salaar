@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { forgotPassword } from '../../../store/slices/authSlice';
+import BackButton from '@/components/common/BackButton';
 
 export default function ForgotPasswordPage() {
   const dispatch = useDispatch();
@@ -57,9 +57,7 @@ export default function ForgotPasswordPage() {
         )}
         
         <div className="mt-6 text-center">
-          <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-            Back to login
-          </Link>
+          <BackButton fallbackHref="/login" className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-500" iconSize={15} />
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, Compass, Home } from 'lucide-react';
+import { ArrowRight, Compass } from 'lucide-react';
+import BackButton from './BackButton';
 
 export default function NotFoundView({ suggestions = [] }) {
   const items = Array.isArray(suggestions) ? suggestions : [];
@@ -24,13 +25,10 @@ export default function NotFoundView({ suggestions = [] }) {
       </p>
 
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Link
-          href="/"
+        <BackButton
+          fallbackHref="/"
           className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-        >
-          <Home size={16} />
-          Back to home
-        </Link>
+        />
 
         <Link
           href="/test-series"

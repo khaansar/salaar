@@ -23,6 +23,7 @@ import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useGetAttemptReportQuery } from '../../../../store/reportApi';
 import { siteConfig } from '../../../../config/site';
 import BrandLogo from '@/components/common/BrandLogo';
+import BackButton from '@/components/common/BackButton';
 
 /* =========================================================
    UTILITY FUNCTIONS
@@ -183,13 +184,11 @@ function ReportContent({ report, userName, userEmail, attemptId }) {
       <div className="report-screen mx-auto w-full max-w-[1360px] space-y-5 px-4 py-5 sm:px-8 print:hidden">
         {/* Navigation & Action Header */}
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 dark:border-slate-800">
-          <Link
-            href="/history"
+          <BackButton
+            fallbackHref="/history"
             className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 transition-colors hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-          >
-            <ArrowLeft size={15} />
-            <span>Back to History</span>
-          </Link>
+            iconSize={15}
+          />
 
           <button
             type="button"
