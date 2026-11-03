@@ -17,6 +17,7 @@ import {
   Check,
   X,
   Mail,
+  Smile,
 } from 'lucide-react';
 
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -29,6 +30,7 @@ import { uploadAvatar } from '../../lib/avatarUpload';
 import { userService } from '../../services/userService';
 import { validatePassword } from '../../utils/validators';
 import BackButton from '../common/BackButton';
+import CompanionSettings from '../companion/CompanionSettings';
 
 const POPULAR_EXAMS = [
   'SSC CGL 2025',
@@ -846,6 +848,15 @@ export default function AccountSettingsPage() {
                 </button>
               </div>
             </form>
+          </SectionCard>
+
+          <SectionCard
+            id="kalki"
+            icon={Smile}
+            title="Kalki"
+            description="Your study buddy who offers practice questions while you browse."
+          >
+            <CompanionSettings />
           </SectionCard>
         </div>
       </div>

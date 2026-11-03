@@ -6,6 +6,7 @@ import "./globals.css";
 
 import StoreProvider from "../store/StoreProvider";
 import AuthProvider from "../components/auth/AuthProvider";
+import Companion from "../components/companion/Companion";
 import { ToastProvider } from "../components/common/ToastProvider";
 import { NavigationHistoryProvider, NavigationHistoryTracker } from "../components/common/NavigationHistory";
 import { siteConfig } from "@/config/site";
@@ -62,6 +63,7 @@ export default async function RootLayout({ children }) {
           <AuthProvider hasSession={hasSession}>
             <NavigationHistoryProvider>
               <ToastProvider>{children}</ToastProvider>
+              <Companion />
               <Suspense fallback={null}>
                 <NavigationHistoryTracker />
               </Suspense>
