@@ -51,10 +51,8 @@ export default function Testimonials({ testimonials = [] }) {
   // Only real, approved reviews are shown. With no reviews the section is hidden.
   const displayItems = rawItems.filter((r) => r.text.trim());
 
-  // The marquee needs enough cards to loop seamlessly; fewer reviews are shown
-  // as a static row instead of a scrolling strip.
-  const useMarquee = displayItems.length >= 4;
-  const marqueeItems = useMarquee ? [...displayItems, ...displayItems] : displayItems;
+  // Duplicate items for continuous seamless infinite marquee from right to left
+  const marqueeItems = [...displayItems, ...displayItems];
 
   if (displayItems.length === 0) return null;
 
@@ -77,16 +75,12 @@ export default function Testimonials({ testimonials = [] }) {
           </p>
         </div>
 
-        {useMarquee && (
-          <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 italic select-none">
-            Hover to pause & read
-          </span>
-        )}
+        <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 italic select-none">
+          Hover to pause & read
+        </span>
       </div>
 
       {/* Smooth Side Fade Masks */}
-      {useMarquee && (
-      <>
       <div
         className="pointer-events-none absolute left-0 top-16 bottom-0 w-10 sm:w-16 bg-gradient-to-r from-slate-50 dark:from-[#121316] to-transparent z-10"
         aria-hidden="true"
@@ -95,12 +89,10 @@ export default function Testimonials({ testimonials = [] }) {
         className="pointer-events-none absolute right-0 top-16 bottom-0 w-10 sm:w-16 bg-gradient-to-l from-slate-50 dark:from-[#121316] to-transparent z-10"
         aria-hidden="true"
       />
-      </>
-      )}
 
       {/* Horizontal Continuous Marquee Track (Right to Left) */}
       <div className="overflow-hidden py-4">
-        <div className={useMarquee ? 'animate-marquee-left flex gap-6 sm:gap-8 items-center cursor-default' : 'flex flex-wrap justify-center gap-6 sm:gap-8 items-center cursor-default'}>
+        <div className="animate-marquee-left flex gap-6 sm:gap-8 items-center cursor-default">
           {marqueeItems.map((item, idx) => {
             const rot = ROTATIONS[idx % ROTATIONS.length];
             const isShort = (item.text || '').length <= 45;
