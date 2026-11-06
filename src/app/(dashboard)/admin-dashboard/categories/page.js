@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
+import { IconAction } from '@/components/admin/AdminUi';
 import { useGetCategoriesListQuery } from '@/store/adminApi';
 import { colorForKey } from '@/lib/colorHash';
 
@@ -17,7 +18,7 @@ export default function CategoriesPage() {
   const categories = Array.isArray(data) ? data : [];
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Categories' }]}
         title="Categories"
@@ -31,6 +32,14 @@ export default function CategoriesPage() {
       />
 
       <Card>
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5 dark:border-slate-800">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">All categories</h2>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              {loading ? 'Loading…' : `${categories.length} ${categories.length === 1 ? 'category' : 'categories'}`}
+            </p>
+          </div>
+        </div>
         <DataTable
           rowKey="id"
           rows={categories}
@@ -51,14 +60,14 @@ export default function CategoriesPage() {
                 return (
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-semibold text-sm ${color.bg} ${color.text}`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${color.bg} ${color.text}`}
                     >
                       {row.name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium text-slate-900 dark:text-white">{row.name}</p>
                       {row.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-md truncate">{row.description}</p>
+                        <p className="mt-0.5 max-w-md truncate text-xs text-slate-500 dark:text-slate-400">{row.description}</p>
                       )}
                     </div>
                   </div>
@@ -70,7 +79,9 @@ export default function CategoriesPage() {
               header: 'Languages',
               render: (row) => (
                 <div className="flex flex-wrap gap-1.5">
-                  {(row.requiredLanguages || []).length === 0 && <span className="text-xs text-slate-400">—</span>}
+                  {(row.requiredLanguages || []).length === 0 && (
+                    <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                  )}
                   {(row.requiredLanguages || []).map((l) => (
                     <Badge key={l} tone="info" className="uppercase">
                       <Languages size={11} /> {l}
@@ -81,19 +92,21 @@ export default function CategoriesPage() {
             },
             {
               key: 'actions',
-              header: '',
+              header: <span className="sr-only">Actions</span>,
               headerClassName: 'text-right',
               className: 'text-right',
               render: (row) => (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/admin-dashboard/categories/${row.id}/edit`);
-                  }}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
-                  <Pencil size={14} /> Edit
-                </button>
+                <div className="flex items-center justify-end">
+                  <IconAction
+                    label={`Edit ${row.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/admin-dashboard/categories/${row.id}/edit`);
+                    }}
+                  >
+                    <Pencil size={15} />
+                  </IconAction>
+                </div>
               ),
             },
           ]}
