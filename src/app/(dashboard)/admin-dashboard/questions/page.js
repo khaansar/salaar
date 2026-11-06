@@ -13,7 +13,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { IconAction } from '@/components/admin/AdminUi';
-import { QuestionPreviewDrawer } from '@/features/questions/QuestionPreviewDrawer';
+import { QuestionPreviewModal } from '@/features/questions/QuestionPreview';
 import { useGetQuestionsListQuery, useDeleteQuestionMutation } from '@/store/adminApi';
 import { questionsApi } from '@/services/adminService';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -188,7 +188,7 @@ function QuestionsPageInner() {
         />
         {!loading && !error && items.length > 0 && <Pagination meta={meta} onPageChange={setPage} />}
       </Card>
-      <QuestionPreviewDrawer open={Boolean(previewId)} onClose={() => setPreviewId(null)} question={previewQuestion} />
+      <QuestionPreviewModal open={Boolean(previewId)} onClose={() => setPreviewId(null)} question={previewQuestion} onEdit={() => router.push(`/admin-dashboard/questions/${previewId}`)} />
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={deleting} title="Delete question?" description={`This will permanently delete "${deleteTarget?.shortText}". Questions already attached to tests may be affected.`} confirmLabel="Delete" />
     </div>
   );

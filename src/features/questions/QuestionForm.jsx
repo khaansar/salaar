@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/Badge';
 
 import { OptionsEditor, newOptionId } from './OptionsEditor';
 import { CorrectAnswerEditor } from './CorrectAnswerEditor';
-import { QuestionPreviewContent } from './QuestionPreviewDrawer';
+import { QuestionPreviewContent } from './QuestionPreview';
 import { MathTextarea } from './MathTextarea';
 import { QuestionImageEditor } from './QuestionImageEditor';
 
@@ -473,6 +473,9 @@ export function QuestionForm({ question }) {
 
   const previewQuestion = {
     questionType: form.questionType,
+    difficulty: form.difficulty,
+    positiveMarks: form.positiveMarks,
+    negativeMarks: form.negativeMarks,
     topic: form.topic,
     translations: form.translations.map((translation) => ({
       language: translation.language,
