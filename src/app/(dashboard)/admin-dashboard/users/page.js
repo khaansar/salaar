@@ -6,19 +6,73 @@ import {
   MoreHorizontal,
   Users,
   UserCheck,
-  UserX,
   ShieldCheck,
   X,
   Mail,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   SlidersHorizontal,
   ChevronDown,
   LoaderCircle,
+  Fingerprint,
+  History,
 } from 'lucide-react';
 
 import { usersApi } from '@/services/userService';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Badge } from '@/components/ui/Badge';
+import { Avatar } from '@/components/ui/Avatar';
+import { Drawer } from '@/components/ui/Drawer';
+import { Skeleton, TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/EmptyState';
+import { Pagination, zeroBasedMeta } from '@/components/ui/Pagination';
+import { StatCard } from '@/components/admin/StatCard';
+import { ADMIN_TABLE, DetailRow, DetailSection, IconAction } from '@/components/admin/AdminUi';
+
+const BREADCRUMBS = [{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Users' }];
+
+const ADDITIONAL_TEXT_FILTERS = [
+  ['firstName', 'First name', 'Filter first name'],
+  ['lastName', 'Last name', 'Filter last name'],
+  ['email', 'Email', 'Filter email'],
+];
+
+const ADDITIONAL_RANGE_FILTERS = [
+  ['minTestsAttemptedCount', 'Min tests attempted', 'number'],
+  ['maxTestsAttemptedCount', 'Max tests attempted', 'number'],
+  ['createdAfter', 'Created after', 'date'], ['createdBefore', 'Created before', 'date'],
+  ['updatedAfter', 'Updated after', 'date'], ['updatedBefore', 'Updated before', 'date'],
+  ['deletedAfter', 'Deleted after', 'date'], ['deletedBefore', 'Deleted before', 'date'],
+];
+
+function RoleBadge({ role, label }) {
+  const isAdmin = role?.toUpperCase() === 'ADMIN';
+
+  return (
+    <Badge
+      className={
+        isAdmin
+          ? 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300'
+          : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+      }
+    >
+      {isAdmin && <ShieldCheck size={11} />}
+      {label}
+    </Badge>
+  );
+}
+
+function ActiveBadge({ active }) {
+  return (
+    <Badge tone={active ? 'success' : 'danger'}>
+      <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+      {active ? 'Active' : 'Inactive'}
+    </Badge>
+  );
+}
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -178,7 +232,6 @@ export default function UsersPage() {
     setPage(0);
   };
 
-  const filterInputClass = 'h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-violet-400 dark:focus:ring-violet-950';
 
   // --------------------------------------------------
   // Pagination
@@ -195,24 +248,30 @@ export default function UsersPage() {
     }
   };
 
+
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+
+  const handlePageChange = (nextPage) => {
+    if (nextPage - 1 < page) goToPreviousPage();
+    else goToNextPage();
+  };
+
   // --------------------------------------------------
   // Loading
   // --------------------------------------------------
   if (loading && !hasLoadedOnce) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 w-48 rounded bg-gray-200" />
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="h-24 rounded-xl bg-gray-200" />
-            <div className="h-24 rounded-xl bg-gray-200" />
-            <div className="h-24 rounded-xl bg-gray-200" />
-          </div>
-
-          <div className="h-14 rounded-xl bg-gray-200" />
-          <div className="h-96 rounded-xl bg-gray-200" />
+      <div className="mx-auto max-w-7xl">
+        <PageHeader breadcrumbs={BREADCRUMBS} title="Users" subtitle="Manage and view all registered users" />
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-[104px] rounded-xl" />)}
         </div>
+        <Card>
+          <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <TableSkeleton rows={8} cols={5} />
+        </Card>
       </div>
     );
   }
@@ -222,324 +281,201 @@ export default function UsersPage() {
   // --------------------------------------------------
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-          <p className="text-sm font-medium text-red-600">
-            {error}
-          </p>
-
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="mx-auto max-w-7xl">
+        <PageHeader breadcrumbs={BREADCRUMBS} title="Users" subtitle="Manage and view all registered users" />
+        <Card>
+          <ErrorState message={error} onRetry={() => window.location.reload()} />
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-6 dark:bg-slate-950">
-      {/* ==================================================
-          HEADER
-      ================================================== */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-              Users
-            </h1>
+    <div className="mx-auto max-w-7xl">
+      <PageHeader
+        breadcrumbs={BREADCRUMBS}
+        title="Users"
+        subtitle="Manage and view all registered users"
+        actions={
+          <span className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <Users size={16} />
+            {userStats.totalUsers ?? '—'} Users
+          </span>
+        }
+      />
 
-            <p className="mt-1 text-sm text-gray-500">
-              Manage and view all registered users
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-            <Users className="h-4 w-4" />
-            <span>{userStats.totalUsers ?? '—'} Users</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================================================
-          SUMMARY CARDS
-      ================================================== */}
+      {/* Summary cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        {/* Total */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">
-                Total Users
-              </p>
-
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.totalUsers ?? '—'}
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-500/10">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Active */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">
-                Active Users
-              </p>
-
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.activeUsers ?? '—'}
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-green-50 p-3 dark:bg-green-500/10">
-              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Admins */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">
-                Admins
-              </p>
-
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {userStats.adminUsers ?? '—'}
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-500/10">
-              <ShieldCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </div>
+        <StatCard label="Total Users" value={userStats.totalUsers ?? '—'} icon={Users} tone="indigo" hint="All registered accounts" />
+        <StatCard label="Active Users" value={userStats.activeUsers ?? '—'} icon={UserCheck} tone="emerald" hint="Accounts currently active" />
+        <StatCard label="Admins" value={userStats.adminUsers ?? '—'} icon={ShieldCheck} tone="violet" hint="Users with admin access" />
       </div>
 
-      {/* ==================================================
-          FILTER BAR
-      ================================================== */}
-      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-violet-50 p-2.5 text-violet-600"><SlidersHorizontal className="h-4 w-4" /></div>
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900">Filter users</h2>
-              <p className="mt-0.5 text-xs text-gray-500">Find accounts by identity, role, or activity</p>
+      <Card>
+        {/* Filter bar */}
+        <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="min-w-0 flex-1">
+              <Input
+                aria-label="Search users"
+                placeholder="Search by name or email..."
+                value={filters.search}
+                onChange={(e) => setFilterAndResetPage('search', e.target.value)}
+                leftIcon={<Search size={16} />}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:flex lg:items-center">
+              <div className="lg:w-40">
+                <Select aria-label="Filter by role" value={filters.role} onChange={(e) => setFilterAndResetPage('role', e.target.value)}>
+                  <option value="">All roles</option><option value="STUDENT">Student</option><option value="ADMIN">Admin</option>
+                </Select>
+              </div>
+              <div className="lg:w-40">
+                <Select aria-label="Filter by status" value={filters.isActive} onChange={(e) => setFilterAndResetPage('isActive', e.target.value)}>
+                  <option value="">All status</option><option value="true">Active</option><option value="false">Inactive</option>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                aria-expanded={showMoreFilters}
+                onClick={() => setShowMoreFilters((open) => !open)}
+                className={`flex-1 gap-2 lg:flex-none ${showMoreFilters ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300' : ''}`}
+              >
+                <SlidersHorizontal size={15} />
+                More filters
+                {hasActiveFilters && (
+                  <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+                <ChevronDown size={15} className={`transition-transform ${showMoreFilters ? 'rotate-180' : ''}`} />
+              </Button>
+              {hasActiveFilters && (
+                <Button type="button" variant="ghost" onClick={resetFilters}>
+                  <X size={15} className="mr-1.5" /> Clear
+                </Button>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {loading && hasLoadedOnce && <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600"><LoaderCircle className="h-3.5 w-3.5 animate-spin" />Updating results</span>}
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-          <label className="relative flex-1">
-            <span className="mb-1.5 block text-xs font-medium text-gray-600">Search</span>
-            <Search className="absolute left-3 top-[2.45rem] h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input className={`${filterInputClass} rounded-xl bg-slate-50/70 pl-9 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} placeholder="Name or email..." value={filters.search} onChange={(e) => setFilterAndResetPage('search', e.target.value)} />
-          </label>
-          <label className="lg:w-44">
-            <span className="mb-1.5 block text-xs font-medium text-gray-600">Role</span>
-            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.role} onChange={(e) => setFilterAndResetPage('role', e.target.value)}>
-              <option value="">All roles</option><option value="STUDENT">Student</option><option value="ADMIN">Admin</option>
-            </select>
-          </label>
-          <label className="lg:w-40">
-            <span className="mb-1.5 block text-xs font-medium text-gray-600">Status</span>
-            <select className={`${filterInputClass} rounded-xl bg-slate-50/70 focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.isActive} onChange={(e) => setFilterAndResetPage('isActive', e.target.value)}>
-              <option value="">All status</option><option value="true">Active</option><option value="false">Inactive</option>
-            </select>
-          </label>
-          <button type="button" aria-expanded={showMoreFilters} onClick={() => setShowMoreFilters((open) => !open)} className={`flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition ${showMoreFilters ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}>
-            <SlidersHorizontal className="h-4 w-4" />More Filters{hasActiveFilters && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-xs text-violet-700">{Object.values(filters).filter(Boolean).length}</span>}<ChevronDown className={`h-4 w-4 transition-transform ${showMoreFilters ? 'rotate-180' : ''}`} />
-          </button>
-          {hasActiveFilters && <button type="button" onClick={resetFilters} className="flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"><X className="h-4 w-4" />Clear</button>}
-        </div>
-        {showMoreFilters && (
-          <div className="mt-5 rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950">
-            <div className="mb-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-600">Additional filters</h3>
-              <p className="mt-1 text-xs text-gray-500">Narrow results by profile details, test activity, and dates.</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {['firstName', 'lastName', 'email'].map((field) => (
-                <label key={field}>
-                  <span className="mb-1 block text-xs font-medium text-gray-500">{field === 'firstName' ? 'First name' : field === 'lastName' ? 'Last name' : 'Email'}</span>
-                  <input className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} placeholder={`Filter ${field === 'firstName' ? 'first name' : field === 'lastName' ? 'last name' : 'email'}`} />
-                </label>
-              ))}
-              <label>
-                <span className="mb-1 block text-xs font-medium text-gray-500">Deleted</span>
-                <select className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters.isDeleted} onChange={(e) => setFilterAndResetPage('isDeleted', e.target.value)}>
+
+          {showMoreFilters && (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Additional filters</h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Narrow results by profile details, test activity, and dates.</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {ADDITIONAL_TEXT_FILTERS.map(([field, label, placeholder]) => (
+                  <Input
+                    key={field}
+                    id={`user-filter-${field}`}
+                    label={label}
+                    value={filters[field]}
+                    onChange={(e) => setFilterAndResetPage(field, e.target.value)}
+                    placeholder={placeholder}
+                  />
+                ))}
+                <Select id="user-filter-isDeleted" label="Deleted" value={filters.isDeleted} onChange={(e) => setFilterAndResetPage('isDeleted', e.target.value)}>
                   <option value="">Any</option><option value="true">Deleted</option><option value="false">Not deleted</option>
-                </select>
-              </label>
-              {[
-                ['minTestsAttemptedCount', 'Min tests attempted', 'number'],
-                ['maxTestsAttemptedCount', 'Max tests attempted', 'number'],
-                ['createdAfter', 'Created after', 'date'], ['createdBefore', 'Created before', 'date'],
-                ['updatedAfter', 'Updated after', 'date'], ['updatedBefore', 'Updated before', 'date'],
-                ['deletedAfter', 'Deleted after', 'date'], ['deletedBefore', 'Deleted before', 'date'],
-              ].map(([field, label, type]) => (
-                <label key={field}>
-                  <span className="mb-1 block text-xs font-medium text-gray-500">{label}</span>
-                  <input type={type} min={type === 'number' ? 0 : undefined} className={`${filterInputClass} rounded-xl bg-white focus:border-violet-400 focus:ring-violet-100 dark:bg-slate-800`} value={filters[field]} onChange={(e) => setFilterAndResetPage(field, e.target.value)} />
-                </label>
-              ))}
+                </Select>
+                {ADDITIONAL_RANGE_FILTERS.map(([field, label, type]) => (
+                  <Input
+                    key={field}
+                    id={`user-filter-${field}`}
+                    label={label}
+                    type={type}
+                    min={type === 'number' ? 0 : undefined}
+                    value={filters[field]}
+                    onChange={(e) => setFilterAndResetPage(field, e.target.value)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* ==================================================
-          TABLE
-      ================================================== */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {/* Table header */}
+        <div className="flex items-center justify-between gap-3 px-5 py-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{filteredUsers.length}</span> matching users on this page
+            {' · '}
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{totalUsers}</span> total users
+          </p>
+          {loading && hasLoadedOnce && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              <LoaderCircle size={14} className="animate-spin" /> Updating results
+            </span>
+          )}
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
+          <table className={`${ADMIN_TABLE.table} min-w-[760px]`}>
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/80 dark:border-slate-800 dark:bg-slate-800/70">
-                <th className="w-16 px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  #
-                </th>
-
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  User
-                </th>
-
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Role
-                </th>
-
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Joined On
-                </th>
-
-                <th className="w-20 px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Actions
-                </th>
+              <tr className={`${ADMIN_TABLE.headRow} border-t`}>
+                <th className={`${ADMIN_TABLE.th} w-14`}>#</th>
+                <th className={ADMIN_TABLE.th}>User</th>
+                <th className={ADMIN_TABLE.th}>Role</th>
+                <th className={ADMIN_TABLE.th}>Status</th>
+                <th className={ADMIN_TABLE.th}>Joined on</th>
+                <th className={`${ADMIN_TABLE.th} w-16 text-right`}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className={`${ADMIN_TABLE.body} ${loading ? 'opacity-60' : ''}`}>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-16 text-center"
-                  >
+                  <td colSpan={6} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center">
-                      <div className="mb-3 rounded-full bg-gray-100 p-3">
-                        <Search className="h-5 w-5 text-gray-400" />
+                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                        <Search size={20} />
                       </div>
-
-                      <p className="text-sm font-medium text-gray-900">
-                        No users found
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        Try changing your search or filters.
-                      </p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">No users found</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Try changing your search or filters.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user, index) => (
-                  <tr
-                    key={user.id}
-                    onClick={() => setSelectedUser(user)}
-                    className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
-                  >
-                    {/* Number */}
-                    <td className="px-5 py-4 text-sm text-gray-500">
+                  <tr key={user.id} onClick={() => setSelectedUser(user)} className={ADMIN_TABLE.clickableRow}>
+                    <td className={`${ADMIN_TABLE.td} text-xs tabular-nums text-slate-400 dark:text-slate-500`}>
                       {page * pageSize + index + 1}
                     </td>
 
-                    {/* User */}
-                    <td className="px-5 py-4">
+                    <td className={ADMIN_TABLE.td}>
                       <div className="flex items-center gap-3">
-                        {/* Avatar */}
-                        {user.avatarUrl ? (
-                          <img
-                            src={user.avatarUrl}
-                            alt={getFullName(user)}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-                            {getInitials(user)}
-                          </div>
-                        )}
-
+                        <Avatar name={getFullName(user)} avatarUrl={user.avatarUrl} size="md" />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-gray-900">
-                            {getFullName(user)}
-                          </p>
-
-                          <p className="truncate text-xs text-gray-500">
-                            {user.email}
-                          </p>
+                          <p className="truncate font-medium text-slate-900 dark:text-white">{getFullName(user)}</p>
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                         </div>
                       </div>
                     </td>
 
-                    {/* Role */}
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                          user.role?.toUpperCase() === 'ADMIN'
-                            ? 'bg-purple-50 text-purple-700'
-                            : 'bg-blue-50 text-blue-700'
-                        }`}
-                      >
-                        {formatRole(user.role)}
-                      </span>
+                    <td className={ADMIN_TABLE.td}>
+                      <RoleBadge role={user.role} label={formatRole(user.role)} />
                     </td>
 
-                    {/* Status */}
-                    <td className="px-5 py-4">
-                      {user.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                          Inactive
-                        </span>
-                      )}
+                    <td className={ADMIN_TABLE.td}>
+                      <ActiveBadge active={user.isActive} />
                     </td>
 
-                    {/* Joined */}
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className={`${ADMIN_TABLE.td} whitespace-nowrap text-xs text-slate-500 dark:text-slate-400`}>
                       {formatDate(user.createdAt)}
                     </td>
 
-                    {/* Actions */}
-                    <td className="px-5 py-4 text-right">
-                      <button
+                    <td className={`${ADMIN_TABLE.td} text-right`}>
+                      <IconAction
+                        label={`View ${getFullName(user)}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedUser(user);
                         }}
-                        className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
                       >
-                        <MoreHorizontal className="h-5 w-5" />
-                      </button>
+                        <MoreHorizontal size={17} />
+                      </IconAction>
                     </td>
                   </tr>
                 ))
@@ -548,231 +484,54 @@ export default function UsersPage() {
           </table>
         </div>
 
-        {/* ==================================================
-            PAGINATION
-        ================================================== */}
-        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-gray-500">
-            Showing{' '}
-            <span className="font-medium text-gray-700">
-              {filteredUsers.length}
-            </span>{' '}
-            matching users on this page
-            {' · '}
-            <span className="font-medium text-gray-700">
-              {totalUsers}
-            </span>{' '}
-            total users
-          </p>
+        <Pagination
+          meta={zeroBasedMeta({ page, totalPages, totalElements: totalUsers, pageSize })}
+          onPageChange={handlePageChange}
+          disabled={loading}
+        />
+      </Card>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={goToPreviousPage}
-              disabled={page === 0}
-              className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </button>
-
-            <div className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-gray-900 px-3 text-sm font-medium text-white">
-              {page + 1}
-            </div>
-
-            <span className="text-sm text-gray-400">
-              of {totalPages}
-            </span>
-
-            <button
-              onClick={goToNextPage}
-              disabled={page >= totalPages - 1}
-              className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================================================
-          USER DRAWER
-      ================================================== */}
+      {/* User drawer */}
       {selectedUser && (
-        <div className="fixed inset-0 z-50">
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setSelectedUser(null)}
-          />
-
-          {/* Drawer */}
-          <div className="absolute right-0 top-0 h-full w-full max-w-[380px] overflow-y-auto bg-white shadow-2xl">
-            {/* Drawer Header */}
-            <div className="border-b border-gray-200 px-6 py-5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {selectedUser.avatarUrl ? (
-                    <img
-                      src={selectedUser.avatarUrl}
-                      alt={getFullName(selectedUser)}
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-                      {getInitials(selectedUser)}
-                    </div>
-                  )}
-
-                  <div>
-                    <h2 className="text-base font-semibold text-gray-900">
-                      {getFullName(selectedUser)}
-                    </h2>
-
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {selectedUser.email}
-                    </p>
-
-                    <div className="mt-2">
-                      {selectedUser.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setSelectedUser(null)}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Drawer Content */}
-            <div className="px-6 py-6">
-              <h3 className="mb-4 text-sm font-semibold text-gray-900">
-                Basic Information
-              </h3>
-
-              <div className="space-y-4">
-                {/* Email */}
-                <div className="flex items-start gap-3">
-                  <Mail className="mt-0.5 h-4 w-4 text-gray-400" />
-
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Email
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedUser.email || '—'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Role */}
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 text-gray-400" />
-
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Role
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-900">
-                      {formatRole(selectedUser.role)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Joined */}
-                <div className="flex items-start gap-3">
-                  <CalendarDays className="mt-0.5 h-4 w-4 text-gray-400" />
-
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Joined On
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-900">
-                      {formatDate(selectedUser.createdAt)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* User ID */}
-                <div className="border-t border-gray-100 pt-4">
-                  <p className="text-xs text-gray-500">
-                    User ID
-                  </p>
-
-                  <p className="mt-1 break-all text-xs text-gray-700">
-                    {selectedUser.id}
-                  </p>
-                </div>
-              </div>
-
-              {/* Account Information */}
-              <div className="mt-8">
-                <h3 className="mb-4 text-sm font-semibold text-gray-900">
-                  Account Information
-                </h3>
-
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      Account Status
-                    </span>
-
-                    <span
-                      className={`text-sm font-medium ${
-                        selectedUser.isActive
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }`}
-                    >
-                      {selectedUser.isActive
-                        ? 'Active'
-                        : 'Inactive'}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      Created
-                    </span>
-
-                    <span className="text-sm text-gray-700">
-                      {formatDate(selectedUser.createdAt)}
-                    </span>
-                  </div>
-
-                  {selectedUser.updatedAt && (
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        Last Updated
-                      </span>
-
-                      <span className="text-sm text-gray-700">
-                        {formatDate(selectedUser.updatedAt)}
-                      </span>
-                    </div>
-                  )}
+        <Drawer open onClose={() => setSelectedUser(null)} title="User details" description="Profile and account information" width="md">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+              <Avatar name={getFullName(selectedUser)} avatarUrl={selectedUser.avatarUrl} size="lg" />
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">{getFullName(selectedUser)}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{selectedUser.email}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <RoleBadge role={selectedUser.role} label={formatRole(selectedUser.role)} />
+                  <ActiveBadge active={selectedUser.isActive} />
                 </div>
               </div>
             </div>
+
+            <DetailSection title="Basic information">
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 px-4 dark:divide-slate-800 dark:border-slate-800">
+                <DetailRow label={<span className="inline-flex items-center gap-2"><Mail size={13} />Email</span>} value={selectedUser.email || '—'} />
+                <DetailRow label={<span className="inline-flex items-center gap-2"><ShieldCheck size={13} />Role</span>} value={formatRole(selectedUser.role)} />
+                <DetailRow label={<span className="inline-flex items-center gap-2"><CalendarDays size={13} />Joined on</span>} value={formatDate(selectedUser.createdAt)} />
+                <DetailRow label={<span className="inline-flex items-center gap-2"><Fingerprint size={13} />User ID</span>} value={selectedUser.id} mono />
+              </div>
+            </DetailSection>
+
+            <DetailSection title="Account information" icon={History}>
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/60 px-4 dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-800/30">
+                <DetailRow
+                  label="Account status"
+                  value={
+                    <span className={selectedUser.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                      {selectedUser.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  }
+                />
+                <DetailRow label="Created" value={formatDate(selectedUser.createdAt)} />
+                {selectedUser.updatedAt && <DetailRow label="Last updated" value={formatDate(selectedUser.updatedAt)} />}
+              </div>
+            </DetailSection>
           </div>
-        </div>
+        </Drawer>
       )}
     </div>
   );
