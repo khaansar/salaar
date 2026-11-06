@@ -194,11 +194,18 @@ function QuestionsPageInner() {
   );
 }
 
+// Remount when ?search= changes so a new search from the top bar is applied
+// even while this page is already open.
+function QuestionsPageKeyed() {
+  const searchParams = useSearchParams();
+  return <QuestionsPageInner key={searchParams.get('search') || ''} />;
+}
+
 export default function QuestionsPage() {
   // useSearchParams requires a Suspense boundary during static prerendering.
   return (
     <Suspense fallback={null}>
-      <QuestionsPageInner />
+      <QuestionsPageKeyed />
     </Suspense>
   );
 }
