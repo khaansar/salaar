@@ -1,6 +1,8 @@
 import React from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { TONE_ICON_CLASSES } from './StatCard';
 
 /*
  * Small presentational helpers shared by the admin pages so tables, alerts
@@ -173,5 +175,52 @@ export function SegmentedTabs({ tabs, value, onChange }) {
         );
       })}
     </div>
+  );
+}
+
+/** Card with an icon + title header, used by every admin create/edit form. */
+export function FormSection({ icon: Icon, tone = 'indigo', title, description, action, children, className = '', bodyClassName = 'space-y-4' }) {
+  return (
+    <Card className={className}>
+      <CardHeader className="flex items-center justify-between gap-3 px-5 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {Icon && (
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${TONE_ICON_CLASSES[tone] || TONE_ICON_CLASSES.indigo}`}>
+              <Icon size={18} />
+            </span>
+          )}
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h2>
+            {description && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{description}</p>}
+          </div>
+        </div>
+        {action}
+      </CardHeader>
+      <CardBody className={`p-5 ${bodyClassName}`}>{children}</CardBody>
+    </Card>
+  );
+}
+
+/** Sticky bottom bar holding a form's Cancel / Save buttons. */
+export function FormActionBar({ hint, children }) {
+  return (
+    <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>
+      <div className="flex flex-wrap items-center justify-end gap-2">{children}</div>
+    </div>
+  );
+}
+
+/** Label / value list used in preview side cards. */
+export function SummaryList({ items }) {
+  return (
+    <dl className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
+      {items.map(([label, value]) => (
+        <div key={label} className="flex items-center justify-between gap-3 py-2">
+          <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
+          <dd className="text-right font-medium text-slate-800 dark:text-slate-200">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

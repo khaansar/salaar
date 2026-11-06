@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Layers, Settings, Clock, Shuffle } from 'lucide-react';
-import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { Layers, Settings, Clock, Shuffle, Save } from 'lucide-react';
+import { FormSection, FormActionBar } from '@/components/admin/AdminUi';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -60,19 +60,10 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
   const nextOrder = existingSections.length + 1;
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
-              <Layers size={18} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">Section Details</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Basic information for this section.</p>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <FormSection icon={Layers} tone="violet" title="Section details" description="Basic information for this section.">
             <Input
               id="section-title"
               label="Section Title"
@@ -80,25 +71,11 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               error={errors.title}
+              helpText={`This will be section ${nextOrder} of ${testTitle}. You can reorder sections afterward.`}
             />
-            <p className="text-xs text-slate-500 -mt-2">
-              This will be section <strong>{nextOrder}</strong> of {testTitle}. Sections are numbered in the order
-              you create them — drag to reorder afterward.
-            </p>
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Settings size={18} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">Configuration</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Set a time limit and behavior for this section.</p>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
+          <FormSection icon={Settings} tone="emerald" title="Configuration" description="Set a time limit and behavior for this section.">
             <Input
               id="section-duration"
               label="Duration (minutes)"
@@ -110,7 +87,7 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
               error={errors.durationMinutes}
               leftIcon={<Clock size={15} />}
             />
-            <div className="pt-1">
+            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
               <Checkbox
                 id="section-shuffle"
                 label="Shuffle questions for each attempt"
@@ -118,7 +95,7 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
                 onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))}
               />
             </div>
-            <div className="pt-3 border-t border-slate-100">
+            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
               <Checkbox
                 id="section-enable-negative"
                 label="Enable default negative marking"
@@ -142,37 +119,22 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
                 </div>
               )}
             </div>
-          </CardBody>
-        </Card>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => router.push(`/admin-dashboard/tests/${testId}`)} disabled={saving}>
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={saving}>
-            Create Section
-          </Button>
+          </FormSection>
         </div>
-      </div>
 
-      {/* Live preview sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-slate-900">Section Preview</h2>
-            <p className="text-sm text-slate-500 mt-0.5">How this section will appear to students.</p>
-          </CardHeader>
-          <CardBody>
+        {/* Live preview sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-4">
+          <FormSection title="Section preview" description="How this section will appear to students.">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300">
                 <Layers size={18} />
-              </div>
+              </span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900 truncate">{form.title || `Section ${nextOrder}`}</p>
-                <p className="text-xs text-slate-500 mt-0.5">Section {nextOrder}</p>
+                <p className="truncate font-semibold text-slate-900 dark:text-white">{form.title || `Section ${nextOrder}`}</p>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Section {nextOrder}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 mt-4 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center gap-1">
                 <Clock size={12} /> {form.durationMinutes ? `${form.durationMinutes} mins` : 'No time limit'}
               </span>
@@ -187,34 +149,38 @@ export function SectionForm({ testId, testTitle, existingSections = [] }) {
                 </span>
               )}
             </div>
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-slate-900">Test Structure Preview</h2>
-          </CardHeader>
-          <CardBody>
-            <p className="text-sm font-medium text-slate-900 mb-3">{testTitle}</p>
+          <FormSection title="Test structure" description={testTitle}>
             <div className="space-y-2">
               {existingSections.map((s, i) => (
-                <div key={s.sectionId} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
-                  <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-semibold flex items-center justify-center shrink-0">
+                <div key={s.sectionId} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-800">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-slate-700 truncate">{s.title}</span>
+                  <span className="truncate text-sm text-slate-700 dark:text-slate-300">{s.title}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-3 rounded-lg border border-dashed border-indigo-300 bg-indigo-50/60 px-3 py-2">
-                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 rounded-lg border border-dashed border-indigo-300 bg-indigo-50/60 px-3 py-2 dark:border-indigo-500/40 dark:bg-indigo-500/10">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-semibold text-white">
                   {nextOrder}
                 </span>
-                <span className="text-sm font-medium text-indigo-700 truncate">{form.title || 'New section'}</span>
+                <span className="truncate text-sm font-medium text-indigo-700 dark:text-indigo-300">{form.title || 'New section'}</span>
               </div>
             </div>
-          </CardBody>
-        </Card>
+          </FormSection>
+        </div>
       </div>
+
+      <FormActionBar hint="You can add questions to the section right after creating it.">
+        <Button type="button" variant="outline" onClick={() => router.push(`/admin-dashboard/tests/${testId}`)} disabled={saving}>
+          Cancel
+        </Button>
+        <Button type="submit" isLoading={saving}>
+          <Save size={16} className="mr-2" />
+          Create Section
+        </Button>
+      </FormActionBar>
     </form>
   );
 }

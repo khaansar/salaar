@@ -22,6 +22,13 @@ import {
 } from 'lucide-react';
 import { useGetAuditLogsQuery } from '@/store/adminApi';
 import { siteConfig } from '@/config/site';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Pagination, zeroBasedMeta } from '@/components/ui/Pagination';
+import { StatCard } from '@/components/admin/StatCard';
+import { InlineAlert } from '@/components/admin/AdminUi';
 
 const PAGE_SIZE = 20;
 
@@ -503,163 +510,82 @@ export default function AuditLogsPage() {
     setExpandedId(null);
   };
 
-  const hasPrevious = page > 0;
-  const hasNext = page + 1 < totalPages;
+
+  const changePage = (nextPage) => {
+    setPage(Math.max(0, nextPage - 1));
+    setExpandedId(null);
+  };
+
+  const toIsoInput = (value) => (value ? new Date(value).toISOString().slice(0, 16) : '');
+  const fromIsoInput = (value) => (value ? new Date(value).toISOString() : '');
 
   return (
-    <div className="mx-auto max-w-[1500px]">
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
-            <ShieldCheck size={15} />
-            Security & Activity
-          </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <PageHeader
+        breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Audit Logs' }]}
+        title="Audit Logs"
+        subtitle={`Trace administrative actions, API activity and system events across ${siteConfig.name}.`}
+        actions={
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw size={16} className={`mr-2 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        }
+      />
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Audit Logs
-          </h1>
-
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-            Trace administrative actions, API activity and system events across {siteConfig.name}.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300 xl:self-auto"
-        >
-          <RefreshCw size={15} className={isFetching ? 'animate-spin' : ''} />
-          Refresh
-        </button>
+      {/* Activity summary for the loaded page */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Loaded events" value={logs.length} hint="Latest server-side audit activity" icon={Activity} tone="indigo" loading={isLoading} />
+        <StatCard label="Successful" value={successfulCount} hint="2xx responses on this page" icon={CheckCircle2} tone="emerald" loading={isLoading} />
+        <StatCard label="Errors" value={failedCount} hint="4xx / 5xx responses on this page" icon={AlertCircle} tone="rose" loading={isLoading} />
       </div>
 
-      {/* Activity pulse */}
-      <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="relative px-5 py-5 sm:px-6">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-indigo-50/80 to-transparent dark:from-indigo-500/5" />
-
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                <Activity size={21} />
-                <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900" />
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                  Event stream
-                </p>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  Showing the latest server-side audit activity
-                </p>
-              </div>
+      <Card>
+        {/* Toolbar */}
+        <div className="space-y-3 border-b border-slate-100 p-4 dark:border-slate-800">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="min-w-0 flex-1">
+              <Input
+                type="search"
+                aria-label="Search loaded events"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search loaded events by actor, action, resource or request ID..."
+                leftIcon={<Search size={16} />}
+              />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-xl bg-slate-50 px-4 py-2.5 dark:bg-slate-800/70">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Loaded
-                </p>
-                <p className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">
-                  {isLoading ? '—' : logs.length}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-emerald-50 px-4 py-2.5 dark:bg-emerald-500/10">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">
-                  Successful
-                </p>
-                <p className="mt-0.5 text-lg font-bold text-emerald-700 dark:text-emerald-300">
-                  {isLoading ? '—' : successfulCount}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-rose-50 px-4 py-2.5 dark:bg-rose-500/10">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-600/70 dark:text-rose-400/70">
-                  Errors
-                </p>
-                <p className="mt-0.5 text-lg font-bold text-rose-700 dark:text-rose-300">
-                  {isLoading ? '—' : failedCount}
-                </p>
-              </div>
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((open) => !open)}
+              className={`gap-2 ${filtersOpen || activeFilterCount ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300' : ''}`}
+            >
+              <Filter size={15} />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
           </div>
-        </div>
 
-        {/* Quick ranges */}
-        <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3 dark:border-slate-800 dark:bg-slate-950/30 sm:px-6">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-medium text-slate-400 dark:text-slate-500">
-              Quick scope
-            </span>
-
+            <span className="mr-1 text-xs font-medium text-slate-400 dark:text-slate-500">Quick scope</span>
             {QUICK_RANGES.map((range) => (
               <button
                 key={range.label}
                 type="button"
                 onClick={() => setQuickRange(range.hours)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300"
               >
                 Last {range.label}
               </button>
             ))}
 
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="ml-auto text-xs font-semibold text-slate-400 transition-colors hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
-            >
-              Clear scope
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Explorer */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        {/* Toolbar */}
-        <div className="border-b border-slate-200 p-4 dark:border-slate-800 sm:p-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="relative min-w-0 flex-1">
-              <Search
-                size={17}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search loaded events by actor, action, resource or request ID..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-indigo-500/50 dark:focus:bg-slate-950"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setFiltersOpen((open) => !open)}
-              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors ${
-                filtersOpen || activeFilterCount
-                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300'
-              }`}
-            >
-              <Filter size={16} />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-600 px-1.5 text-[10px] font-bold text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Active filters */}
-          {activeFilterCount > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {Object.entries(filters).map(([key, value]) => {
+            {activeFilterCount > 0 &&
+              Object.entries(filters).map(([key, value]) => {
                 if (!value) return null;
 
                 return (
@@ -667,7 +593,7 @@ export default function AuditLogsPage() {
                     key={key}
                     type="button"
                     onClick={() => removeFilter(key)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300"
                   >
                     {key === 'from'
                       ? `From ${formatDate(value)}`
@@ -678,22 +604,24 @@ export default function AuditLogsPage() {
                   </button>
                 );
               })}
-            </div>
-          )}
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="ml-auto text-xs font-semibold text-slate-400 transition-colors hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
+            >
+              Clear scope
+            </button>
+          </div>
 
           {/* Filter panel */}
           {filtersOpen && (
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/30">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Event filters
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                    Filters are applied server-side.
-                  </p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">Event filters</p>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Filters are applied server-side.</p>
                 </div>
-
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -703,138 +631,18 @@ export default function AuditLogsPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    Actor ID
-                  </span>
-                  <input
-                    value={draftFilters.actorId}
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        actorId: event.target.value,
-                      }))
-                    }
-                    placeholder="UUID"
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    Action
-                  </span>
-                  <input
-                    value={draftFilters.action}
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        action: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. test.published"
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    Resource type
-                  </span>
-                  <input
-                    value={draftFilters.resourceType}
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        resourceType: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. TEST"
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    Service
-                  </span>
-                  <input
-                    value={draftFilters.service}
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        service: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. test-service"
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    From
-                  </span>
-                  <input
-                    type="datetime-local"
-                    value={
-                      draftFilters.from
-                        ? new Date(draftFilters.from).toISOString().slice(0, 16)
-                        : ''
-                    }
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        from: event.target.value
-                          ? new Date(event.target.value).toISOString()
-                          : '',
-                      }))
-                    }
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    To
-                  </span>
-                  <input
-                    type="datetime-local"
-                    value={
-                      draftFilters.to
-                        ? new Date(draftFilters.to).toISOString().slice(0, 16)
-                        : ''
-                    }
-                    onChange={(event) =>
-                      setDraftFilters((current) => ({
-                        ...current,
-                        to: event.target.value
-                          ? new Date(event.target.value).toISOString()
-                          : '',
-                      }))
-                    }
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <Input id="audit-actor" label="Actor ID" placeholder="UUID" value={draftFilters.actorId} onChange={(event) => setDraftFilters((current) => ({ ...current, actorId: event.target.value }))} />
+                <Input id="audit-action" label="Action" placeholder="e.g. test.published" value={draftFilters.action} onChange={(event) => setDraftFilters((current) => ({ ...current, action: event.target.value }))} />
+                <Input id="audit-resource" label="Resource type" placeholder="e.g. TEST" value={draftFilters.resourceType} onChange={(event) => setDraftFilters((current) => ({ ...current, resourceType: event.target.value }))} />
+                <Input id="audit-service" label="Service" placeholder="e.g. test-service" value={draftFilters.service} onChange={(event) => setDraftFilters((current) => ({ ...current, service: event.target.value }))} />
+                <Input id="audit-from" label="From" type="datetime-local" value={toIsoInput(draftFilters.from)} onChange={(event) => setDraftFilters((current) => ({ ...current, from: fromIsoInput(event.target.value) }))} />
+                <Input id="audit-to" label="To" type="datetime-local" value={toIsoInput(draftFilters.to)} onChange={(event) => setDraftFilters((current) => ({ ...current, to: fromIsoInput(event.target.value) }))} />
               </div>
 
               <div className="mt-4 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFiltersOpen(false)}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-white hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={applyFilters}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
-                >
-                  Apply filters
-                </button>
+                <Button type="button" variant="ghost" onClick={() => setFiltersOpen(false)}>Cancel</Button>
+                <Button type="button" onClick={applyFilters}>Apply filters</Button>
               </div>
             </div>
           )}
@@ -842,24 +650,18 @@ export default function AuditLogsPage() {
 
         {/* Error */}
         {isError && (
-          <div className="m-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-500/20 dark:bg-rose-500/10">
-            <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-600 dark:text-rose-400" />
-            <div>
-              <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
-                Unable to load audit logs
-              </p>
-              <p className="mt-0.5 text-xs text-rose-600 dark:text-rose-400">
-                Check the IAM service and try refreshing the page.
-              </p>
-            </div>
+          <div className="p-4">
+            <InlineAlert tone="danger" title="Unable to load audit logs">
+              Check the IAM service and try refreshing the page.
+            </InlineAlert>
           </div>
         )}
 
         {/* Desktop table */}
         <div className="hidden overflow-x-auto md:block">
           <div className="min-w-[920px]">
-            <div className="grid grid-cols-[auto_minmax(0,1.35fr)_minmax(130px,1fr)_minmax(110px,.8fr)_minmax(90px,.65fr)_auto] items-center gap-4 border-b border-slate-200 bg-slate-50/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-500 sm:px-5">
-              <span />
+            <div className="grid grid-cols-[auto_minmax(0,1.35fr)_minmax(130px,1fr)_minmax(110px,.8fr)_minmax(90px,.65fr)_auto] items-center gap-4 border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400 sm:px-5">
+              <span className="w-7" />
               <span>Event</span>
               <span>Actor</span>
               <span>Resource</span>
@@ -868,9 +670,7 @@ export default function AuditLogsPage() {
             </div>
 
             {isLoading ? (
-              Array.from({ length: 7 }).map((_, index) => (
-                <SkeletonRow key={index} />
-              ))
+              Array.from({ length: 7 }).map((_, index) => <SkeletonRow key={index} />)
             ) : visibleLogs.length === 0 ? (
               <EmptyState filtered={Boolean(search || activeFilterCount)} />
             ) : (
@@ -879,11 +679,7 @@ export default function AuditLogsPage() {
                   key={log.eventId}
                   log={log}
                   expanded={expandedId === log.eventId}
-                  onToggle={() =>
-                    setExpandedId((current) =>
-                      current === log.eventId ? null : log.eventId
-                    )
-                  }
+                  onToggle={() => setExpandedId((current) => (current === log.eventId ? null : log.eventId))}
                 />
               ))
             )}
@@ -895,10 +691,7 @@ export default function AuditLogsPage() {
           {isLoading ? (
             <div>
               {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="space-y-3 border-b border-slate-100 p-4 dark:border-slate-800"
-                >
+                <div key={index} className="space-y-3 border-b border-slate-100 p-4 dark:border-slate-800">
                   <div className="h-5 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
                   <div className="h-4 w-48 animate-pulse rounded bg-slate-100 dark:bg-slate-800/70" />
                   <div className="h-4 w-24 animate-pulse rounded bg-slate-100 dark:bg-slate-800/70" />
@@ -912,17 +705,10 @@ export default function AuditLogsPage() {
               const expanded = expandedId === log.eventId;
 
               return (
-                <div
-                  key={log.eventId}
-                  className="border-b border-slate-100 dark:border-slate-800"
-                >
+                <div key={log.eventId} className="border-b border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() =>
-                      setExpandedId((current) =>
-                        current === log.eventId ? null : log.eventId
-                      )
-                    }
+                    onClick={() => setExpandedId((current) => (current === log.eventId ? null : log.eventId))}
                     className="w-full p-4 text-left"
                   >
                     <div className="flex items-start gap-3">
@@ -932,31 +718,17 @@ export default function AuditLogsPage() {
 
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${getActionStyle(
-                              log.action
-                            )}`}
-                          >
+                          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${getActionStyle(log.action)}`}>
                             {formatAction(log.action)}
                           </span>
-
-                          <span className={`text-xs font-medium ${statusTone(log.statusCode)}`}>
-                            {statusLabel(log.statusCode)}
-                          </span>
+                          <span className={`text-xs font-medium ${statusTone(log.statusCode)}`}>{statusLabel(log.statusCode)}</span>
                         </div>
-
-                        <p className="mt-2 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
-                          {log.actorName || 'System'}
-                        </p>
-
+                        <p className="mt-2 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">{log.actorName || 'System'}</p>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                           {log.resourceType || 'Unknown resource'}
                           {log.service ? ` · ${log.service}` : ''}
                         </p>
-
-                        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-                          {formatDate(log.createdAt)}
-                        </p>
+                        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">{formatDate(log.createdAt)}</p>
                       </div>
                     </div>
                   </button>
@@ -970,71 +742,35 @@ export default function AuditLogsPage() {
 
         {/* Footer / pagination */}
         {!isLoading && totalElements > 0 && (
-          <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/50 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/30 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <>
+            <div className="flex items-center gap-2 border-t border-slate-100 px-5 py-2.5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <Database size={14} />
               <span>
                 {visibleLogs.length !== logs.length
-                  ? `${visibleLogs.length} of ${logs.length} loaded events`
+                  ? `${visibleLogs.length} of ${logs.length} loaded events match your search`
                   : `${totalElements.toLocaleString()} total events`}
               </span>
             </div>
-
-            <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-                Page {page + 1} of {Math.max(totalPages, 1)}
-              </span>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={!hasPrevious || isFetching}
-                  onClick={() => {
-                    setPage((current) => current - 1);
-                    setExpandedId(null);
-                  }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
-                >
-                  Previous
-                </button>
-
-                <button
-                  type="button"
-                  disabled={!hasNext || isFetching}
-                  onClick={() => {
-                    setPage((current) => current + 1);
-                    setExpandedId(null);
-                  }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
+            <Pagination
+              meta={zeroBasedMeta({ page, totalPages, totalElements, pageSize: PAGE_SIZE })}
+              onPageChange={changePage}
+              disabled={isFetching}
+            />
+          </>
         )}
-      </div>
+      </Card>
 
       {/* Footer hint */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-1 text-[11px] text-slate-400 dark:text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-slate-400 dark:text-slate-500">
         <div className="flex items-center gap-2">
           <Fingerprint size={13} />
           <span>Audit events are immutable records from the backend.</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1">
-            <Terminal size={12} />
-            API activity
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Server size={12} />
-            Service events
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Clock3 size={12} />
-            UTC timestamps
-          </span>
+          <span className="inline-flex items-center gap-1"><Terminal size={12} /> API activity</span>
+          <span className="inline-flex items-center gap-1"><Server size={12} /> Service events</span>
+          <span className="inline-flex items-center gap-1"><Clock3 size={12} /> UTC timestamps</span>
         </div>
       </div>
     </div>

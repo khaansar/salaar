@@ -12,6 +12,8 @@ import {
   Copy,
   Clock,
   ListChecks,
+  Layers,
+  Award,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -20,7 +22,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { TableSkeleton } from '@/components/ui/Skeleton';
+import { Skeleton, TableSkeleton } from '@/components/ui/Skeleton';
+import { StatCard } from '@/components/admin/StatCard';
+import { InlineAlert } from '@/components/admin/AdminUi';
 import { ErrorState, EmptyState } from '@/components/ui/EmptyState';
 import { TestSettingsModal } from '@/features/tests/TestSettingsModal';
 import { SectionCard } from '@/features/tests/SectionCard';
@@ -151,34 +155,42 @@ export default function TestBuilderPage({ params }) {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto">
-        <TableSkeleton rows={4} cols={1} />
+      <div className="mx-auto max-w-6xl space-y-6">
+        <Skeleton className="h-16 w-2/3" />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[104px] rounded-xl" />)}
+        </div>
+        <Card><TableSkeleton rows={4} cols={1} /></Card>
       </div>
     );
   }
 
   if (error || !test) {
     return (
-      <div className="max-w-5xl mx-auto">
-        <ErrorState message={error || 'Test not found'} onRetry={load} />
+      <div className="mx-auto max-w-6xl">
+        <PageHeader breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Mock test' }]} title="Mock test" />
+        <Card>
+          <ErrorState message={error || 'Test not found'} onRetry={load} />
+        </Card>
       </div>
     );
   }
 
   const canPublish = test.status === 'DRAFT' && sections.length > 0;
+  const questionCount = sections.reduce((sum, section) => sum + (section.questions || []).length, 0);
 
   return (
-    <div className="max-w-5xl mx-auto pb-10">
+    <div className="mx-auto max-w-6xl space-y-6 pb-10">
       <PageHeader
-        breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: test.title }]}
+        breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Test Series', href: '/admin-dashboard/series' }, { label: test.title }]}
         title={test.title}
         subtitle={
-          <span className="inline-flex items-center gap-3">
+          <span className="inline-flex flex-wrap items-center gap-3">
             <Badge className={STATUS_BADGE_STYLES[test.status]}>{test.status}</Badge>
-            <span className="inline-flex items-center gap-1 text-slate-500">
+            <span className="inline-flex items-center gap-1">
               <Clock size={13} /> {test.durationMinutes} min
             </span>
-            <span className="inline-flex items-center gap-1 text-slate-500">
+            <span className="inline-flex items-center gap-1">
               <ListChecks size={13} /> {test.totalMarks ?? 0} marks
             </span>
           </span>
@@ -204,7 +216,11 @@ export default function TestBuilderPage({ params }) {
               Clone
             </Button>
             {test.status === 'DRAFT' && (
-              <Button onClick={() => setPublishConfirmOpen(true)} disabled={!canPublish}>
+              <Button
+                onClick={() => setPublishConfirmOpen(true)}
+                disabled={!canPublish}
+                title={!canPublish ? 'Add at least one section before publishing' : undefined}
+              >
                 <Send size={16} className="mr-2" />
                 Publish
               </Button>
@@ -225,46 +241,63 @@ export default function TestBuilderPage({ params }) {
         }
       />
 
-      {test.status !== 'DRAFT' && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          This test is <strong>{test.status.toLowerCase()}</strong>. Structural changes (sections/questions) are still
-          available here, but consider the impact on students who may already be attempting it.
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Sections</h2>
-        <Button onClick={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}>
-          <Plus size={16} className="mr-2" />
-          Add section
-        </Button>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Sections" value={sections.length} icon={Layers} tone="violet" hint="In display order" />
+        <StatCard label="Questions" value={questionCount} icon={ListChecks} tone="indigo" hint="Across all sections" />
+        <StatCard label="Total marks" value={test.totalMarks ?? 0} icon={Award} tone="emerald" hint="Sum of question marks" />
+        <StatCard label="Duration" value={`${test.durationMinutes} min`} icon={Clock} tone="amber" hint="Overall time limit" />
       </div>
 
-      {sections.length === 0 ? (
-        <Card>
-          <EmptyState
-            title="No sections yet"
-            description="Add a section to start attaching questions to this test."
-            actionLabel="Add section"
-            onAction={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}
-          />
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {sections.map((section, i) => (
-            <SectionCard
-              key={section.sectionId}
-              section={section}
-              testId={id}
-              isFirst={i === 0 || sectionReordering}
-              isLast={i === sections.length - 1 || sectionReordering}
-              onMoveUp={() => moveSection(i, -1)}
-              onMoveDown={() => moveSection(i, 1)}
-              onChanged={load}
-            />
-          ))}
-        </div>
+      {test.status !== 'DRAFT' && (
+        <InlineAlert tone="warning">
+          This test is <strong>{test.status.toLowerCase()}</strong>. Structural changes (sections/questions) are still
+          available here, but consider the impact on students who may already be attempting it.
+        </InlineAlert>
       )}
+
+      {test.status === 'DRAFT' && sections.length === 0 && (
+        <InlineAlert tone="info">Add at least one section with questions before publishing this test.</InlineAlert>
+      )}
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Sections</h2>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Reorder sections, attach or create questions, and adjust marks.</p>
+          </div>
+          <Button onClick={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}>
+            <Plus size={16} className="mr-2" />
+            Add section
+          </Button>
+        </div>
+
+        {sections.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon={<Layers size={22} />}
+              title="No sections yet"
+              description="Add a section to start attaching questions to this test."
+              actionLabel="Add section"
+              onAction={() => router.push(`/admin-dashboard/tests/${id}/sections/new`)}
+            />
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {sections.map((section, i) => (
+              <SectionCard
+                key={section.sectionId}
+                section={section}
+                testId={id}
+                isFirst={i === 0 || sectionReordering}
+                isLast={i === sections.length - 1 || sectionReordering}
+                onMoveUp={() => moveSection(i, -1)}
+                onMoveDown={() => moveSection(i, 1)}
+                onChanged={load}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       <TestSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} test={test} onSaved={load} />
       <TestPreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} testId={id} testStatus={test.status} />
@@ -285,7 +318,7 @@ export default function TestBuilderPage({ params }) {
           </>
         }
       >
-        <Input label="New title (optional)" value={cloneTitle} onChange={(e) => setCloneTitle(e.target.value)} />
+        <Input id="clone-title" label="New title (optional)" value={cloneTitle} onChange={(e) => setCloneTitle(e.target.value)} />
       </Modal>
 
       <ConfirmDialog

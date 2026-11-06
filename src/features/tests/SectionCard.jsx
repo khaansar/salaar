@@ -127,7 +127,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-600/50 bg-white dark:bg-slate-900 overflow-hidden shadow-sm transition-all duration-200">
       <div
-        className={`group flex items-center justify-between gap-4 px-5 py-4 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-indigo-50/50 dark:hover:bg-slate-800/90 cursor-pointer select-none transition-colors duration-200 ${
+        className={`group flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/70 dark:bg-slate-800/50 hover:bg-indigo-50/50 dark:hover:bg-slate-800/90 cursor-pointer select-none transition-colors duration-200 ${
           collapsed ? '' : 'border-b border-slate-100 dark:border-slate-800'
         }`}
         onClick={() => setCollapsed(!collapsed)}
@@ -155,6 +155,9 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
+              title="Move section up"
+              aria-label="Move section up"
               onClick={onMoveUp}
               disabled={isFirst}
               className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
@@ -162,6 +165,9 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
               <ChevronUp size={16} />
             </button>
             <button
+              type="button"
+              title="Move section down"
+              aria-label="Move section down"
               onClick={onMoveDown}
               disabled={isLast}
               className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
@@ -177,7 +183,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
               </h3>
               {collapsed && (
                 <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-indigo-100/80 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
-                  {questions.length} question{questions.length !== 1 ? 's' : ''} (collapsed)
+                  {questions.length} question{questions.length !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -203,7 +209,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         </div>
 
         <div
-          className="flex items-center gap-2 shrink-0"
+          className="flex flex-wrap items-center gap-2 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
           <Button size="sm" variant="outline" onClick={() => setSettingsOpen(true)}>
@@ -224,16 +230,16 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
       {!collapsed && (
         <>
           {questions.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm text-slate-400 dark:text-slate-500">No questions in this section yet.</div>
+            <div className="px-5 py-8 text-center text-sm text-slate-400 dark:text-slate-500">No questions in this section yet. Use <strong className="font-semibold text-slate-600 dark:text-slate-300">Create questions</strong> or <strong className="font-semibold text-slate-600 dark:text-slate-300">Attach questions</strong> above.</div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {questions.map((q, i) => (
                 <div key={q.questionId} className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                   <div className="flex flex-col -my-0.5 pt-0.5">
-                    <button onClick={() => moveQuestion(i, -1)} disabled={i === 0 || reordering} className="text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-25">
+                    <button type="button" title="Move question up" aria-label="Move question up" onClick={() => moveQuestion(i, -1)} disabled={i === 0 || reordering} className="text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-25">
                       <ChevronUp size={14} />
                     </button>
-                    <button onClick={() => moveQuestion(i, 1)} disabled={i === questions.length - 1 || reordering} className="text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-25">
+                    <button type="button" title="Move question down" aria-label="Move question down" onClick={() => moveQuestion(i, 1)} disabled={i === questions.length - 1 || reordering} className="text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-25">
                       <ChevronDown size={14} />
                     </button>
                   </div>
@@ -241,11 +247,11 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
                   <div className="min-w-0 flex-1">
                     <MathText text={q.translations?.[0]?.questionText} className="text-sm text-slate-800 dark:text-slate-200 line-clamp-2" />
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{q.questionType}</Badge>
+                      <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{String(q.questionType || '').replaceAll('_', ' ')}</Badge>
                       <MarksEditor question={q} sectionId={section.sectionId} onSaved={onChanged} />
                     </div>
                   </div>
-                  <button onClick={() => setRemoveTarget(q)} className="text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 shrink-0 mt-0.5">
+                  <button type="button" title="Remove from section" aria-label="Remove question from section" onClick={() => setRemoveTarget(q)} className="mt-0.5 shrink-0 rounded-md p-1 text-slate-300 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:text-slate-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-400">
                     <X size={16} />
                   </button>
                 </div>

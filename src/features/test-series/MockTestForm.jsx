@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Settings, Save } from 'lucide-react';
-import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { FormSection, FormActionBar, InlineAlert, SummaryList } from '@/components/admin/AdminUi';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -22,16 +22,19 @@ const emptyForm = {
 
 function Toggle({ checked, onChange, label, description }) {
   return (
-    <label className="flex items-center justify-between gap-4 py-2.5 cursor-pointer select-none">
+    <label className="flex cursor-pointer select-none items-center justify-between gap-4 py-3">
       <span>
-        <span className="block text-sm font-medium text-slate-800">{label}</span>
-        {description && <span className="block text-xs text-slate-500 mt-0.5">{description}</span>}
+        <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">{label}</span>
+        {description && <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{description}</span>}
       </span>
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-          checked ? 'bg-indigo-600' : 'bg-slate-200'
+          checked ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
         }`}
       >
         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -84,36 +87,36 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
   };
 
   return (
-    <form onSubmit={(e) => handleSubmit(e, false)} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <FileText size={18} />
+    <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <FormSection
+            icon={FileText}
+            tone="indigo"
+            title="Basic information"
+            description="Enter the main details and configuration for this mock test."
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="sm:col-span-2">
+                <Input
+                  id="test-title"
+                  label="Title"
+                  placeholder="e.g. GATE 2025 – Practice Test 1"
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  error={errors.title}
+                />
+              </div>
+              <Input
+                id="test-duration"
+                label="Duration (minutes)"
+                type="number"
+                min="1"
+                value={form.durationMinutes}
+                onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))}
+                error={errors.durationMinutes}
+              />
             </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">Basic Information</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Enter the main details and configuration for this mock test.</p>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
-            <Input
-              id="test-title"
-              label="Title"
-              placeholder="e.g. GATE 2025 – Practice Test 1"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              error={errors.title}
-            />
-            <Input
-              id="test-duration"
-              label="Duration (minutes)"
-              type="number"
-              min="1"
-              value={form.durationMinutes}
-              onChange={(e) => setForm((f) => ({ ...f, durationMinutes: e.target.value }))}
-              error={errors.durationMinutes}
-            />
             <Textarea
               id="test-instructions"
               label="Instructions (shown to students before starting the test)"
@@ -122,20 +125,15 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
               value={form.instructions}
               onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
             />
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-              <Settings size={18} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">Test Settings</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Configure additional settings for this mock test.</p>
-            </div>
-          </CardHeader>
-          <CardBody className="divide-y divide-slate-100">
+          <FormSection
+            icon={Settings}
+            tone="slate"
+            title="Test settings"
+            description="Configure additional settings for this mock test."
+            bodyClassName="divide-y divide-slate-100 py-1 dark:divide-slate-800"
+          >
             <Toggle
               checked={form.isFree}
               onChange={(v) => setForm((f) => ({ ...f, isFree: v }))}
@@ -160,74 +158,51 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
               label="Shuffle Sections"
               description="Randomize section order for each attempt"
             />
-          </CardBody>
-        </Card>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => router.push(`/admin-dashboard/series/${seriesId}`)} disabled={saving}>
-            Cancel
-          </Button>
-          <Button type="button" variant="outline" isLoading={saving} onClick={(e) => handleSubmit(e, false)}>
-            <Save size={16} className="mr-2" />
-            Save as Draft
-          </Button>
-          <Button type="button" isLoading={saving} onClick={(e) => handleSubmit(e, true)}>
-            Create &amp; Add Sections
-          </Button>
+          </FormSection>
         </div>
-      </div>
 
-      {/* Live preview sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-slate-900">Test Preview</h2>
-          </CardHeader>
-          <CardBody>
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+        {/* Live preview sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-4">
+          <FormSection title="Test preview" description="Summary of what you are creating.">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
                 <FileText size={18} />
-              </div>
+              </span>
               <div className="min-w-0">
-                <p className="font-semibold text-slate-900 truncate">{form.title || 'Untitled test'}</p>
-                <p className="text-xs text-slate-500 truncate">{seriesTitle}</p>
+                <p className="truncate font-semibold text-slate-900 dark:text-white">{form.title || 'Untitled test'}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{seriesTitle}</p>
               </div>
               <Badge tone="neutral" className="ml-auto shrink-0">Draft</Badge>
             </div>
-            <dl className="space-y-2.5 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Category</dt>
-                <dd className="font-medium text-slate-800">{categoryName || '—'}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Duration</dt>
-                <dd className="font-medium text-slate-800">
-                  {form.durationMinutes || 0} minutes
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Negative Marking</dt>
-                <dd className="font-medium text-slate-800">{form.negativeMarkingEnabled ? 'Enabled' : 'Disabled'}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Free Test</dt>
-                <dd className="font-medium text-slate-800">{form.isFree ? 'Yes' : 'No'}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-500">Shuffle Sections</dt>
-                <dd className="font-medium text-slate-800">{form.shuffleSections ? 'Yes' : 'No'}</dd>
-              </div>
-            </dl>
-          </CardBody>
-        </Card>
+            <SummaryList
+              items={[
+                ['Category', categoryName || '—'],
+                ['Duration', `${form.durationMinutes || 0} minutes`],
+                ['Negative marking', form.negativeMarkingEnabled ? 'Enabled' : 'Disabled'],
+                ['Free test', form.isFree ? 'Yes' : 'No'],
+                ['Shuffle sections', form.shuffleSections ? 'Yes' : 'No'],
+              ]}
+            />
+          </FormSection>
 
-        <Card>
-          <CardBody className="text-sm text-slate-600 space-y-2">
-            <p className="font-medium text-slate-800">What&apos;s next?</p>
-            <p>Sections and questions are added after the test is created — use &quot;Create &amp; Add Sections&quot; to jump straight there.</p>
-          </CardBody>
-        </Card>
+          <InlineAlert tone="info" title="What's next?">
+            Sections and questions are added after the test is created — use &quot;Create &amp; Add Sections&quot; to jump straight there.
+          </InlineAlert>
+        </div>
       </div>
+
+      <FormActionBar hint="New tests start as drafts until you publish them.">
+        <Button type="button" variant="outline" onClick={() => router.push(`/admin-dashboard/series/${seriesId}`)} disabled={saving}>
+          Cancel
+        </Button>
+        <Button type="button" variant="outline" isLoading={saving} onClick={(e) => handleSubmit(e, false)}>
+          <Save size={16} className="mr-2" />
+          Save as Draft
+        </Button>
+        <Button type="button" isLoading={saving} onClick={(e) => handleSubmit(e, true)}>
+          Create &amp; Add Sections
+        </Button>
+      </FormActionBar>
     </form>
   );
 }

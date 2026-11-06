@@ -8,21 +8,16 @@ import {
   Clock3,
   Search,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Check,
   X,
-  Filter,
   LoaderCircle,
   User,
   Copy,
   CheckCheck,
   Layers,
-  FileText,
   Globe,
   Home,
-  AlertCircle,
   ShieldCheck,
   ShieldX,
 } from 'lucide-react';
@@ -33,8 +28,19 @@ import {
 } from '@/store/adminApi';
 import { homepageReviewService } from '@/services/homepageReviewService';
 import { useToast } from '@/components/common/ToastProvider';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Badge } from '@/components/ui/Badge';
+import { Drawer } from '@/components/ui/Drawer';
+import { TableSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Pagination, zeroBasedMeta } from '@/components/ui/Pagination';
+import { StatCard } from '@/components/admin/StatCard';
+import { ADMIN_TABLE, IconAction, InlineAlert, SegmentedTabs } from '@/components/admin/AdminUi';
 
 const PAGE_SIZE = 20;
 
@@ -136,14 +142,34 @@ function formatDate(value) {
 
 function StatusBadge({ status }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+    <Badge
+      className={
         STATUS_STYLES[status] ||
         'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-      }`}
+      }
     >
       {status || 'UNKNOWN'}
-    </span>
+    </Badge>
+  );
+}
+
+const HOMEPAGE_SELECT_BASE = 'h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition focus:ring-2 focus:ring-indigo-500';
+
+function homepageSelectClass(approved, featured) {
+  if (!approved) {
+    return `${HOMEPAGE_SELECT_BASE} cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500`;
+  }
+  return featured
+    ? `${HOMEPAGE_SELECT_BASE} cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300`
+    : `${HOMEPAGE_SELECT_BASE} cursor-pointer border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800`;
+}
+
+function InfoTile({ label, children, className = '' }) {
+  return (
+    <div className={`rounded-lg border border-slate-200 p-3 dark:border-slate-800 ${className}`}>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</p>
+      <div className="mt-1 text-sm text-slate-800 dark:text-slate-200">{children}</div>
+    </div>
   );
 }
 
@@ -208,32 +234,6 @@ function RatingStars({ rating, size = 13 }) {
       <span className="ml-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
         {rating}
       </span>
-    </div>
-  );
-}
-
-function StatCard({ label, value, description, icon: Icon, tone }) {
-  const tones = {
-    violet: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300',
-    amber: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300',
-    green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300',
-    rose: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300',
-  };
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            {value ?? '—'}
-          </p>
-          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{description}</p>
-        </div>
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}>
-          <Icon size={19} />
-        </span>
-      </div>
     </div>
   );
 }
@@ -473,547 +473,352 @@ export default function ReviewModerationPage() {
     }
   };
 
-  const paginationStart = totalElements === 0 ? 0 : page * PAGE_SIZE + 1;
-  const paginationEnd = Math.min((page + 1) * PAGE_SIZE, totalElements);
+
+  const statValue = (value) => (statsLoading && !displayStats ? '…' : value);
+  const STATUS_TABS = [
+    { value: '', label: 'All reviews' },
+    { value: 'PENDING', label: 'Pending', count: Number(displayStats?.pendingReviews) > 0 ? displayStats.pendingReviews : null },
+    { value: 'APPROVED', label: 'Approved' },
+    { value: 'REJECTED', label: 'Rejected' },
+  ];
+  const hasFilters = Boolean(targetType || rating || searchInput || search);
 
   return (
-    <div className="space-y-5 text-slate-900 dark:text-slate-100">
-      {/* Top Header */}
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Review Moderation</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Moderate student feedback before it appears publicly on test series and mock tests.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            refetch();
-          }}
-          className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} /> Refresh
-        </button>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <PageHeader
+        breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Review Moderation' }]}
+        title="Review Moderation"
+        subtitle="Moderate student feedback before it appears publicly on test series and mock tests."
+        actions={
+          <Button variant="outline" onClick={() => { refetch(); }}>
+            <RefreshCw size={16} className={`mr-2 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        }
+      />
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Total reviews"
-          value={statsLoading && !displayStats ? '…' : displayStats?.totalReviews}
-          description="All submitted student reviews"
-          icon={MessageSquareText}
-          tone="violet"
-        />
-        <StatCard
-          label="Pending"
-          value={statsLoading && !displayStats ? '…' : displayStats?.pendingReviews}
-          description="Awaiting admin moderation"
-          icon={Clock3}
-          tone="amber"
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total reviews" value={statValue(displayStats?.totalReviews)} hint="All submitted student reviews" icon={MessageSquareText} tone="violet" />
+        <StatCard label="Pending" value={statValue(displayStats?.pendingReviews)} hint="Awaiting admin moderation" icon={Clock3} tone="amber" />
         <StatCard
           label="Approved"
-          value={statsLoading && !displayStats ? '…' : displayStats?.approvedReviews}
-          description={
-            homepageReviewIds.size > 0
-              ? `${homepageReviewIds.size} featured on homepage`
-              : 'Visible to students'
-          }
+          value={statValue(displayStats?.approvedReviews)}
+          hint={homepageReviewIds.size > 0 ? `${homepageReviewIds.size} featured on homepage` : 'Visible to students'}
           icon={CheckCircle2}
-          tone="green"
+          tone="emerald"
         />
         <StatCard
           label="Average rating"
-          value={statsLoading && !displayStats ? '…' : `${Number(displayStats?.averageRating || 0).toFixed(1)} / 5`}
-          description={`${displayStats?.rejectedReviews ?? 0} rejected reviews`}
+          value={statValue(`${Number(displayStats?.averageRating || 0).toFixed(1)} / 5`)}
+          hint={`${displayStats?.rejectedReviews ?? 0} rejected reviews`}
           icon={Star}
           tone="rose"
         />
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          {[
-            { value: '', label: 'All reviews' },
-            { value: 'PENDING', label: 'Pending' },
-            { value: 'APPROVED', label: 'Approved' },
-            { value: 'REJECTED', label: 'Rejected' },
-          ].map((tab) => (
-            <button
-              key={tab.value || 'ALL'}
-              type="button"
-              onClick={() => {
-                setStatus(tab.value);
-                setPage(0);
-              }}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                status === tab.value
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
-              }`}
-            >
-              {tab.label}
-              {tab.value === 'PENDING' && Number(displayStats?.pendingReviews) > 0 && (
-                <span
-                  className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] ${
-                    status === tab.value
-                      ? 'bg-white/20'
-                      : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
-                  }`}
-                >
-                  {displayStats.pendingReviews}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        <form
-          onSubmit={runSearch}
-          className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(200px,1fr)_180px_150px_auto_auto]"
-        >
-          <label className="relative block">
-            <span className="mb-1.5 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-              Search
-            </span>
-            <Search size={15} className="absolute left-3 top-[2.35rem] -translate-y-1/2 text-slate-400" />
-            <input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Reviewer ID, target, comment..."
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-indigo-500/10"
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-              Target type
-            </span>
-            <select
-              value={targetType}
-              onChange={(event) => {
-                setTargetType(event.target.value);
-                setPage(0);
-              }}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-950"
-            >
-              <option value="">All types</option>
-              <option value="SERIES">Test series</option>
-              <option value="PLATFORM">Platform</option>
-            </select>
-          </label>
-          <label>
-            <span className="mb-1.5 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-              Rating
-            </span>
-            <select
-              value={rating}
-              onChange={(event) => {
-                setRating(event.target.value);
-                setPage(0);
-              }}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-950"
-            >
-              <option value="">All ratings</option>
-              <option value="5">5 stars</option>
-              <option value="4">4 stars</option>
-              <option value="3">3 stars</option>
-              <option value="2">2 stars</option>
-              <option value="1">1 star</option>
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="mt-auto inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white hover:bg-indigo-700"
-          >
-            <Filter size={14} /> Search
-          </button>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="mt-auto h-10 rounded-lg px-3 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            Clear
-          </button>
-        </form>
-      </div>
-
       {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
-        >
-          <AlertCircle size={16} className="shrink-0" />
-          <span>
-            API Gateway is unreachable. Displaying demo reviews so you can test moderation and homepage selection.
-          </span>
-        </div>
+        <InlineAlert tone="warning">
+          API Gateway is unreachable. Displaying demo reviews so you can test moderation and homepage selection.
+        </InlineAlert>
       )}
 
-      {/* Main Reviews Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-          <div>
-            <h2 className="text-sm font-semibold">Review queue</h2>
-            <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-              {isFetching ? 'Updating results…' : `${totalElements} reviews found`}
-            </p>
-          </div>
+      <Card>
+        {/* Status tabs + filters */}
+        <div className="space-y-3 border-b border-slate-100 p-4 dark:border-slate-800">
+          <SegmentedTabs
+            tabs={STATUS_TABS}
+            value={status}
+            onChange={(value) => {
+              setStatus(value);
+              setPage(0);
+            }}
+          />
+
+          <form onSubmit={runSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="min-w-0 flex-1">
+              <Input
+                aria-label="Search reviews"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Reviewer, target, comment…"
+                leftIcon={<Search size={16} />}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:flex lg:items-center">
+              <div className="lg:w-44">
+                <Select
+                  aria-label="Filter by target type"
+                  value={targetType}
+                  onChange={(event) => {
+                    setTargetType(event.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <option value="">All types</option>
+                  <option value="SERIES">Test series</option>
+                  <option value="PLATFORM">Platform</option>
+                </Select>
+              </div>
+              <div className="lg:w-36">
+                <Select
+                  aria-label="Filter by rating"
+                  value={rating}
+                  onChange={(event) => {
+                    setRating(event.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <option value="">All ratings</option>
+                  <option value="5">5 stars</option>
+                  <option value="4">4 stars</option>
+                  <option value="3">3 stars</option>
+                  <option value="2">2 stars</option>
+                  <option value="1">1 star</option>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button type="submit">
+                <Search size={15} className="mr-2" /> Search
+              </Button>
+              {hasFilters && (
+                <Button type="button" variant="ghost" onClick={clearFilters}>
+                  <X size={15} className="mr-1.5" /> Clear
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 px-5 py-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {isFetching ? 'Updating results…' : (
+              <>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">{totalElements}</span> reviews found
+              </>
+            )}
+          </p>
           {isFetching && <LoaderCircle size={16} className="animate-spin text-indigo-500" />}
         </div>
 
         {isLoading ? (
-          <div className="animate-pulse space-y-3 p-4">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div key={item} className="h-16 rounded-lg bg-slate-100 dark:bg-slate-800" />
-            ))}
-          </div>
+          <TableSkeleton rows={5} cols={6} />
         ) : reviews.length === 0 ? (
-          <div className="px-4 py-16 text-center">
-            <MessageSquareText size={28} className="mx-auto text-slate-300 dark:text-slate-600" />
-            <p className="mt-3 text-sm font-semibold">No reviews found</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Try another status or clear your filters.
-            </p>
-          </div>
+          <EmptyState
+            icon={<MessageSquareText size={22} />}
+            title="No reviews found"
+            description="Try another status or clear your filters."
+          />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] text-left">
-              <thead className="bg-slate-50 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
-                <tr>
-                  <th className="px-4 py-3">Review & Comment</th>
-                  <th className="px-4 py-3">Target</th>
-                  <th className="px-4 py-3">Rating</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Homepage</th>
-                  <th className="px-4 py-3">Submitted</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+            <table className={`${ADMIN_TABLE.table} min-w-[980px]`}>
+              <thead>
+                <tr className={`${ADMIN_TABLE.headRow} border-t`}>
+                  <th className={ADMIN_TABLE.th}>Review &amp; comment</th>
+                  <th className={ADMIN_TABLE.th}>Target</th>
+                  <th className={ADMIN_TABLE.th}>Rating</th>
+                  <th className={ADMIN_TABLE.th}>Status</th>
+                  <th className={ADMIN_TABLE.th}>Homepage</th>
+                  <th className={ADMIN_TABLE.th}>Submitted</th>
+                  <th className={`${ADMIN_TABLE.th} text-right`}><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {reviews.map((review) => (
-                  <tr
-                    key={review.reviewId}
-                    className="align-top hover:bg-slate-50/70 dark:hover:bg-slate-800/30"
-                  >
-                    <td className="max-w-[360px] px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                          #{review.reviewId}
-                        </span>
-                        <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-                          <User size={12} className="shrink-0" />
-                          <CopyableId id={review.userName} label="User ID" />
-                        </div>
-                      </div>
-                      <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
-                        {review.comment ? (
-                          `“${review.comment}”`
-                        ) : (
-                          <span className="italic text-slate-400 dark:text-slate-500">
-                            No written comment provided.
+              <tbody className={ADMIN_TABLE.body}>
+                {reviews.map((review) => {
+                  const approved = review.status === 'APPROVED';
+                  const featured = homepageReviewIds.has(String(review.reviewId));
+
+                  return (
+                    <tr key={review.reviewId} className={`${ADMIN_TABLE.row} align-top`}>
+                      <td className={`${ADMIN_TABLE.td} max-w-[360px]`}>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            #{review.reviewId}
                           </span>
-                        )}
-                      </p>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div>
-                        <TargetBadge type={review.targetType} />
-                      </div>
-                      <div className="mt-1.5">
-                        <CopyableId id={review.seriesName} label="Target ID" />
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <RatingStars rating={review.rating} />
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <StatusBadge status={review.status} />
-                      {review.status === 'REJECTED' && review.moderationReason && (
-                        <p className="mt-1 max-w-[160px] truncate text-[10px] text-rose-600 dark:text-rose-400" title={review.moderationReason}>
-                          Reason: {review.moderationReason}
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                            <User size={12} className="shrink-0" />
+                            <CopyableId id={review.userName} label="User ID" />
+                          </div>
+                        </div>
+                        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                          {review.comment ? (
+                            `“${review.comment}”`
+                          ) : (
+                            <span className="italic text-slate-400 dark:text-slate-500">No written comment provided.</span>
+                          )}
                         </p>
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <div className="flex flex-col gap-1">
+                      <td className={ADMIN_TABLE.td}>
+                        <TargetBadge type={review.targetType} />
+                        <div className="mt-1.5">
+                          <CopyableId id={review.seriesName} label="Target ID" />
+                        </div>
+                      </td>
+
+                      <td className={ADMIN_TABLE.td}>
+                        <RatingStars rating={review.rating} />
+                      </td>
+
+                      <td className={ADMIN_TABLE.td}>
+                        <StatusBadge status={review.status} />
+                        {review.status === 'REJECTED' && review.moderationReason && (
+                          <p className="mt-1 max-w-[160px] truncate text-[11px] text-rose-600 dark:text-rose-400" title={review.moderationReason}>
+                            Reason: {review.moderationReason}
+                          </p>
+                        )}
+                      </td>
+
+                      <td className={`${ADMIN_TABLE.td} whitespace-nowrap`}>
                         <div className="flex items-center gap-1.5">
                           <select
-                            disabled={review.status !== 'APPROVED'}
-                            value={homepageReviewIds.has(String(review.reviewId)) ? 'YES' : 'NO'}
+                            disabled={!approved}
+                            value={featured ? 'YES' : 'NO'}
                             onChange={(e) => handleToggleHomepage(review, e.target.value === 'YES')}
                             aria-label={`Homepage setting for review #${review.reviewId}`}
-                            title={
-                              review.status !== 'APPROVED'
-                                ? 'Only approved reviews can be added to the homepage'
-                                : undefined
-                            }
-                            className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
-                              review.status !== 'APPROVED'
-                                ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
-                                : homepageReviewIds.has(String(review.reviewId))
-                                ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
-                                : 'cursor-pointer border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900'
-                            }`}
+                            title={!approved ? 'Only approved reviews can be added to the homepage' : undefined}
+                            className={homepageSelectClass(approved, featured)}
                           >
                             <option value="NO">Do not show</option>
-                            <option value="YES" disabled={review.status !== 'APPROVED'}>
+                            <option value="YES" disabled={!approved}>
                               Add to home
                             </option>
                           </select>
-                          {homepageReviewIds.has(String(review.reviewId)) && (
-                            <span
-                              title="Active on home page"
-                              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 shrink-0"
-                            >
+                          {featured && (
+                            <span title="Active on home page" className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
                               <Home size={11} />
                             </span>
                           )}
                         </div>
-                        {review.status !== 'APPROVED' && (
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                            (Approve first)
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                        {!approved && <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">Approve first</p>}
+                      </td>
 
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
-                      {formatDate(review.createdAt)}
-                    </td>
+                      <td className={`${ADMIN_TABLE.td} whitespace-nowrap text-xs text-slate-500 dark:text-slate-400`}>
+                        {formatDate(review.createdAt)}
+                      </td>
 
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedReview(review)}
-                          title="View details"
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                        >
-                          <Eye size={15} />
-                        </button>
-                        {review.status !== 'APPROVED' && (
-                          <button
-                            type="button"
-                            disabled={isModerating}
-                            onClick={() => handleOpenApproveModal(review)}
-                            title="Approve review"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 dark:hover:bg-emerald-500/10"
-                          >
-                            <Check size={15} />
-                          </button>
-                        )}
-                        {review.status !== 'REJECTED' && (
-                          <button
-                            type="button"
-                            disabled={isModerating}
-                            onClick={() => handleOpenRejectModal(review)}
-                            title="Reject review"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:hover:bg-rose-500/10"
-                          >
-                            <X size={15} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      <td className={ADMIN_TABLE.td}>
+                        <div className="flex items-center justify-end gap-1">
+                          <IconAction label="View details" onClick={() => setSelectedReview(review)}>
+                            <Eye size={15} />
+                          </IconAction>
+                          {review.status !== 'APPROVED' && (
+                            <IconAction label="Approve review" tone="success" disabled={isModerating} onClick={() => handleOpenApproveModal(review)}>
+                              <Check size={15} />
+                            </IconAction>
+                          )}
+                          {review.status !== 'REJECTED' && (
+                            <IconAction label="Reject review" tone="danger" disabled={isModerating} onClick={() => handleOpenRejectModal(review)}>
+                              <X size={15} />
+                            </IconAction>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* Pagination Footer */}
-        <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-            Showing {paginationStart}–{paginationEnd} of {totalElements}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={page <= 0 || isFetching}
-              onClick={() => setPage((current) => Math.max(0, current - 1))}
-              className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              <ChevronLeft size={14} /> Previous
-            </button>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Page {totalPages === 0 ? 0 : page + 1} of {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages - 1 || isFetching}
-              onClick={() => setPage((current) => current + 1)}
-              className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              Next <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
+        <Pagination
+          meta={zeroBasedMeta({ page, totalPages, totalElements, pageSize: PAGE_SIZE })}
+          onPageChange={(nextPage) => setPage(Math.max(0, nextPage - 1))}
+          disabled={isFetching}
+        />
+      </Card>
 
-      {/* Slide-over Review Details Drawer */}
+      {/* Review details drawer */}
       {selectedReview && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <button
-            type="button"
-            aria-label="Close review details"
-            onClick={() => setSelectedReview(null)}
-            className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px]"
-          />
-          <aside className="relative flex h-full w-full max-w-lg flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-              <div>
-                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  Review details
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">Review #{selectedReview.reviewId}</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedReview(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X size={17} />
-              </button>
-            </div>
-
-            <div className="flex-1 space-y-5 overflow-y-auto p-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status={selectedReview.status} />
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                  <Star size={13} className="fill-amber-400 text-amber-400" />
-                  {selectedReview.rating} / 5
-                </span>
-                <TargetBadge type={selectedReview.targetType} />
-                {homepageReviewIds.has(String(selectedReview.reviewId)) && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
-                    <Home size={12} /> Active on Homepage
-                  </span>
+        <Drawer
+          open
+          onClose={() => setSelectedReview(null)}
+          title={`Review #${selectedReview.reviewId}`}
+          description="Review details and moderation"
+          width="lg"
+          footer={
+            (
+              <>
+                {selectedReview.status !== 'REJECTED' && (
+                  <Button variant="dangerOutline" disabled={isModerating} onClick={() => handleOpenRejectModal(selectedReview)}>
+                    <X size={15} className="mr-1.5" /> Reject
+                  </Button>
                 )}
-              </div>
+                {selectedReview.status !== 'APPROVED' && (
+                  <Button disabled={isModerating} onClick={() => handleOpenApproveModal(selectedReview)} className="!bg-emerald-600 !text-white hover:!bg-emerald-700">
+                    <Check size={15} className="mr-1.5" /> Approve
+                  </Button>
+                )}
+              </>
+            )
+          }
+        >
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={selectedReview.status} />
+              <Badge className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                {selectedReview.rating} / 5
+              </Badge>
+              <TargetBadge type={selectedReview.targetType} />
+              {homepageReviewIds.has(String(selectedReview.reviewId)) && (
+                <Badge tone="info">
+                  <Home size={12} /> On homepage
+                </Badge>
+              )}
+            </div>
 
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Comment
-                </p>
-                <p className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-slate-100 bg-slate-50/70 p-3 text-sm leading-6 dark:border-slate-800 dark:bg-slate-800/40">
-                  {selectedReview.comment || (
-                    <span className="italic text-slate-400">No written comment provided.</span>
-                  )}
-                </p>
-              </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Comment</p>
+              <p className="whitespace-pre-wrap break-words rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-sm leading-6 text-slate-800 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-200">
+                {selectedReview.comment || <span className="italic text-slate-400 dark:text-slate-500">No written comment provided.</span>}
+              </p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60 col-span-2">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Home Page Display</p>
-                  <div className="mt-1.5 flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-xs text-slate-700 dark:text-slate-300">
-                        Feature this review on the platform homepage
-                      </span>
-                      {selectedReview.status !== 'APPROVED' && (
-                        <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
-                          Review must be approved before it can be added to the homepage.
-                        </p>
-                      )}
-                    </div>
-                    <select
-                      disabled={selectedReview.status !== 'APPROVED'}
-                      value={homepageReviewIds.has(String(selectedReview.reviewId)) ? 'YES' : 'NO'}
-                      onChange={(e) => handleToggleHomepage(selectedReview, e.target.value === 'YES')}
-                      title={
-                        selectedReview.status !== 'APPROVED'
-                          ? 'Review must be approved first'
-                          : undefined
-                      }
-                      className={`h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold outline-none transition ${
-                        selectedReview.status !== 'APPROVED'
-                          ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500'
-                          : homepageReviewIds.has(String(selectedReview.reviewId))
-                          ? 'cursor-pointer border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300'
-                          : 'cursor-pointer border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
-                      }`}
-                    >
-                      <option value="NO">Do not show</option>
-                      <option value="YES" disabled={selectedReview.status !== 'APPROVED'}>
-                        Show on home
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Reviewer ID</p>
-                  <p className="mt-1">
-                    <CopyableId id={selectedReview.userId} label="User ID" />
+            <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Feature on homepage</p>
+                  <p className={`mt-0.5 text-xs ${selectedReview.status !== 'APPROVED' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {selectedReview.status !== 'APPROVED'
+                      ? 'Review must be approved before it can be added to the homepage.'
+                      : 'Show this review in the homepage testimonials.'}
                   </p>
                 </div>
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Target ID</p>
-                  <p className="mt-1">
-                    <CopyableId id={selectedReview.targetId} label="Target ID" />
-                  </p>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Submitted</p>
-                  <p className="mt-1 text-xs font-medium">{formatDate(selectedReview.createdAt)}</p>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Last Moderated</p>
-                  <p className="mt-1 text-xs font-medium">{formatDate(selectedReview.moderatedAt)}</p>
-                </div>
+                <select
+                  disabled={selectedReview.status !== 'APPROVED'}
+                  value={homepageReviewIds.has(String(selectedReview.reviewId)) ? 'YES' : 'NO'}
+                  onChange={(e) => handleToggleHomepage(selectedReview, e.target.value === 'YES')}
+                  aria-label="Homepage display"
+                  title={selectedReview.status !== 'APPROVED' ? 'Review must be approved first' : undefined}
+                  className={homepageSelectClass(selectedReview.status === 'APPROVED', homepageReviewIds.has(String(selectedReview.reviewId)))}
+                >
+                  <option value="NO">Do not show</option>
+                  <option value="YES" disabled={selectedReview.status !== 'APPROVED'}>
+                    Show on home
+                  </option>
+                </select>
               </div>
+            </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <InfoTile label="Reviewer ID"><CopyableId id={selectedReview.userId} label="User ID" /></InfoTile>
+              <InfoTile label="Target ID"><CopyableId id={selectedReview.targetId} label="Target ID" /></InfoTile>
+              <InfoTile label="Submitted"><span className="text-xs font-medium">{formatDate(selectedReview.createdAt)}</span></InfoTile>
+              <InfoTile label="Last moderated"><span className="text-xs font-medium">{formatDate(selectedReview.moderatedAt)}</span></InfoTile>
               {selectedReview.moderatedBy && (
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Moderated By</p>
-                  <p className="mt-1 text-xs font-medium">{selectedReview.moderatedBy}</p>
-                </div>
-              )}
-
-              {selectedReview.moderationReason && (
-                <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-3.5 dark:border-rose-500/20 dark:bg-rose-500/10">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
-                    Moderation reason
-                  </p>
-                  <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-rose-900 dark:text-rose-200">
-                    {selectedReview.moderationReason}
-                  </p>
-                </div>
+                <InfoTile label="Moderated by" className="col-span-2"><span className="text-xs font-medium">{selectedReview.moderatedBy}</span></InfoTile>
               )}
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 p-4 dark:border-slate-800">
-              {selectedReview.status !== 'REJECTED' && (
-                <button
-                  type="button"
-                  disabled={isModerating}
-                  onClick={() => handleOpenRejectModal(selectedReview)}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:border-rose-500/20 dark:hover:bg-rose-500/10"
-                >
-                  <X size={14} /> Reject
-                </button>
-              )}
-              {selectedReview.status !== 'APPROVED' && (
-                <button
-                  type="button"
-                  disabled={isModerating}
-                  onClick={() => handleOpenApproveModal(selectedReview)}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  <Check size={14} /> Approve
-                </button>
-              )}
-            </div>
-          </aside>
-        </div>
+            {selectedReview.moderationReason && (
+              <InlineAlert tone="danger" title="Moderation reason">
+                <span className="whitespace-pre-wrap">{selectedReview.moderationReason}</span>
+              </InlineAlert>
+            )}
+          </div>
+        </Drawer>
       )}
 
       {/* Confirmation Modal: Approve Review */}
@@ -1025,18 +830,10 @@ export default function ReviewModerationPage() {
         width="md"
         footer={
           <>
-            <Button
-              variant="outline"
-              onClick={() => setApprovalModalReview(null)}
-              disabled={isModerating}
-            >
+            <Button variant="outline" onClick={() => setApprovalModalReview(null)} disabled={isModerating}>
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirmApprove}
-              isLoading={isModerating}
-              className="!bg-emerald-600 hover:!bg-emerald-700 !text-white"
-            >
+            <Button onClick={handleConfirmApprove} isLoading={isModerating} className="!bg-emerald-600 !text-white hover:!bg-emerald-700">
               <ShieldCheck size={15} className="mr-1.5" /> Approve Review
             </Button>
           </>
@@ -1044,15 +841,7 @@ export default function ReviewModerationPage() {
       >
         {approvalModalReview && (
           <div className="space-y-3.5">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/50">
-              <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-300">
-                <span>Review #{approvalModalReview.reviewId}</span>
-                <RatingStars rating={approvalModalReview.rating} />
-              </div>
-              <p className="mt-2 text-slate-600 italic dark:text-slate-400">
-                “{approvalModalReview.comment || 'No written comment'}”
-              </p>
-            </div>
+            <ReviewQuote review={approvalModalReview} />
             <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               Are you sure you want to approve this review? It will appear immediately in the public review section for students.
             </p>
@@ -1082,11 +871,7 @@ export default function ReviewModerationPage() {
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirmReject}
-              isLoading={isModerating}
-              variant="danger"
-            >
+            <Button onClick={handleConfirmReject} isLoading={isModerating} variant="danger">
               <ShieldX size={15} className="mr-1.5" /> Reject Review
             </Button>
           </>
@@ -1094,27 +879,14 @@ export default function ReviewModerationPage() {
       >
         {rejectionModalReview && (
           <div className="space-y-3.5">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/50">
-              <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-300">
-                <span>Review #{rejectionModalReview.reviewId}</span>
-                <RatingStars rating={rejectionModalReview.rating} />
-              </div>
-              <p className="mt-2 text-slate-600 italic dark:text-slate-400">
-                “{rejectionModalReview.comment || 'No written comment'}”
-              </p>
-            </div>
+            <ReviewQuote review={rejectionModalReview} />
 
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label
-                  htmlFor="rejection-reason"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
+                <label htmlFor="rejection-reason" className="text-sm font-medium text-gray-700 dark:text-slate-300">
                   Moderation reason <span className="font-normal text-slate-400">(optional)</span>
                 </label>
-                <span className="text-[11px] text-slate-400">
-                  {rejectionReason.length} / 2000
-                </span>
+                <span className="text-[11px] text-slate-400">{rejectionReason.length} / 2000</span>
               </div>
               <textarea
                 id="rejection-reason"
@@ -1123,15 +895,25 @@ export default function ReviewModerationPage() {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="e.g. Inappropriate language, spam, off-topic..."
-                className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-rose-500/10"
+                className="w-full rounded-[6px] border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-transparent focus:ring-2 focus:ring-[#4F46E5] dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
               />
-              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                This note will be saved in the admin audit trail.
-              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">This note will be saved in the admin audit trail.</p>
             </div>
           </div>
         )}
       </Modal>
+    </div>
+  );
+}
+
+function ReviewQuote({ review }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/50">
+      <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-300">
+        <span>Review #{review.reviewId}</span>
+        <RatingStars rating={review.rating} />
+      </div>
+      <p className="mt-2 italic text-slate-600 dark:text-slate-400">“{review.comment || 'No written comment'}”</p>
     </div>
   );
 }
