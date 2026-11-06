@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Star, CheckCircle2 } from 'lucide-react';
 import { siteConfig } from '../../config/site';
 import { homepageReviewService, isDemoReview } from '../../services/homepageReviewService';
@@ -11,6 +11,67 @@ const ROTATIONS = [
   '-rotate-0.5 sm:-rotate-1',
   'rotate-1 sm:rotate-2',
 ];
+
+// Same pace as the previous 40s CSS marquee.
+const SCROLL_SPEED = 36; // px per second
+
+/**
+ * Continuous right-to-left loop that renders every review once: when the first
+ * card has fully left the viewport it is moved to the end of the row.
+ */
+function useMarqueeLoop(count) {
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);
+  const pausedRef = useRef(false);
+  const [shift, setShift] = useState(0);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || count === 0) return undefined;
+
+    let frame;
+    let last = performance.now();
+
+    const tick = (now) => {
+      const dt = Math.min(now - last, 100) / 1000;
+      last = now;
+
+      if (!pausedRef.current) {
+        offsetRef.current += SCROLL_SPEED * dt;
+        const first = track.firstElementChild;
+        const width = first ? first.offsetWidth + parseFloat(getComputedStyle(track).columnGap || '0') : 0;
+
+        if (width > 0 && offsetRef.current >= width) {
+          offsetRef.current -= width;
+          setShift((value) => value + 1);
+        } else {
+          track.style.transform = `translateX(${-offsetRef.current}px)`;
+        }
+      }
+
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [count]);
+
+  // Re-apply the offset after React moves the first card to the end.
+  useLayoutEffect(() => {
+    if (trackRef.current) trackRef.current.style.transform = `translateX(${-offsetRef.current}px)`;
+  }, [shift]);
+
+  return {
+    trackRef,
+    shift,
+    pause: () => {
+      pausedRef.current = true;
+    },
+    resume: () => {
+      pausedRef.current = false;
+    },
+  };
+}
 
 export default function Testimonials({ testimonials = [] }) {
   const [activeReviews, setActiveReviews] = useState(() => {
@@ -49,10 +110,14 @@ export default function Testimonials({ testimonials = [] }) {
   }));
 
   // Only real, approved reviews are shown. With no reviews the section is hidden.
-  const displayItems = rawItems.filter((r) => r.text.trim());
+  const displayItems = rawItems
+    .filter((r) => r.text.trim())
+    .map((r, index) => ({ ...r, id: index }));
 
-  // Duplicate items for continuous seamless infinite marquee from right to left
-  const marqueeItems = [...displayItems, ...displayItems];
+  // Each review is shown once; the loop rotates which card comes first.
+  const { trackRef, shift, pause, resume } = useMarqueeLoop(displayItems.length);
+  const start = displayItems.length ? shift % displayItems.length : 0;
+  const marqueeItems = [...displayItems.slice(start), ...displayItems.slice(0, start)];
 
   if (displayItems.length === 0) return null;
 
@@ -92,14 +157,19 @@ export default function Testimonials({ testimonials = [] }) {
 
       {/* Horizontal Continuous Marquee Track (Right to Left) */}
       <div className="overflow-hidden py-4">
-        <div className="animate-marquee-left flex gap-6 sm:gap-8 items-center cursor-default">
-          {marqueeItems.map((item, idx) => {
-            const rot = ROTATIONS[idx % ROTATIONS.length];
+        <div
+          ref={trackRef}
+          onMouseEnter={pause}
+          onMouseLeave={resume}
+          className="flex w-max gap-6 sm:gap-8 items-center cursor-default will-change-transform"
+        >
+          {marqueeItems.map((item) => {
+            const rot = ROTATIONS[item.id % ROTATIONS.length];
             const isShort = (item.text || '').length <= 45;
 
             return (
               <article
-                key={idx}
+                key={item.id}
                 className={`relative w-[290px] sm:w-[330px] h-[252px] shrink-0 p-5 rounded-lg bg-[#fcf9f2] dark:bg-[#181921] border border-amber-900/10 dark:border-white/10 shadow-sm hover:shadow-xl transition-all duration-300 transform ${rot} hover:rotate-0 hover:scale-[1.02] hover:z-20 select-none flex flex-col justify-between`}
                 style={{
                   backgroundImage:
