@@ -1,7 +1,8 @@
 'use client';
 import React, { useRef, useState } from 'react';
-import { Sigma, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { Sigma, Image as ImageIcon, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { MathText } from '@/components/common/MathText';
+import { ALLOWED_IMAGE_TYPES, uploadQuestionImage } from './imageUpload';
 
 /**
  * Inserts `snippet` around the current selection (or at the cursor) in the
@@ -26,12 +27,28 @@ function insertAtCursor(textareaEl, value, onChange, before, after = '', placeho
 
 export function MathTextarea({ id, label, value, onChange, error, rows = 4, placeholder }) {
   const ref = useRef(null);
+  const fileRef = useRef(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
-  const insertImage = () => {
-    const url = window.prompt('Image URL (there is no file upload yet — paste a hosted image link):');
-    if (!url) return;
-    insertAtCursor(ref.current, value, onChange, `![figure](${url})`, '', '');
+  // Uploads the chosen file, then inserts it as Markdown at the cursor.
+  const insertImage = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setUploadError('');
+    setUploading(true);
+    try {
+      const { url } = await uploadQuestionImage(file);
+      setShowPreview(false);
+      insertAtCursor(ref.current, value, onChange, `![figure](${url})`, '', '');
+    } catch (err) {
+      setUploadError(err?.message || 'Image upload failed.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -61,12 +78,21 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
           </button>
           <button
             type="button"
-            title="Insert image"
-            onClick={insertImage}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+            title="Upload an image from your device"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white disabled:pointer-events-none disabled:opacity-50"
           >
-            <ImageIcon size={13} /> Image
+            {uploading ? <LoaderCircle size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+            {uploading ? 'Uploading…' : 'Image'}
           </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ALLOWED_IMAGE_TYPES.join(',')}
+            className="hidden"
+            onChange={insertImage}
+          />
           <button
             type="button"
             title={showPreview ? 'Hide preview' : 'Show preview'}
@@ -94,6 +120,7 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
         )}
       </div>
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {uploadError && <p role="alert" className="mt-1.5 text-xs text-red-500">{uploadError}</p>}
     </div>
   );
 }

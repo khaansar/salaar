@@ -1,11 +1,8 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { ImagePlus, LoaderCircle, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import { questionsApi } from '@/services/adminService';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+import { ALLOWED_IMAGE_TYPES as ALLOWED_TYPES, uploadQuestionImage } from './imageUpload';
 
 function normalizeImage(image, index) {
   return {
@@ -17,17 +14,28 @@ function normalizeImage(image, index) {
   };
 }
 
-export function QuestionImageEditor({
+/**
+ * `compact` renders no heading or upload button: the parent opens the file
+ * picker through the ref (`ref.current.openPicker()`), and the panel only
+ * appears while uploading, on error, or once images exist.
+ */
+export const QuestionImageEditor = forwardRef(function QuestionImageEditor({
   images = [],
   onChange,
   disabled = false,
   title = 'Images',
   description = 'Upload images and add accessible descriptions.',
   compact = false,
-}) {
+}, ref) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+
+  useImperativeHandle(ref, () => ({
+    openPicker: () => {
+      if (!disabled && !uploading) inputRef.current?.click();
+    },
+  }), [disabled, uploading]);
 
   const updateImage = (index, patch) => {
     onChange(
@@ -69,65 +77,13 @@ export function QuestionImageEditor({
       const uploaded = [];
 
       for (const file of files) {
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          throw new Error(
-            `${file.name}: use JPEG, PNG, WebP, or GIF.`
-          );
-        }
-
-        if (file.size > MAX_FILE_SIZE) {
-          throw new Error(`${file.name}: maximum size is 10 MB.`);
-        }
-
-        const intent = await questionsApi.createImageUploadIntent();
-
-        if (
-          !intent?.uploadUrl ||
-          !intent?.apiKey ||
-          !intent?.signature ||
-          !intent?.publicId ||
-          !intent?.timestamp
-        ) {
-          throw new Error('The image upload intent response is incomplete.');
-        }
-
-        const body = new FormData();
-
-        for (const [key, value] of Object.entries(
-          intent.uploadParameters || {}
-        )) {
-          if (value != null) body.append(key, String(value));
-        }
-
-        body.set('file', file);
-        body.set('api_key', intent.apiKey);
-        body.set('timestamp', String(intent.timestamp));
-        body.set('signature', intent.signature);
-        body.set('public_id', intent.publicId);
-
-        if (intent.assetFolder) {
-          body.set('asset_folder', intent.assetFolder);
-        }
-
-        const response = await fetch(intent.uploadUrl, {
-          method: 'POST',
-          body,
-        });
-
-        const result = await response.json().catch(() => ({}));
-
-        if (!response.ok || !result.secure_url || !result.public_id) {
-          throw new Error(
-            result?.error?.message ||
-              `Cloudinary upload failed for ${file.name}.`
-          );
-        }
+        const result = await uploadQuestionImage(file);
 
         uploaded.push(
           normalizeImage(
             {
-              url: result.secure_url,
-              publicId: result.public_id,
+              url: result.url,
+              publicId: result.publicId,
               altText: '',
               caption: '',
               sequence: images.length + uploaded.length,
@@ -173,17 +129,32 @@ export function QuestionImageEditor({
     </button>
   );
 
+  const fileInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      accept={ALLOWED_TYPES.join(',')}
+      multiple
+      className="hidden"
+      disabled={disabled || uploading}
+      onChange={uploadFiles}
+    />
+  );
+
+  if (compact && images.length === 0 && !uploading && !error) {
+    return fileInput;
+  }
+
   return (
-    <section className="space-y-3">
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ALLOWED_TYPES.join(',')}
-        multiple
-        className="hidden"
-        disabled={disabled || uploading}
-        onChange={uploadFiles}
-      />
+    <section
+      aria-label={compact ? title : undefined}
+      className={
+        compact
+          ? 'space-y-3 border-t border-slate-100 bg-slate-50/60 px-3 py-3 dark:border-slate-800 dark:bg-slate-800/30'
+          : 'space-y-3'
+      }
+    >
+      {fileInput}
 
       {!compact && (
         <div className="flex items-start justify-between gap-3">
@@ -195,14 +166,13 @@ export function QuestionImageEditor({
         </div>
       )}
 
-      {compact ? (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
-          {uploadButton}
-        </div>
-      ) : (
-        images.length === 0 && uploadButton
-      )}
+      {compact
+        ? uploading && (
+            <p className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              <LoaderCircle size={14} className="animate-spin" /> Uploading images…
+            </p>
+          )
+        : images.length === 0 && uploadButton}
 
       {error && (
         <p role="alert" className="text-xs text-red-500">
@@ -270,4 +240,4 @@ export function QuestionImageEditor({
       )}
     </section>
   );
-}
+});

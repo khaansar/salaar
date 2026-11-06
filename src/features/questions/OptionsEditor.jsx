@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Sigma, ImagePlus } from 'lucide-react';
 import { QuestionImageEditor } from './QuestionImageEditor';
 
@@ -16,8 +16,7 @@ const ICON_BUTTON =
 
 export function OptionsEditor({ value = [], onChange, disabled }) {
   const inputRefs = useRef({});
-  // Option ids whose image panel the admin has toggled open/closed.
-  const [imagePanels, setImagePanels] = useState({});
+  const imageEditorRefs = useRef({});
 
   const update = (id, patch) =>
     onChange(value.map((option) =>
@@ -60,18 +59,11 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
     });
   };
 
-  const isImagePanelOpen = (option) =>
-    imagePanels[option.id] ?? (option.images || []).length > 0;
-
-  const toggleImagePanel = (option) =>
-    setImagePanels((current) => ({ ...current, [option.id]: !isImagePanelOpen(option) }));
-
   return (
     <div className="space-y-2">
       {value.map((option, index) => {
         const letter = String.fromCharCode(65 + index);
         const imageCount = (option.images || []).length;
-        const panelOpen = isImagePanelOpen(option);
 
         return (
           <div
@@ -110,12 +102,11 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
 
               <button
                 type="button"
-                title={panelOpen ? 'Hide images' : 'Add images'}
-                aria-label={`${panelOpen ? 'Hide' : 'Show'} images for option ${letter}`}
-                aria-expanded={panelOpen}
+                title="Upload images from your device"
+                aria-label={`Upload images for option ${letter}`}
                 disabled={disabled}
-                onClick={() => toggleImagePanel(option)}
-                className={`${ICON_BUTTON} relative ${panelOpen ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300' : ''}`}
+                onClick={() => imageEditorRefs.current[option.id]?.openPicker()}
+                className={`${ICON_BUTTON} relative ${imageCount > 0 ? 'text-indigo-600 dark:text-indigo-300' : ''}`}
               >
                 <ImagePlus size={15} />
                 {imageCount > 0 && (
@@ -161,18 +152,16 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
               </button>
             </div>
 
-            {panelOpen && (
-              <div className="border-t border-slate-100 bg-slate-50/60 px-3 py-3 dark:border-slate-800 dark:bg-slate-800/30">
-                <QuestionImageEditor
-                  compact
-                  title={`Images for option ${letter}`}
-                  description={`Diagrams or figures for option ${letter}.`}
-                  images={option.images || []}
-                  disabled={disabled}
-                  onChange={(images) => update(option.id, { images })}
-                />
-              </div>
-            )}
+            <QuestionImageEditor
+              ref={(handle) => {
+                imageEditorRefs.current[option.id] = handle;
+              }}
+              compact
+              title={`Images for option ${letter}`}
+              images={option.images || []}
+              disabled={disabled}
+              onChange={(images) => update(option.id, { images })}
+            />
           </div>
         );
       })}
