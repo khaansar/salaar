@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import {
   FolderTree,
@@ -36,8 +36,10 @@ const DIFFICULTY_COLORS = {
   HARD: '#F43F5E',
 };
 
-function greeting() {
-  const hour = new Date().getHours();
+function greeting(now) {
+  if (!now) return 'Welcome';
+
+  const hour = now.getHours();
 
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
@@ -128,6 +130,13 @@ function ViewAll({ href }) {
       View all <ArrowRight size={13} />
     </Link>
   );
+}
+
+// True only after hydration. Date/time text depends on the browser's locale
+// and clock, so it must not be rendered on the server.
+const subscribeNoop = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(subscribeNoop, () => true, () => false);
 }
 
 // Fetches the total_records count for a filtered list without pulling any
@@ -342,20 +351,20 @@ export default function AdminOverviewPage() {
   }, [recentQuestions, recentSeries]);
 
 
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const isClient = useIsClient();
+  const now = isClient ? new Date() : null;
+  const today = now
+    ? now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+    : '';
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Page heading */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{today}</p>
+          <p className="min-h-4 text-xs font-medium text-slate-500 dark:text-slate-400">{today}</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {greeting()}, {firstName} 👋
+            {greeting(now)}, {firstName} 👋
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage your exams, mock tests, sections and questions.
