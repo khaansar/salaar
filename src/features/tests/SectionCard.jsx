@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronUp, ChevronDown, Plus, X, Pencil, Check, Shuffle, Clock, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { AttachQuestionsDrawer } from './AttachQuestionsDrawer';
-import { BulkCreateQuestionsModal } from './BulkCreateQuestionsModal';
 import { SectionSettingsModal } from './SectionSettingsModal';
 import { MathText } from '@/components/common/MathText';
 import { sectionsApi } from '@/services/adminService';
@@ -84,7 +84,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
+  const router = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
   const [removing, setRemoving] = useState(false);
@@ -210,7 +210,7 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
             <Settings size={14} className="mr-1.5" />
             Settings
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
+          <Button size="sm" variant="outline" onClick={() => router.push(`/admin-dashboard/tests/${testId}/sections/${section.sectionId}/questions/new`)}>
             <Pencil size={14} className="mr-1.5" />
             Create questions
           </Button>
@@ -260,16 +260,6 @@ export function SectionCard({ section, testId, isFirst, isLast, onMoveUp, onMove
         onClose={() => setSettingsOpen(false)}
         section={section}
         onSaved={onChanged}
-      />
-
-      <BulkCreateQuestionsModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        sectionId={section.sectionId}
-        onCreated={() => {
-          setCollapsed(false);
-          onChanged?.();
-        }}
       />
 
       <AttachQuestionsDrawer
