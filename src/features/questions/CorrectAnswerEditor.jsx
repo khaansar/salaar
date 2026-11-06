@@ -1,8 +1,44 @@
 'use client';
 
 import React, { useId } from 'react';
+import { Check } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+
+function EmptyOptionsHint() {
+  return (
+    <p className="rounded-lg border border-dashed border-slate-200 px-3 py-3 text-center text-xs text-slate-400 dark:border-slate-700 dark:text-slate-500">
+      Add options above first.
+    </p>
+  );
+}
+
+/** Selectable option card; the native input stays for keyboard + screen readers. */
+function AnswerChoice({ type, name, checked, disabled, onChange, letter, text }) {
+  return (
+    <label
+      className={`group flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 ${
+        checked
+          ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200'
+          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800/60'
+      } ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+    >
+      <input type={type} name={name} disabled={disabled} checked={checked} onChange={onChange} className="sr-only" />
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center text-xs font-bold ${type === 'radio' ? 'rounded-full' : 'rounded-md'} ${
+          checked
+            ? 'bg-emerald-600 text-white'
+            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+        }`}
+      >
+        {checked ? <Check size={13} strokeWidth={3} /> : letter}
+      </span>
+      <span className="min-w-0 flex-1 truncate">
+        {text || <span className="italic text-slate-400 dark:text-slate-500">Empty option</span>}
+      </span>
+    </label>
+  );
+}
 
 /**
  * @param {string} questionType
@@ -21,26 +57,24 @@ export function CorrectAnswerEditor({ questionType, options = [], value = {}, on
     const currentSelection = value.key || value.correctOptionId;
     
     return (
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Correct option</p>
-        {options.length === 0 && <p className="text-xs text-slate-400">Add options above first.</p>}
-        <div className="space-y-1.5">
+      <fieldset className="space-y-2">
+        <legend className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">Correct option</legend>
+        {options.length === 0 && <EmptyOptionsHint />}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {options.map((opt, i) => (
-            <label key={opt.id} className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="radio"
-                name={`correct-option-${uniqueId}`}
-                disabled={disabled}
-                checked={currentSelection === opt.id}
-                onChange={() => onChange({ key: opt.id, correctOptionId: opt.id })}
-                className="text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="font-medium text-slate-400 w-5">{String.fromCharCode(65 + i)}</span>
-              <span className="truncate">{opt.text || <span className="italic text-slate-400">Empty option</span>}</span>
-            </label>
+            <AnswerChoice
+              key={opt.id}
+              type="radio"
+              name={`correct-option-${uniqueId}`}
+              disabled={disabled}
+              checked={currentSelection === opt.id}
+              onChange={() => onChange({ key: opt.id, correctOptionId: opt.id })}
+              letter={String.fromCharCode(65 + i)}
+              text={opt.text}
+            />
           ))}
         </div>
-      </div>
+      </fieldset>
     );
   }
 
@@ -54,31 +88,31 @@ export function CorrectAnswerEditor({ questionType, options = [], value = {}, on
     };
     
     return (
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Correct options</p>
-        {options.length === 0 && <p className="text-xs text-slate-400">Add options above first.</p>}
-        <div className="space-y-1.5">
+      <fieldset className="space-y-2">
+        <legend className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">
+          Correct options <span className="font-normal text-slate-400 dark:text-slate-500">(select all that apply)</span>
+        </legend>
+        {options.length === 0 && <EmptyOptionsHint />}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {options.map((opt, i) => (
-            <label key={opt.id} className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                disabled={disabled}
-                checked={selected.includes(opt.id)}
-                onChange={() => toggle(opt.id)}
-                className="rounded text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="font-medium text-slate-400 w-5">{String.fromCharCode(65 + i)}</span>
-              <span className="truncate">{opt.text || <span className="italic text-slate-400">Empty option</span>}</span>
-            </label>
+            <AnswerChoice
+              key={opt.id}
+              type="checkbox"
+              disabled={disabled}
+              checked={selected.includes(opt.id)}
+              onChange={() => toggle(opt.id)}
+              letter={String.fromCharCode(65 + i)}
+              text={opt.text}
+            />
           ))}
         </div>
-      </div>
+      </fieldset>
     );
   }
 
   if (questionType === 'NUMERICAL') {
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Input
           label="Correct value"
           type="number"

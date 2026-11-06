@@ -37,17 +37,17 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
   return (
     <div>
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
           {label}
         </label>
       )}
-      <div className="rounded-lg border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent">
-        <div className="flex items-center gap-1 border-b border-slate-100 bg-slate-50 px-2 py-1.5">
+      <div className={`overflow-hidden rounded-lg border bg-white shadow-sm transition-colors focus-within:border-transparent focus-within:ring-2 dark:bg-slate-800 ${error ? 'border-red-500 focus-within:ring-red-500' : 'border-slate-300 focus-within:ring-[#4F46E5] dark:border-slate-700'}`}>
+        <div className="flex items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-1.5 py-1 dark:border-slate-700 dark:bg-slate-900/60">
           <button
             type="button"
             title="Insert inline math ($...$)"
             onClick={() => insertAtCursor(ref.current, value, onChange, '$', '$', 'x^2')}
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
           >
             <Sigma size={13} /> Inline
           </button>
@@ -55,7 +55,7 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
             type="button"
             title="Insert block math ($$...$$)"
             onClick={() => insertAtCursor(ref.current, value, onChange, '\n$$', '$$\n', '\\int_0^1 x\\,dx')}
-            className="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
+            className="rounded-md px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
           >
             Block
           </button>
@@ -63,7 +63,7 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
             type="button"
             title="Insert image"
             onClick={insertImage}
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
           >
             <ImageIcon size={13} /> Image
           </button>
@@ -71,15 +71,15 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
             type="button"
             title={showPreview ? 'Hide preview' : 'Show preview'}
             onClick={() => setShowPreview((s) => !s)}
-            className="ml-auto inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+            className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-600 transition-colors hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10"
           >
             {showPreview ? <EyeOff size={13} /> : <Eye size={13} />}
             {showPreview ? 'Edit' : 'Preview'}
           </button>
         </div>
         {showPreview ? (
-          <div className="min-h-[6rem] px-3 py-2.5 text-sm">
-            {value ? <MathText text={value} /> : <span className="text-slate-400">Nothing to preview yet.</span>}
+          <div className="min-h-[6rem] px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200">
+            {value ? <MathText text={value} /> : <span className="text-slate-400 dark:text-slate-500">Nothing to preview yet.</span>}
           </div>
         ) : (
           <textarea
@@ -89,7 +89,7 @@ export function MathTextarea({ id, label, value, onChange, error, rows = 4, plac
             value={value}
             placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}
-            className="block w-full border-0 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 resize-y"
+            className="block w-full resize-y border-0 bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-white dark:placeholder:text-slate-500"
           />
         )}
       </div>

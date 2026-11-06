@@ -23,6 +23,7 @@ export function QuestionImageEditor({
   disabled = false,
   title = 'Images',
   description = 'Upload images and add accessible descriptions.',
+  compact = false,
 }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -144,13 +145,36 @@ export function QuestionImageEditor({
     }
   };
 
+  const fieldClass =
+    'mt-1 block h-9 w-full rounded-[6px] border border-slate-300 bg-white px-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4F46E5] disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500';
+  const iconButtonClass =
+    'inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-30 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200';
+
+  const uploadButton = (
+    <button
+      type="button"
+      disabled={disabled || uploading}
+      onClick={() => inputRef.current?.click()}
+      className={
+        compact || images.length > 0
+          ? 'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300'
+          : 'flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 px-4 py-5 text-sm font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50/40 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/30 dark:text-slate-300 dark:hover:border-indigo-500/50 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300'
+      }
+    >
+      <span className="inline-flex items-center gap-1.5">
+        {uploading ? <LoaderCircle size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+        {uploading ? 'Uploading…' : images.length > 0 ? 'Add more' : 'Upload images'}
+      </span>
+      {!compact && images.length === 0 && !uploading && (
+        <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
+          JPEG, PNG, WebP or GIF · up to 10 MB each
+        </span>
+      )}
+    </button>
+  );
+
   return (
     <section className="space-y-3">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-        <p className="mt-1 text-xs text-slate-500">{description}</p>
-      </div>
-
       <input
         ref={inputRef}
         type="file"
@@ -161,106 +185,89 @@ export function QuestionImageEditor({
         onChange={uploadFiles}
       />
 
-      <button
-        type="button"
-        disabled={disabled || uploading}
-        onClick={() => inputRef.current?.click()}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-3 text-sm font-medium text-slate-600 hover:border-indigo-400 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {uploading ? (
-          <LoaderCircle size={16} className="animate-spin" />
-        ) : (
-          <ImagePlus size={16} />
-        )}
-        {uploading ? 'Uploading images…' : 'Choose images'}
-      </button>
+      {!compact && (
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">{title}</h3>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{description}</p>
+          </div>
+          {images.length > 0 && uploadButton}
+        </div>
+      )}
 
-      <p className="text-xs text-slate-400">
-        JPEG, PNG, WebP or GIF. Maximum 10 MB per image.
-      </p>
+      {compact ? (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+          {uploadButton}
+        </div>
+      ) : (
+        images.length === 0 && uploadButton
+      )}
 
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-xs text-red-500">
           {error}
         </p>
       )}
 
-      {images.map((image, index) => (
-        <div
-          key={`${image.publicId || image.url}-${index}`}
-          className="rounded-lg border border-slate-200 p-3"
-        >
-          <div className="flex items-start gap-3">
-            <img
-              src={image.url}
-              alt={image.altText || ''}
-              className="h-20 w-24 shrink-0 rounded-md border border-slate-100 object-contain"
-            />
+      {images.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {images.map((image, index) => (
+            <div
+              key={`${image.publicId || image.url}-${index}`}
+              className="flex gap-3 rounded-lg border border-slate-200 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-900"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image.url}
+                alt={image.altText || ''}
+                className="h-20 w-20 shrink-0 rounded-md border border-slate-100 bg-slate-50 object-contain dark:border-slate-800 dark:bg-slate-800"
+              />
 
-            <div className="min-w-0 flex-1 space-y-2">
-              <label className="block text-xs font-medium text-slate-600">
-                Alt text
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                    Image {index + 1}
+                  </span>
+                  <div className="flex items-center">
+                    <button type="button" title="Move image up" disabled={disabled || index === 0} onClick={() => moveImage(index, -1)} className={iconButtonClass}>
+                      <ArrowUp size={14} />
+                    </button>
+                    <button type="button" title="Move image down" disabled={disabled || index === images.length - 1} onClick={() => moveImage(index, 1)} className={iconButtonClass}>
+                      <ArrowDown size={14} />
+                    </button>
+                    <button type="button" title="Remove image" disabled={disabled} onClick={() => removeImage(index)} className={`${iconButtonClass} hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-400`}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="sr-only" htmlFor={`img-alt-${index}-${image.publicId || image.url}`}>Alt text</label>
                 <input
+                  id={`img-alt-${index}-${image.publicId || image.url}`}
                   value={image.altText || ''}
                   maxLength={300}
                   disabled={disabled}
-                  onChange={(event) =>
-                    updateImage(index, { altText: event.target.value })
-                  }
-                  placeholder="Describe the image for accessibility"
-                  className="mt-1 block w-full rounded-md border border-slate-200 px-2.5 py-2 text-sm"
+                  onChange={(event) => updateImage(index, { altText: event.target.value })}
+                  placeholder="Alt text (for accessibility)"
+                  className={fieldClass}
                 />
-              </label>
 
-              <label className="block text-xs font-medium text-slate-600">
-                Caption
+                <label className="sr-only" htmlFor={`img-caption-${index}-${image.publicId || image.url}`}>Caption</label>
                 <input
+                  id={`img-caption-${index}-${image.publicId || image.url}`}
                   value={image.caption || ''}
                   maxLength={500}
                   disabled={disabled}
-                  onChange={(event) =>
-                    updateImage(index, { caption: event.target.value })
-                  }
-                  placeholder="Optional caption"
-                  className="mt-1 block w-full rounded-md border border-slate-200 px-2.5 py-2 text-sm"
+                  onChange={(event) => updateImage(index, { caption: event.target.value })}
+                  placeholder="Caption (optional)"
+                  className={fieldClass}
                 />
-              </label>
+              </div>
             </div>
-          </div>
-
-          <div className="mt-3 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              title="Move image up"
-              disabled={disabled || index === 0}
-              onClick={() => moveImage(index, -1)}
-              className="rounded p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-            >
-              <ArrowUp size={15} />
-            </button>
-
-            <button
-              type="button"
-              title="Move image down"
-              disabled={disabled || index === images.length - 1}
-              onClick={() => moveImage(index, 1)}
-              className="rounded p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-            >
-              <ArrowDown size={15} />
-            </button>
-
-            <button
-              type="button"
-              title="Remove image"
-              disabled={disabled}
-              onClick={() => removeImage(index)}
-              className="rounded p-1.5 text-rose-600 hover:bg-rose-50 disabled:opacity-30"
-            >
-              <Trash2 size={15} />
-            </button>
-          </div>
+          ))}
         </div>
-      ))}
+      )}
     </section>
   );
 }

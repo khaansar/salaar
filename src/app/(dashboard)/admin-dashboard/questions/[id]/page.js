@@ -27,7 +27,7 @@ export default function EditQuestionPage({ params }) {
   }, [load]);
 
   return (
-    <div>
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         breadcrumbs={[
           { label: 'Admin', href: '/admin-dashboard' },

@@ -3,7 +3,7 @@ import { QuestionForm } from '@/features/questions/QuestionForm';
 
 export default function NewQuestionPage() {
   return (
-    <div>
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         breadcrumbs={[
           { label: 'Admin', href: '/admin-dashboard' },
