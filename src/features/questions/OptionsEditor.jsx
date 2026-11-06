@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown, Sigma, ImagePlus } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, Trash2, GripVertical, Sigma, ImagePlus } from 'lucide-react';
 import { QuestionImageEditor } from './QuestionImageEditor';
 
 let counter = 0;
@@ -17,6 +17,20 @@ const ICON_BUTTON =
 export function OptionsEditor({ value = [], onChange, disabled }) {
   const inputRefs = useRef({});
   const imageEditorRefs = useRef({});
+  const handleRefs = useRef({});
+  // Drag state: the row is only draggable while its grip handle is pressed,
+  // so selecting text inside the option input still works normally.
+  const [armedId, setArmedId] = useState(null);
+  const [dragIndex, setDragIndex] = useState(null);
+  const [overIndex, setOverIndex] = useState(null);
+
+  // Disarm the row if the pointer is released anywhere without a drag.
+  useEffect(() => {
+    if (!armedId || dragIndex !== null) return undefined;
+    const disarm = () => setArmedId(null);
+    window.addEventListener('pointerup', disarm);
+    return () => window.removeEventListener('pointerup', disarm);
+  }, [armedId, dragIndex]);
 
   const update = (id, patch) =>
     onChange(value.map((option) =>
@@ -37,6 +51,28 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
 
     [next[index], next[target]] = [next[target], next[index]];
     onChange(next);
+  };
+
+  const reorder = (from, to) => {
+    if (from === to || from == null || to == null) return;
+    const next = [...value];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onChange(next);
+  };
+
+  const resetDrag = () => {
+    setArmedId(null);
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const handleKeyReorder = (event, option, index) => {
+    const direction = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+    if (!direction) return;
+    event.preventDefault();
+    move(index, direction);
+    requestAnimationFrame(() => handleRefs.current[option.id]?.focus());
   };
 
   const insertMath = (option) => {
@@ -64,13 +100,53 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
       {value.map((option, index) => {
         const letter = String.fromCharCode(65 + index);
         const imageCount = (option.images || []).length;
+        const isDragging = dragIndex === index;
+        const isDropTarget = overIndex === index && dragIndex !== null && dragIndex !== index;
 
         return (
           <div
             key={option.id}
-            className="rounded-lg border border-slate-200 bg-white transition-colors focus-within:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:border-indigo-500/50"
+            draggable={!disabled && armedId === option.id}
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = 'move';
+              event.dataTransfer.setData('text/plain', option.id);
+              setDragIndex(index);
+            }}
+            onDragOver={(event) => {
+              if (dragIndex === null) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'move';
+              if (overIndex !== index) setOverIndex(index);
+            }}
+            onDrop={(event) => {
+              if (dragIndex === null) return;
+              event.preventDefault();
+              reorder(dragIndex, index);
+              resetDrag();
+            }}
+            onDragEnd={resetDrag}
+            className={`rounded-lg border bg-white transition-all dark:bg-slate-900 ${
+              isDropTarget
+                ? 'border-indigo-400 ring-2 ring-indigo-500/20 dark:border-indigo-500/60'
+                : 'border-slate-200 focus-within:border-indigo-300 dark:border-slate-700 dark:focus-within:border-indigo-500/50'
+            } ${isDragging ? 'opacity-40' : ''}`}
           >
-            <div className="flex items-center gap-1.5 p-1.5 pl-2">
+            <div className="flex items-center gap-1.5 p-1.5 pl-1">
+              <button
+                type="button"
+                ref={(element) => {
+                  handleRefs.current[option.id] = element;
+                }}
+                disabled={disabled || value.length < 2}
+                onPointerDown={() => setArmedId(option.id)}
+                onKeyDown={(event) => handleKeyReorder(event, option, index)}
+                title="Drag to reorder (or focus and use ↑ / ↓)"
+                aria-label={`Reorder option ${letter}. Drag, or use the arrow keys.`}
+                className="inline-flex h-8 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:cursor-grabbing disabled:pointer-events-none disabled:opacity-30 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400"
+              >
+                <GripVertical size={15} />
+              </button>
+
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 {letter}
               </span>
@@ -114,30 +190,6 @@ export function OptionsEditor({ value = [], onChange, disabled }) {
                     {imageCount}
                   </span>
                 )}
-              </button>
-
-              <span className="mx-0.5 hidden h-5 w-px bg-slate-200 dark:bg-slate-700 sm:block" />
-
-              <button
-                type="button"
-                disabled={disabled || index === 0}
-                onClick={() => move(index, -1)}
-                className={`${ICON_BUTTON} hidden sm:inline-flex`}
-                title="Move option up"
-                aria-label={`Move option ${letter} up`}
-              >
-                <ChevronUp size={15} />
-              </button>
-
-              <button
-                type="button"
-                disabled={disabled || index === value.length - 1}
-                onClick={() => move(index, 1)}
-                className={`${ICON_BUTTON} hidden sm:inline-flex`}
-                title="Move option down"
-                aria-label={`Move option ${letter} down`}
-              >
-                <ChevronDown size={15} />
               </button>
 
               <button
