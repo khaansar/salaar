@@ -63,69 +63,6 @@ const TARGET_CONFIG = {
   },
 };
 
-const FALLBACK_REVIEWS = [
-  {
-    reviewId: 101,
-    userName: 'Pooja Hegde',
-    userId: 'usr_8921f0',
-    comment: 'The mock tests and analysis are top-notch. Truly helped boost my confidence for GATE CS!',
-    targetType: 'SERIES',
-    seriesName: 'GATE 2025 Full Length Tests',
-    targetId: 's1',
-    rating: 5,
-    status: 'APPROVED',
-    createdAt: '2026-10-14T10:30:00Z',
-  },
-  {
-    reviewId: 102,
-    userName: 'Rahul Sharma',
-    userId: 'usr_3310b4',
-    comment: 'Comprehensive question bank with detailed explanations. ClearIt is the best platform for exam prep.',
-    targetType: 'SERIES',
-    seriesName: 'Computer Science Mock Series',
-    targetId: 's2',
-    rating: 5,
-    status: 'APPROVED',
-    createdAt: '2026-10-13T14:20:00Z',
-  },
-  {
-    reviewId: 103,
-    userName: 'Sneha Patel',
-    userId: 'usr_1092a7',
-    comment: 'Very realistic exam interface and great sectional timing practice.',
-    targetType: 'SERIES',
-    seriesName: 'Operating Systems Practice Series',
-    targetId: 's3',
-    rating: 4,
-    status: 'APPROVED',
-    createdAt: '2026-10-12T09:15:00Z',
-  },
-  {
-    reviewId: 104,
-    userName: 'Arjun Mehta',
-    userId: 'usr_6641e9',
-    comment: 'High quality previous year questions and insightful performance analytics.',
-    targetType: 'PLATFORM',
-    seriesName: 'Platform Review',
-    targetId: 'PLATFORM',
-    rating: 5,
-    status: 'APPROVED',
-    createdAt: '2026-10-11T16:45:00Z',
-  },
-  {
-    reviewId: 105,
-    userName: 'Vikram Singh',
-    userId: 'usr_4482c1',
-    comment: 'Good test series, but would love to see more explanations for numerical questions.',
-    targetType: 'SERIES',
-    seriesName: 'GATE 2025 Full Length Tests',
-    targetId: 's1',
-    rating: 3,
-    status: 'PENDING',
-    createdAt: '2026-10-15T11:00:00Z',
-  },
-];
-
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
@@ -299,48 +236,10 @@ export default function ReviewModerationPage() {
   const { data: stats, isLoading: statsLoading } = useGetAdminReviewStatsQuery();
   const [moderateReview, { isLoading: isModerating }] = useModerateReviewMutation();
 
-  // If backend returns data, use it; otherwise provide fallback reviews for local testing
-  const filteredFallback = error
-    ? FALLBACK_REVIEWS.filter((r) => {
-        if (status && r.status !== status) return false;
-        if (targetType && r.targetType !== targetType) return false;
-        if (rating && String(r.rating) !== String(rating)) return false;
-        if (search) {
-          const q = search.toLowerCase();
-          return (
-            String(r.reviewId).includes(q) ||
-            r.userName?.toLowerCase().includes(q) ||
-            r.comment?.toLowerCase().includes(q) ||
-            r.seriesName?.toLowerCase().includes(q)
-          );
-        }
-        return true;
-      })
-    : [];
-
-  const reviews = pageData?.content || filteredFallback;
-  const totalPages = pageData?.totalPages ?? (error ? Math.max(1, Math.ceil(filteredFallback.length / PAGE_SIZE)) : 0);
-  const totalElements = pageData?.totalElements ?? (error ? filteredFallback.length : 0);
-
-  const displayStats = useMemo(() => {
-    if (stats) return stats;
-    if (error) {
-      const total = FALLBACK_REVIEWS.length;
-      const pending = FALLBACK_REVIEWS.filter((r) => r.status === 'PENDING').length;
-      const approved = FALLBACK_REVIEWS.filter((r) => r.status === 'APPROVED').length;
-      const rejected = FALLBACK_REVIEWS.filter((r) => r.status === 'REJECTED').length;
-      const avg =
-        FALLBACK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / (total || 1);
-      return {
-        totalReviews: total,
-        pendingReviews: pending,
-        approvedReviews: approved,
-        rejectedReviews: rejected,
-        averageRating: avg.toFixed(1),
-      };
-    }
-    return null;
-  }, [stats, error]);
+  const reviews = pageData?.content || [];
+  const totalPages = pageData?.totalPages ?? 0;
+  const totalElements = pageData?.totalElements ?? 0;
+  const displayStats = stats || null;
 
   const runSearch = (event) => {
     event.preventDefault();
@@ -377,20 +276,6 @@ export default function ReviewModerationPage() {
       }
       setApprovalModalReview(null);
     } catch (requestError) {
-      if (error) {
-        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === approvalModalReview.reviewId);
-        if (idx !== -1) {
-          FALLBACK_REVIEWS[idx].status = 'APPROVED';
-        }
-        toast.success(`Review #${approvalModalReview.reviewId} has been approved.`);
-        if (selectedReview?.reviewId === approvalModalReview.reviewId) {
-          setSelectedReview((prev) =>
-            prev ? { ...prev, status: 'APPROVED', moderatedAt: new Date().toISOString() } : null
-          );
-        }
-        setApprovalModalReview(null);
-        return;
-      }
       const msg =
         requestError?.data?.message ||
         requestError?.message ||
@@ -437,34 +322,6 @@ export default function ReviewModerationPage() {
       setRejectionModalReview(null);
       setRejectionReason('');
     } catch (requestError) {
-      if (error) {
-        const reasonTrimmed = rejectionReason.trim();
-        const idx = FALLBACK_REVIEWS.findIndex((r) => r.reviewId === rejectionModalReview.reviewId);
-        if (idx !== -1) {
-          FALLBACK_REVIEWS[idx].status = 'REJECTED';
-          FALLBACK_REVIEWS[idx].moderationReason = reasonTrimmed;
-        }
-        if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
-          const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
-          setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
-        }
-        toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
-        if (selectedReview?.reviewId === rejectionModalReview.reviewId) {
-          setSelectedReview((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  status: 'REJECTED',
-                  moderationReason: reasonTrimmed,
-                  moderatedAt: new Date().toISOString(),
-                }
-              : null
-          );
-        }
-        setRejectionModalReview(null);
-        setRejectionReason('');
-        return;
-      }
       const msg =
         requestError?.data?.message ||
         requestError?.message ||
@@ -517,8 +374,11 @@ export default function ReviewModerationPage() {
       </div>
 
       {error && (
-        <InlineAlert tone="warning">
-          API Gateway is unreachable. Displaying demo reviews so you can test moderation and homepage selection.
+        <InlineAlert tone="danger" title="Unable to load reviews">
+          The review service could not be reached.{' '}
+          <button type="button" onClick={() => refetch()} className="font-semibold underline underline-offset-2">
+            Retry
+          </button>
         </InlineAlert>
       )}
 

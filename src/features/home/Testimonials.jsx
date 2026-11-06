@@ -3,35 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Star, CheckCircle2 } from 'lucide-react';
 import { siteConfig } from '../../config/site';
-import { homepageReviewService } from '../../services/homepageReviewService';
-
-// Default starter reviews to guarantee at least 3 genuine student study slips
-const STARTER_STUDY_NOTES = [
-  {
-    name: 'Beast',
-    exam: 'NEET 2026',
-    text: 'Not bad. The timer pressure and question interface feel identical to the actual NTA exam screen.',
-    rating: 5,
-  },
-  {
-    name: 'Priya Sharma',
-    exam: 'JEE Advanced',
-    text: 'The sectional analytics showed exactly where I was losing marks in Organic Chemistry. Massive confidence booster!',
-    rating: 5,
-  },
-  {
-    name: 'Arjun Verma',
-    exam: 'UPSC Prelims',
-    text: 'Detailed solutions with NCERT page references save hours of revision. Best mock test series platform.',
-    rating: 5,
-  },
-  {
-    name: 'Sneha Reddy',
-    exam: 'SSC CGL',
-    text: 'The speed-accuracy matrix in the analytics report helped me cut down negative marks from -14 to -2.',
-    rating: 5,
-  },
-];
+import { homepageReviewService, isDemoReview } from '../../services/homepageReviewService';
 
 const ROTATIONS = [
   '-rotate-1 sm:-rotate-1.5',
@@ -63,7 +35,7 @@ export default function Testimonials({ testimonials = [] }) {
 
   // Approved dynamic reviews
   const approvedReviews = (activeReviews || []).filter(
-    (t) => !t.status || t.status === 'APPROVED'
+    (t) => (!t.status || t.status === 'APPROVED') && !isDemoReview(t)
   );
 
   const rawItems = approvedReviews.map((t) => ({
@@ -76,15 +48,15 @@ export default function Testimonials({ testimonials = [] }) {
     rating: Math.min(5, Math.max(1, Number(t.rating) || 5)),
   }));
 
-  // Ensure at least 3 reviews are displayed at first
-  const existingNames = new Set(rawItems.map((r) => r.name.toLowerCase()));
-  const fillers = STARTER_STUDY_NOTES.filter(
-    (d) => !existingNames.has(d.name.toLowerCase())
-  );
-  const displayItems = rawItems.length >= 3 ? rawItems : [...rawItems, ...fillers];
+  // Only real, approved reviews are shown. With no reviews the section is hidden.
+  const displayItems = rawItems.filter((r) => r.text.trim());
 
-  // Duplicate items for continuous seamless infinite marquee from right to left
-  const marqueeItems = [...displayItems, ...displayItems];
+  // The marquee needs enough cards to loop seamlessly; fewer reviews are shown
+  // as a static row instead of a scrolling strip.
+  const useMarquee = displayItems.length >= 4;
+  const marqueeItems = useMarquee ? [...displayItems, ...displayItems] : displayItems;
+
+  if (displayItems.length === 0) return null;
 
   return (
     <section
@@ -105,12 +77,16 @@ export default function Testimonials({ testimonials = [] }) {
           </p>
         </div>
 
-        <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 italic select-none">
-          Hover to pause & read
-        </span>
+        {useMarquee && (
+          <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 italic select-none">
+            Hover to pause & read
+          </span>
+        )}
       </div>
 
       {/* Smooth Side Fade Masks */}
+      {useMarquee && (
+      <>
       <div
         className="pointer-events-none absolute left-0 top-16 bottom-0 w-10 sm:w-16 bg-gradient-to-r from-slate-50 dark:from-[#121316] to-transparent z-10"
         aria-hidden="true"
@@ -119,10 +95,12 @@ export default function Testimonials({ testimonials = [] }) {
         className="pointer-events-none absolute right-0 top-16 bottom-0 w-10 sm:w-16 bg-gradient-to-l from-slate-50 dark:from-[#121316] to-transparent z-10"
         aria-hidden="true"
       />
+      </>
+      )}
 
       {/* Horizontal Continuous Marquee Track (Right to Left) */}
       <div className="overflow-hidden py-4">
-        <div className="animate-marquee-left flex gap-6 sm:gap-8 items-center cursor-default">
+        <div className={useMarquee ? 'animate-marquee-left flex gap-6 sm:gap-8 items-center cursor-default' : 'flex flex-wrap justify-center gap-6 sm:gap-8 items-center cursor-default'}>
           {marqueeItems.map((item, idx) => {
             const rot = ROTATIONS[idx % ROTATIONS.length];
             const isShort = (item.text || '').length <= 45;
