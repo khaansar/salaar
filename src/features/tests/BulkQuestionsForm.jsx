@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ClipboardPaste, AlertCircle, CheckCircle2, Save, ListPlus } from 'lucide-react';
+import { Plus, Trash2, ClipboardPaste, AlertCircle, CheckCircle2, Save, ListPlus, Sparkles, Copy, Check } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
@@ -74,6 +74,58 @@ function parsePastedRows(raw) {
       });
     });
   return { blocks, skipped };
+}
+
+// Prompt admins can paste into an AI assistant (with their questions) so the
+// output matches what `parsePastedRows` accepts.
+const AI_FORMAT_PROMPT = `Convert the questions below into plain text for bulk upload.
+
+Output ONLY the converted lines: one question per line, in exactly this format:
+Question text | Option A | Option B | Option C | Option D | Correct letter | Marks
+
+Rules:
+- Exactly 4 options per question.
+- Correct letter is a single letter: A, B, C or D.
+- Marks is a number; use 1 if not given.
+- Never use the | character or line breaks inside a question or option.
+- Write math in LaTeX between $...$, e.g. $x^2 + 1$.
+- No numbering, headings, blank lines, code blocks or explanations.
+
+Questions:
+[paste your questions here]`;
+
+function CopyPromptCard() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(AI_FORMAT_PROMPT);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Clipboard can be blocked; the prompt stays visible for manual copy.
+    }
+  };
+
+  return (
+    <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-800 dark:text-indigo-200">
+          <Sparkles size={13} /> Format questions with AI
+        </p>
+        <Button type="button" variant="outline" size="sm" onClick={copy} className="h-7 bg-white px-2.5 text-xs dark:bg-slate-900">
+          {copied ? <Check size={13} className="mr-1 text-emerald-600" /> : <Copy size={13} className="mr-1" />}
+          {copied ? 'Copied' : 'Copy prompt'}
+        </Button>
+      </div>
+      <p className="mt-1.5 text-xs text-indigo-900/80 dark:text-indigo-200/80">
+        Copy this prompt into ChatGPT, Claude or Gemini, replace the last line with your questions, then paste the result below.
+      </p>
+      <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-indigo-100 bg-white px-3 py-2 font-mono text-[11px] leading-relaxed text-slate-700 dark:border-indigo-500/20 dark:bg-slate-900 dark:text-slate-300">
+        {AI_FORMAT_PROMPT}
+      </pre>
+    </div>
+  );
 }
 
 export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
@@ -223,6 +275,7 @@ export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
 
           {pasteMode && (
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
+              <CopyPromptCard />
               <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">One question per line, pipe-separated:</p>
               <code className="mb-3 block overflow-x-auto whitespace-nowrap rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                 Question text | Option A | Option B | Option C | Option D | Correct letter (A–D) | Marks (optional)
