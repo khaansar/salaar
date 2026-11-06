@@ -7,17 +7,15 @@ import {
   X,
   AlertTriangle,
   Save,
-  HelpCircle,
-  ListChecks,
-  Lightbulb,
-  Tag,
   Eye,
+  ListPlus,
 } from 'lucide-react';
 
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
 
 import { OptionsEditor, newOptionId } from './OptionsEditor';
 import { CorrectAnswerEditor } from './CorrectAnswerEditor';
@@ -31,6 +29,7 @@ import {
   QUESTION_TYPE_OPTIONS,
   DIFFICULTY_OPTIONS,
   COMMON_LANGUAGES,
+  QUESTION_TYPE_BADGE_STYLES,
 } from '@/constants/enums';
 
 const HAS_OPTIONS = (type) =>
@@ -472,44 +471,6 @@ export function QuestionForm({ question }) {
     }
   };
 
-  const steps = [
-    {
-      id: 'details',
-      label: 'Question Details',
-      hint: 'Content and basic settings',
-      icon: HelpCircle,
-    },
-    ...(withOptions
-      ? [
-          {
-            id: 'options',
-            label: 'Options',
-            hint: 'Add answer options',
-            icon: ListChecks,
-          },
-        ]
-      : [
-          {
-            id: 'answer',
-            label: 'Correct Answer',
-            hint: 'Define the correct answer',
-            icon: ListChecks,
-          },
-        ]),
-    {
-      id: 'explanation',
-      label: 'Explanation',
-      hint: 'Add solution and explanation',
-      icon: Lightbulb,
-    },
-    {
-      id: 'metadata',
-      label: 'Difficulty & Marks',
-      hint: 'Classify and grade this question',
-      icon: Tag,
-    },
-  ];
-
   const previewQuestion = {
     questionType: form.questionType,
     topic: form.topic,
@@ -529,66 +490,111 @@ export function QuestionForm({ question }) {
     explanationImages: form.explanationImages,
   };
 
-  const stepNumber = (id) => steps.findIndex((step) => step.id === id) + 1;
+  const typeLabel =
+    QUESTION_TYPE_OPTIONS.find((option) => option.value === form.questionType)?.label || form.questionType;
+  const hasQuestionError = Object.keys(errors).some((key) => key !== 'positiveMarks');
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {question?.isLocked && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
-          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
-          <div>
-            <p className="font-semibold">This question is locked</p>
-            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
-              {question.warning ||
-                'It is used in one or more published tests. Edit with care — changes affect live tests.'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Step jump links */}
-      <nav aria-label="Form sections" className="hidden flex-wrap items-center gap-2 md:flex">
-        {steps.map((step, index) => (
-          <a
-            key={step.id}
-            href={`#step-${step.id}`}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300"
-          >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-50 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-              {index + 1}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Intro — same pattern as the bulk "Create questions" page */}
+      <Card>
+        <CardBody className="p-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+              <ListPlus size={19} />
             </span>
-            {step.label}
-          </a>
-        ))}
-      </nav>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {isEdit ? 'Editing a question in your ' : 'Adding to your '}
+                <span className="text-indigo-600 dark:text-indigo-400">question bank</span>
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                Questions in the bank can be attached to any section of any mock test.
+              </p>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-        {/* Main editor */}
-        <div className="min-w-0 space-y-6">
-          <Card id="step-details" className="scroll-mt-6">
-            <StepHeader
-              number={stepNumber('details')}
-              icon={HelpCircle}
-              tone="rose"
-              title="Question details"
-              description="Enter the question content and basic information."
-            />
+          {question?.isLocked && (
+            <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold">This question is locked</p>
+                <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                  {question.warning ||
+                    'It is used in one or more published tests. Edit with care — changes affect live tests.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="min-w-0 space-y-5">
+          {/* Question */}
+          <Card className={hasQuestionError ? 'border-rose-300 dark:border-rose-500/40' : ''}>
+            <CardHeader className="flex items-center justify-between gap-3 px-5 py-3.5">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                  1
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-white">Question</span>
+                <Badge className={QUESTION_TYPE_BADGE_STYLES[form.questionType]}>{typeLabel}</Badge>
+              </div>
+            </CardHeader>
 
             <CardBody className="space-y-5 p-5">
-              <Select
-                id="question-type"
-                label="Question type"
-                value={form.questionType}
-                onChange={(event) =>
-                  setQuestionType(event.target.value)
-                }
-              >
-                {QUESTION_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                <div className="sm:col-span-2">
+                  <Select
+                    id="question-type"
+                    label="Type"
+                    value={form.questionType}
+                    onChange={(event) =>
+                      setQuestionType(event.target.value)
+                    }
+                  >
+                    {QUESTION_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <Select
+                  id="question-difficulty"
+                  label="Difficulty"
+                  value={form.difficulty}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      difficulty: event.target.value,
+                    }))
+                  }
+                >
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+
+                <Input
+                  id="question-positive-marks"
+                  label="Marks"
+                  type="number"
+                  step="0.5"
+                  value={form.positiveMarks}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      positiveMarks: event.target.value,
+                    }))
+                  }
+                  error={errors.positiveMarks}
+                />
+              </div>
 
               <div>
                 <p className="mb-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">Languages</p>
@@ -654,8 +660,8 @@ export function QuestionForm({ question }) {
                   <MathTextarea
                     id={`qtext-${activeTranslation.language}`}
                     label={`Question text${form.translations.length > 1 ? ` (${activeTranslation.language.toUpperCase()})` : ''}`}
-                    rows={5}
-                    placeholder="Use $...$ for inline math and $$...$$ for block math, e.g. $x^2 + y^2 = z^2$"
+                    rows={3}
+                    placeholder="Type the question. Use $...$ for inline math."
                     value={activeTranslation.questionText}
                     onChange={(text) =>
                       updateTranslation(activeTranslation.language, {
@@ -678,23 +684,7 @@ export function QuestionForm({ question }) {
                   />
                 </>
               )}
-            </CardBody>
-          </Card>
 
-          <Card id={withOptions ? 'step-options' : 'step-answer'} className="scroll-mt-6">
-            <StepHeader
-              number={stepNumber(withOptions ? 'options' : 'answer')}
-              icon={ListChecks}
-              tone="indigo"
-              title={withOptions ? 'Options & answer' : 'Correct answer'}
-              description={
-                withOptions
-                  ? 'Add answer options and mark the correct one(s).'
-                  : 'Define the correct answer for this question.'
-              }
-            />
-
-            <CardBody className="space-y-5 p-5">
               {withOptions && activeTranslation && (
                 <div>
                   <p className="mb-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
@@ -729,7 +719,7 @@ export function QuestionForm({ question }) {
                 </div>
               )}
 
-              <div className={withOptions ? 'rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/30' : ''}>
+              <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/30">
                 <CorrectAnswerEditor
                   questionType={form.questionType}
                   options={withOptions ? primaryTranslation.options : []}
@@ -746,20 +736,22 @@ export function QuestionForm({ question }) {
             </CardBody>
           </Card>
 
-          <Card id="step-explanation" className="scroll-mt-6">
-            <StepHeader
-              number={stepNumber('explanation')}
-              icon={Lightbulb}
-              tone="amber"
-              title="Explanation"
-              description="Shown to students after they submit the question."
-            />
+          {/* Explanation & grading */}
+          <Card>
+            <CardHeader className="flex items-center gap-2.5 px-5 py-3.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                2
+              </span>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">Explanation &amp; grading</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">Optional</span>
+            </CardHeader>
 
             <CardBody className="space-y-5 p-5">
               <MathTextarea
                 id="explanation"
-                rows={4}
-                placeholder="Explain the solution step by step. Supports $...$ math and Markdown images."
+                label="Explanation"
+                rows={3}
+                placeholder="Explain the solution step by step. Shown to students after they submit."
                 value={form.explanation}
                 onChange={(explanation) =>
                   setForm((current) => ({
@@ -771,7 +763,7 @@ export function QuestionForm({ question }) {
 
               <QuestionImageEditor
                 title="Explanation images"
-                description="Add solution diagrams, worked examples, or other explanation figures."
+                description="Solution diagrams, worked examples, or other explanation figures."
                 images={form.explanationImages}
                 disabled={saving}
                 onChange={(explanationImages) =>
@@ -781,53 +773,8 @@ export function QuestionForm({ question }) {
                   }))
                 }
               />
-            </CardBody>
-          </Card>
 
-          <Card id="step-metadata" className="scroll-mt-6">
-            <StepHeader
-              number={stepNumber('metadata')}
-              icon={Tag}
-              tone="emerald"
-              title="Difficulty & marks"
-              description="Classify and grade this question."
-            />
-
-            <CardBody className="space-y-4 p-5">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Select
-                  id="question-difficulty"
-                  label="Difficulty"
-                  value={form.difficulty}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      difficulty: event.target.value,
-                    }))
-                  }
-                >
-                  {DIFFICULTY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-
-                <Input
-                  id="question-positive-marks"
-                  label="Positive marks"
-                  type="number"
-                  step="0.5"
-                  value={form.positiveMarks}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      positiveMarks: event.target.value,
-                    }))
-                  }
-                  error={errors.positiveMarks}
-                />
-
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                 <Input
                   id="question-negative-marks"
                   label="Negative marks"
@@ -842,21 +789,23 @@ export function QuestionForm({ question }) {
                     }))
                   }
                 />
-              </div>
 
-              <Input
-                id="question-topic"
-                label="Topic / Concept"
-                placeholder="e.g. Algebra, Trigonometry, Blood Relations"
-                value={form.topic}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    topic: event.target.value,
-                  }))
-                }
-                helpText="Used for topic-level analytics and student weakness diagnosis."
-              />
+                <div className="sm:col-span-3">
+                  <Input
+                    id="question-topic"
+                    label="Topic / Concept"
+                    placeholder="e.g. Algebra, Trigonometry, Blood Relations"
+                    value={form.topic}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        topic: event.target.value,
+                      }))
+                    }
+                    helpText="Used for topic-level analytics and student weakness diagnosis."
+                  />
+                </div>
+              </div>
             </CardBody>
           </Card>
         </div>
@@ -864,18 +813,10 @@ export function QuestionForm({ question }) {
         {/* Live preview */}
         <div className="xl:sticky xl:top-4">
           <Card>
-            <CardHeader className="flex items-center gap-2.5 px-5 py-4">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                <Eye size={16} />
-              </span>
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-                  Live preview
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  How the question appears to students.
-                </p>
-              </div>
+            <CardHeader className="flex items-center gap-2.5 px-5 py-3.5">
+              <Eye size={16} className="shrink-0 text-slate-400 dark:text-slate-500" />
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">Live preview</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">As students see it</span>
             </CardHeader>
 
             <CardBody className="max-h-[70vh] overflow-y-auto p-5">
@@ -888,7 +829,7 @@ export function QuestionForm({ question }) {
       {/* Sticky action bar */}
       <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          {isEdit ? 'Changes are saved when you click Save.' : 'The question is added to your question bank.'}
+          {isEdit ? 'Changes apply wherever this question is used.' : 'The question will be saved to your question bank.'}
         </p>
         <div className="flex items-center justify-end gap-2">
           <Button
@@ -907,29 +848,5 @@ export function QuestionForm({ question }) {
         </div>
       </div>
     </form>
-  );
-}
-
-const STEP_TONES = {
-  rose: 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300',
-  indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300',
-  amber: 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
-  emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
-};
-
-function StepHeader({ number, icon: Icon, tone, title, description }) {
-  return (
-    <CardHeader className="flex items-center gap-3 px-5 py-4">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${STEP_TONES[tone]}`}>
-        <Icon size={18} />
-      </span>
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-          <span className="mr-1.5 text-slate-400 dark:text-slate-500">{number}.</span>
-          {title}
-        </h2>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{description}</p>
-      </div>
-    </CardHeader>
   );
 }
