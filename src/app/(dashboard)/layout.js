@@ -44,11 +44,9 @@ const CONTENT_NAV = [
   { href: '/admin-dashboard/reviews', label: 'Review Moderation', icon: Star },
 ];
 
-const USERS_NAV = [
+const MANAGEMENT_NAV = [
   { href: '/admin-dashboard/users', label: 'Users', icon: Users },
-];
-
-const SECURITY_NAV = [
+  { href: '/admin-dashboard/payments', label: 'Payments', icon: CreditCard },
   { href: '/admin-dashboard/audit-logs', label: 'Audit Logs', icon: ShieldCheck },
 ];
 
@@ -87,7 +85,7 @@ function DisabledNavItem({ item, expanded }) {
 function SidebarSection({ label, items, pathname, expanded, onNavigate }) {
   return (
     <section className="mb-3">
-      <div className={`mb-1 overflow-hidden px-2 text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-400 transition-all duration-150 dark:text-slate-500 ${expanded ? 'h-3.5 opacity-100' : 'h-0 opacity-0'}`}>{label}</div>
+      <div className={`mb-1 overflow-hidden px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition-all duration-150 dark:text-slate-500 ${expanded ? 'h-4 opacity-100' : 'h-0 opacity-0'}`}>{label}</div>
       <div className="space-y-0.5">{items.map((item) => <NavItem key={item.href} item={item} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />)}</div>
     </section>
   );
@@ -105,21 +103,7 @@ function SidebarContent({ pathname, expanded, onNavigate }) {
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-3">
         <SidebarSection label="Overview" items={OVERVIEW_NAV} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />
         <SidebarSection label="Content" items={CONTENT_NAV} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />
-        <SidebarSection label="Users" items={USERS_NAV} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />
-        <SidebarSection label="Security" items={SECURITY_NAV} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />
-        <SidebarSection
-            label="Payments"
-            items={[
-                {
-                href: '/admin-dashboard/payments',
-                label: 'Payments',
-                icon: CreditCard,
-                },
-            ]}
-            pathname={pathname}
-            expanded={expanded}
-            onNavigate={onNavigate}
-            />
+        <SidebarSection label="Management" items={MANAGEMENT_NAV} pathname={pathname} expanded={expanded} onNavigate={onNavigate} />
       </div>
     </div>
   );
@@ -244,7 +228,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-5">{children}</div>
+          <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</div>
           <PublicFooter />
         </main>
       </div>
