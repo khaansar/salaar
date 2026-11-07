@@ -33,9 +33,6 @@ export function useAutosave(attemptId) {
   const responses = useAppSelector(
     (state) => state.attempt.responses
   );
-  const connection = useAppSelector(
-    (state) => state.attempt.ui.connection
-  );
   const sections = useAppSelector(
     (state) => state.attempt.sections
   );
@@ -238,7 +235,9 @@ export function useAutosave(attemptId) {
   }, [enqueueSave]);
 
   useEffect(() => {
-    if (!attemptId || connection === 'offline') return;
+    // Saves use the REST API, so they must not depend on the SSE stream's
+    // connection state; a dropped stream would otherwise block all saves.
+    if (!attemptId) return;
     if (status && status !== 'IN_PROGRESS') return;
     if (isExpired) return;
 
@@ -257,7 +256,6 @@ export function useAutosave(attemptId) {
     return () => clearTimeout(timer);
   }, [
     attemptId,
-    connection,
     enqueueSave,
     isExpired,
     responses,
