@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LayoutGrid, X } from 'lucide-react';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { useAppSelector } from '../../../hooks/useAppSelector';
@@ -47,12 +47,20 @@ export default function ExamShell({ attemptId }) {
   const { flush } = useAutosave(attemptId);
   const [submitAttempt] = useSubmitAttemptMutation();
 
+  // Tracks unmount only. A per-effect cancel flag would be set as soon as
+  // hasAutoSubmitted changes, which used to suppress the redirect.
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!isExpired || hasAutoSubmitted) return;
 
     setHasAutoSubmitted(true);
-
-    let cancelled = false;
 
     const autoSubmit = async () => {
         try {
@@ -69,13 +77,13 @@ export default function ExamShell({ attemptId }) {
 
         await submitAttempt(attemptId).unwrap();
 
-        if (!cancelled) {
+        if (isMountedRef.current) {
             window.location.replace(getSafeAttemptReturnPath());
         }
         } catch (error) {
         console.error('Automatic submission failed:', error);
 
-        if (!cancelled) {
+        if (isMountedRef.current) {
             setHasAutoSubmitted(false);
             alert(
             'Automatic submission could not be confirmed. Please keep this page open and retry.'
@@ -85,10 +93,6 @@ export default function ExamShell({ attemptId }) {
     };
 
     autoSubmit();
-
-    return () => {
-        cancelled = true;
-    };
     }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt]);
 
   const isActiveAttempt = data?.attempt?.status === 'IN_PROGRESS';
