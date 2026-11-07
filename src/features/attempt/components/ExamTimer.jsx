@@ -55,8 +55,14 @@ export default function ExamTimer() {
         if (attempt?.id && !isSectionTimer) {
           dispatch({ type: 'attempt/markExpired' });
         } else if (attempt?.id && isSectionTimer) {
+          // Record the expired section as fully used so a later timeout
+          // cannot select it again, even if the switch API call fails.
+          const updatedSpentSec = {
+            ...attempt.sectionTimeSpentSec,
+            [currentSectionId]: currentSection.durationMinutes * 60,
+          };
           const nextSection = sections.find(s => {
-             const spent = attempt.sectionTimeSpentSec?.[s.id] || 0;
+             const spent = updatedSpentSec[s.id] || 0;
              return (!s.durationMinutes || spent < s.durationMinutes * 60) && s.id !== currentSectionId;
           });
           if (nextSection) {
@@ -64,7 +70,7 @@ export default function ExamTimer() {
             // Optimistically update timing to break the render loop in case the API call fails
             dispatch({ type: 'attempt/updateSectionTiming', payload: {
               currentSectionStartedAt: Date.now(),
-              sectionTimeSpentSec: attempt.sectionTimeSpentSec,
+              sectionTimeSpentSec: updatedSpentSec,
             }});
             switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true })
               .unwrap()
