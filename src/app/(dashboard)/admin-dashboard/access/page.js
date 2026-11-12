@@ -5,6 +5,7 @@ import {
   CalendarClock,
   Check,
   KeyRound,
+  Mail,
   Library,
   Plus,
   Search,
@@ -328,8 +329,14 @@ function GrantAccessModal({ user, activeByReference, onClose }) {
         </div>
 
         <div>
-          <Textarea id="grant-reason" label="Reason" rows={2} maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Scholarship winner, payment captured but order failed…" />
-          <p className="mt-1 text-right text-[11px] text-slate-400 dark:text-slate-500">{reason.length}/255 · recorded in the audit log</p>
+          <Textarea id="grant-reason" label="Reason" rows={2} maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Congratulations on winning our monthly scholarship!" />
+          <div className="mt-1 flex items-start justify-between gap-3 text-[11px] text-slate-400 dark:text-slate-500">
+            <span className="inline-flex items-start gap-1">
+              <Mail size={12} className="mt-px shrink-0" />
+              The user gets an email and in-app notice, and this reason is shown to them. Write it for the student.
+            </span>
+            <span className="shrink-0">{reason.length}/255</span>
+          </div>
         </div>
 
         {error && <InlineAlert title="Access not fully granted">{error}</InlineAlert>}
