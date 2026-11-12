@@ -7,7 +7,6 @@ import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 import { Input } from '../ui/Input';
 import { PasswordInput } from '../ui/PasswordInput';
-import { Checkbox } from '../ui/Checkbox';
 
 import { isValidEmail } from '../../utils/validators';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -19,7 +18,6 @@ import { startOAuth } from '../../lib/oauth';
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
 
   const dispatch = useAppDispatch();
@@ -72,7 +70,6 @@ export function LoginForm() {
         loginUser({
           email,
           password,
-          rememberMe,
         })
       ).unwrap();
 
@@ -181,18 +178,7 @@ export function LoginForm() {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <Checkbox
-                id="remember-me"
-                label={
-                  <span className="text-[13px] font-medium text-slate-600 dark:text-slate-400">
-                    Remember me
-                  </span>
-                }
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-
+            <div className="flex items-center justify-end pt-1">
               <Link
                 href="/forgot-password"
                 className="text-[13px] font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors"
