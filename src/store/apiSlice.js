@@ -31,7 +31,7 @@ const axiosBaseQuery = () => async ({
   } catch (error) {
     return {
       error: {
-        status: error.response?.status,
+        status: error.response?.status ?? error.status,
         data: error.response?.data || error.message,
       },
     };

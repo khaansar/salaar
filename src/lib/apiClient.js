@@ -26,6 +26,7 @@ const normalizeErrorObject = (error) => {
 
   const message =
     responseBody?.message ||
+    responseBody?.error?.message ||
     error?.message ||
     'An unexpected network error occurred';
 
