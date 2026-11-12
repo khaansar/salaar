@@ -26,6 +26,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   FileText,
+  KeyRound,
 } from 'lucide-react';
 
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -56,6 +57,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/admin-dashboard/users', label: 'Users', icon: Users },
       { href: '/admin-dashboard/payments', label: 'Payments', icon: CreditCard },
+      { href: '/admin-dashboard/access', label: 'Series Access', icon: KeyRound },
       { href: '/admin-dashboard/audit-logs', label: 'Audit Logs', icon: ShieldCheck },
     ],
   },
