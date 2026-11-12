@@ -1,29 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  CalendarRange,
   Copy,
   Eye,
   Pencil,
-  Percent,
   Plus,
   Search,
-  Shuffle,
-  Target,
   Ticket,
-  Users,
-  X,
 } from 'lucide-react';
 
-import {
-  useCreateAdminCouponMutation,
-  useGetAdminCouponRedemptionsQuery,
-  useGetAdminCouponsQuery,
-  useGetAdminProductsQuery,
-  useSetAdminCouponEnabledMutation,
-  useUpdateAdminCouponMutation,
-} from '@/store/adminApi';
+import { useGetAdminCouponRedemptionsQuery, useGetAdminCouponsQuery, useSetAdminCouponEnabledMutation } from '@/store/adminApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/components/common/ToastProvider';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -32,20 +20,24 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Drawer } from '@/components/ui/Drawer';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, TableSkeleton } from '@/components/ui/Skeleton';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination, zeroBasedMeta } from '@/components/ui/Pagination';
-import { ADMIN_TABLE, IconAction, InlineAlert, SegmentedTabs, StatusBadge } from '@/components/admin/AdminUi';
-import { errorMessage, formatDate, formatMoney, shortId } from '@/components/admin/paymentFormat';
+import {
+  ADMIN_TABLE,
+  IconAction,
+  InlineAlert,
+  StatusBadge,
+} from '@/components/admin/AdminUi';
+import {
+  errorMessage,
+  formatDate,
+  formatMoney,
+  shortId,
+} from '@/components/admin/paymentFormat';
 
 const PAGE_SIZE = 20;
-const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I lookalikes
-const DAY_MS = 24 * 60 * 60 * 1000;
-const VALIDITY_PRESETS = [
-  { label: '1 week', days: 7 },
-  { label: '1 month', days: 30 },
-  { label: '3 months', days: 90 },
-];
+const NEW_PATH = '/admin-dashboard/coupons/new';
 
 const STATE_STYLES = {
   ACTIVE: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300',
@@ -79,397 +71,7 @@ function discountLabel({ discountType, discountValue, maximumDiscountAmount }) {
   return `${formatMoney(discountValue)} off`;
 }
 
-function randomCode(length = 8) {
-  const bytes = new Uint32Array(length);
-  window.crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
-}
-
-/** Date → value for <input type="datetime-local"> in the admin's timezone. */
-function toLocalInput(value) {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-const rupeesToMinor = (v) => Math.round(Number(v) * 100);
-const minorToRupees = (v) => (v == null ? '' : String(v / 100));
-const isBlank = (v) => v === '' || v == null;
-
-function emptyForm() {
-  const start = new Date();
-  start.setSeconds(0, 0);
-  return {
-    code: '',
-    description: '',
-    discountType: 'PERCENTAGE',
-    discountValue: '',
-    maxDiscount: '',
-    minOrder: '',
-    startsAt: toLocalInput(start),
-    expiresAt: toLocalInput(start.getTime() + 30 * DAY_MS),
-    usageLimit: '',
-    perUserLimit: '1',
-    firstOrderOnly: false,
-    stackable: false,
-    scope: 'ALL',
-    products: {},
-  };
-}
-
-function formFromCoupon(c) {
-  return {
-    code: c.code,
-    description: c.description || '',
-    discountType: c.discountType,
-    discountValue: c.discountType === 'PERCENTAGE' ? String(c.discountValue / 100) : minorToRupees(c.discountValue),
-    maxDiscount: minorToRupees(c.maximumDiscountAmount),
-    minOrder: c.minimumOrderAmount ? minorToRupees(c.minimumOrderAmount) : '',
-    startsAt: toLocalInput(c.startsAt),
-    expiresAt: toLocalInput(c.expiresAt),
-    usageLimit: c.usageLimit == null ? '' : String(c.usageLimit),
-    perUserLimit: c.perUserUsageLimit == null ? '' : String(c.perUserUsageLimit),
-    firstOrderOnly: c.firstOrderOnly,
-    stackable: c.stackable,
-    scope: c.productIds?.length ? 'SPECIFIC' : 'ALL',
-    // Names are filled in by the picker once the catalog lookup returns.
-    products: Object.fromEntries((c.productIds || []).map((id) => [id, { id }])),
-  };
-}
-
-/** Mirrors the backend rules so admins get feedback before submitting. */
-function validate(f, coupon) {
-  const e = {};
-  if (!/^[A-Za-z0-9_-]{3,64}$/.test(f.code.trim())) e.code = 'Use 3–64 letters, numbers, dashes or underscores.';
-  const value = Number(f.discountValue);
-  if (isBlank(f.discountValue) || !(value > 0)) e.discountValue = 'Enter a discount greater than zero.';
-  else if (f.discountType === 'PERCENTAGE' && value > 100) e.discountValue = 'A percentage cannot exceed 100.';
-  if (!isBlank(f.maxDiscount) && !(Number(f.maxDiscount) > 0)) e.maxDiscount = 'Leave empty or enter an amount above zero.';
-  if (!isBlank(f.minOrder) && !(Number(f.minOrder) >= 0)) e.minOrder = 'Minimum order cannot be negative.';
-  const start = new Date(f.startsAt).getTime();
-  const end = new Date(f.expiresAt).getTime();
-  if (Number.isNaN(start)) e.startsAt = 'Choose a start date.';
-  if (Number.isNaN(end)) e.expiresAt = 'Choose an end date.';
-  else if (!Number.isNaN(start) && end <= start) e.expiresAt = 'End must be after the start.';
-  for (const [key, label] of [['usageLimit', 'Total uses'], ['perUserLimit', 'Uses per user']]) {
-    if (!isBlank(f[key]) && !(Number.isInteger(Number(f[key])) && Number(f[key]) > 0)) e[key] = `${label} must be a whole number above zero.`;
-  }
-  if (!e.usageLimit && coupon && !isBlank(f.usageLimit) && Number(f.usageLimit) < coupon.usedCount) {
-    e.usageLimit = `Already used ${coupon.usedCount} times; the limit cannot be lower.`;
-  }
-  if (f.scope === 'SPECIFIC' && Object.keys(f.products).length === 0) e.products = 'Pick at least one series, or apply to all.';
-  return e;
-}
-
-function toRequest(f) {
-  return {
-    code: f.code.trim().toUpperCase(),
-    description: f.description.trim() || null,
-    discountType: f.discountType,
-    discountValue: f.discountType === 'PERCENTAGE' ? Math.round(Number(f.discountValue) * 100) : rupeesToMinor(f.discountValue),
-    minimumOrderAmount: isBlank(f.minOrder) ? 0 : rupeesToMinor(f.minOrder),
-    maximumDiscountAmount: f.discountType === 'PERCENTAGE' && !isBlank(f.maxDiscount) ? rupeesToMinor(f.maxDiscount) : null,
-    startsAt: new Date(f.startsAt).toISOString(),
-    expiresAt: new Date(f.expiresAt).toISOString(),
-    usageLimit: isBlank(f.usageLimit) ? null : Number(f.usageLimit),
-    perUserUsageLimit: isBlank(f.perUserLimit) ? null : Number(f.perUserLimit),
-    stackable: f.stackable,
-    firstOrderOnly: f.firstOrderOnly,
-    productIds: f.scope === 'SPECIFIC' ? Object.keys(f.products) : [],
-  };
-}
-
 /* --------------------------------------------------------------- components */
-
-function FieldLabel({ children, hint }) {
-  return (
-    <div className="mb-1.5 flex items-baseline justify-between gap-2">
-      <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{children}</span>
-      {hint && <span className="text-[11px] text-slate-400 dark:text-slate-500">{hint}</span>}
-    </div>
-  );
-}
-
-function Section({ icon: Icon, title, children }) {
-  return (
-    <section className="space-y-4">
-      <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        <Icon size={14} /> {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function Toggle({ checked, onChange, label, description }) {
-  return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-      <span>
-        <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">{label}</span>
-        <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{description}</span>
-      </span>
-      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
-      <span
-        aria-hidden
-        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 ${checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`}
-      >
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
-      </span>
-    </label>
-  );
-}
-
-function CouponPreview({ form }) {
-  const value = Number(form.discountValue);
-  const hasValue = value > 0;
-  const lines = [];
-  if (!isBlank(form.minOrder) && Number(form.minOrder) > 0) lines.push(`On orders of ${formatMoney(rupeesToMinor(form.minOrder))} or more`);
-  lines.push(form.scope === 'SPECIFIC' ? `Valid on ${Object.keys(form.products).length || 'selected'} series` : 'Valid on every paid series');
-  if (form.firstOrderOnly) lines.push("Only for a customer's first paid order");
-  const limits = [
-    isBlank(form.usageLimit) ? 'Unlimited uses' : `${form.usageLimit} uses total`,
-    isBlank(form.perUserLimit) ? 'no per-user cap' : `${form.perUserLimit} per user`,
-  ];
-  lines.push(limits.join(' · '));
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white shadow-md">
-      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-100">Preview</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight">
-            {hasValue
-              ? form.discountType === 'PERCENTAGE'
-                ? `${value}% off`
-                : `${formatMoney(rupeesToMinor(value))} off`
-              : 'Set a discount'}
-          </p>
-          {form.discountType === 'PERCENTAGE' && !isBlank(form.maxDiscount) && Number(form.maxDiscount) > 0 && (
-            <p className="text-sm text-indigo-100">Up to {formatMoney(rupeesToMinor(form.maxDiscount))}</p>
-          )}
-        </div>
-        <span className="shrink-0 rounded-lg border border-dashed border-white/60 bg-white/10 px-3 py-1.5 font-mono text-sm font-bold tracking-wider">
-          {form.code.trim().toUpperCase() || 'CODE'}
-        </span>
-      </div>
-      <ul className="mt-4 space-y-1 text-xs text-indigo-50">
-        {lines.map((l) => <li key={l}>• {l}</li>)}
-        <li>• {formatDate(form.startsAt)} → {formatDate(form.expiresAt)}</li>
-      </ul>
-    </div>
-  );
-}
-
-function SeriesPicker({ selected, onChange, error }) {
-  const [term, setTerm] = useState('');
-  const debounced = useDebounce(term);
-  const { currentData, isFetching } = useGetAdminProductsQuery({ type: 'TEST_SERIES', paidOnly: true, q: debounced.trim() || undefined, size: 30 });
-
-  // Resolve names for ids carried over from an existing coupon.
-  const unnamed = Object.values(selected).filter((p) => !p.name).map((p) => p.id).sort();
-  const { currentData: named } = useGetAdminProductsQuery({ ids: unnamed, size: 100 }, { skip: unnamed.length === 0 });
-  const nameById = useMemo(() => new Map((named?.content || []).map((p) => [p.id, p])), [named]);
-
-  const toggle = (p) => {
-    const next = { ...selected };
-    if (next[p.id]) delete next[p.id];
-    else next[p.id] = p;
-    onChange(next);
-  };
-  const products = currentData?.content || [];
-
-  return (
-    <div>
-      {Object.keys(selected).length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {Object.values(selected).map((p) => {
-            const name = p.name || nameById.get(p.id)?.name || shortId(p.id);
-            return (
-              <span key={p.id} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 py-1 pl-2.5 pr-1.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
-                {name}
-                <button type="button" aria-label={`Remove ${name}`} onClick={() => toggle(p)} className="rounded-full p-0.5 hover:bg-indigo-100 dark:hover:bg-indigo-500/20">
-                  <X size={12} />
-                </button>
-              </span>
-            );
-          })}
-        </div>
-      )}
-      <Input aria-label="Search series" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search paid series" leftIcon={<Search size={16} />} />
-      <div className={`mt-2 max-h-52 overflow-y-auto rounded-xl border ${error ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800'}`}>
-        {isFetching && products.length === 0 ? (
-          <div className="space-y-2 p-3">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
-        ) : products.length === 0 ? (
-          <p className="p-5 text-center text-xs text-slate-500 dark:text-slate-400">No paid series found.</p>
-        ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            {products.map((p) => (
-              <li key={p.id}>
-                <label className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <input type="checkbox" checked={Boolean(selected[p.id])} onChange={() => toggle(p)} className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800" />
-                  <span className="min-w-0 flex-1 truncate text-sm text-slate-800 dark:text-slate-200">{p.name}</span>
-                  <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">{formatMoney(p.currentPriceMinor, p.currency)}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      {error && <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
-    </div>
-  );
-}
-
-function CouponFormDrawer({ coupon, onClose }) {
-  const toast = useToast();
-  const editing = Boolean(coupon);
-  const [form, setForm] = useState(() => (coupon ? formFromCoupon(coupon) : emptyForm()));
-  const [submitted, setSubmitted] = useState(false);
-  const [serverError, setServerError] = useState('');
-  const [createCoupon, createState] = useCreateAdminCouponMutation();
-  const [updateCoupon, updateState] = useUpdateAdminCouponMutation();
-  const saving = createState.isLoading || updateState.isLoading;
-
-  const errors = validate(form, coupon);
-  const shown = submitted ? errors : {};
-  const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
-  const onInput = (key) => (e) => set(key)(e.target.value);
-
-  const applyPreset = (days) => {
-    const start = new Date(form.startsAt);
-    const base = Number.isNaN(start.getTime()) ? new Date() : start;
-    set('expiresAt')(toLocalInput(base.getTime() + days * DAY_MS));
-  };
-
-  const submit = async (event) => {
-    event.preventDefault();
-    setSubmitted(true);
-    setServerError('');
-    if (Object.keys(errors).length > 0) return;
-    try {
-      const body = toRequest(form);
-      if (editing) await updateCoupon({ id: coupon.id, ...body }).unwrap();
-      else await createCoupon(body).unwrap();
-      toast.success(editing ? `Coupon ${body.code} updated.` : `Coupon ${body.code} created.`);
-      onClose();
-    } catch (err) {
-      setServerError(errorMessage(err));
-    }
-  };
-
-  return (
-    <Drawer
-      open
-      onClose={saving ? () => {} : onClose}
-      width="2xl"
-      title={editing ? `Edit ${coupon.code}` : 'New coupon'}
-      description={editing ? 'Changes apply to future checkouts only; past orders keep their discount.' : 'Create a discount code customers can enter at checkout.'}
-      footer={
-        <div className="flex w-full items-center justify-between gap-3">
-          <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-            {submitted && Object.keys(errors).length > 0 ? `Fix ${Object.keys(errors).length} field(s) to continue.` : ''}
-          </p>
-          <div className="ml-auto flex gap-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-            <Button type="submit" form="coupon-form" isLoading={saving}>{editing ? 'Save changes' : 'Create coupon'}</Button>
-          </div>
-        </div>
-      }
-    >
-      <form id="coupon-form" onSubmit={submit} noValidate className="space-y-7">
-        <CouponPreview form={form} />
-
-        <Section icon={Ticket} title="Code">
-          <div>
-            <FieldLabel hint={editing ? 'Codes cannot be changed' : 'Customers type this at checkout'}>Coupon code</FieldLabel>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  aria-label="Coupon code"
-                  value={form.code}
-                  onChange={(e) => set('code')(e.target.value.toUpperCase().replace(/\s/g, ''))}
-                  placeholder="e.g. WELCOME20"
-                  maxLength={64}
-                  disabled={editing}
-                  className="font-mono uppercase tracking-wider"
-                  error={shown.code}
-                />
-              </div>
-              {!editing && (
-                <Button type="button" variant="outline" onClick={() => set('code')(randomCode())} title="Generate a random code">
-                  <Shuffle size={15} className="mr-1.5" /> Generate
-                </Button>
-              )}
-            </div>
-          </div>
-          <Input id="coupon-description" label="Internal note (optional)" value={form.description} onChange={onInput('description')} maxLength={255} placeholder="e.g. Diwali campaign for new signups" />
-        </Section>
-
-        <Section icon={Percent} title="Discount">
-          <SegmentedTabs
-            tabs={[{ value: 'PERCENTAGE', label: 'Percentage' }, { value: 'FIXED_AMOUNT', label: 'Fixed amount' }]}
-            value={form.discountType}
-            onChange={set('discountType')}
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              id="coupon-value"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step={form.discountType === 'PERCENTAGE' ? '0.01' : '1'}
-              label={form.discountType === 'PERCENTAGE' ? 'Discount (%)' : 'Discount (₹)'}
-              value={form.discountValue}
-              onChange={onInput('discountValue')}
-              placeholder={form.discountType === 'PERCENTAGE' ? '20' : '100'}
-              error={shown.discountValue}
-            />
-            {form.discountType === 'PERCENTAGE' && (
-              <Input id="coupon-max" type="number" min="0" label="Maximum discount (₹)" value={form.maxDiscount} onChange={onInput('maxDiscount')} placeholder="No cap" helpText="Caps the saving on expensive orders." error={shown.maxDiscount} />
-            )}
-            <Input id="coupon-min" type="number" min="0" label="Minimum order (₹)" value={form.minOrder} onChange={onInput('minOrder')} placeholder="No minimum" error={shown.minOrder} />
-          </div>
-        </Section>
-
-        <Section icon={CalendarRange} title="Validity">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="coupon-start" type="datetime-local" label="Starts" value={form.startsAt} onChange={onInput('startsAt')} error={shown.startsAt} />
-            <Input id="coupon-end" type="datetime-local" label="Ends" value={form.expiresAt} onChange={onInput('expiresAt')} error={shown.expiresAt} />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Run for</span>
-            {VALIDITY_PRESETS.map((p) => (
-              <button key={p.days} type="button" onClick={() => applyPreset(p.days)} className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300">
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        <Section icon={Users} title="Usage limits">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="coupon-usage" type="number" min="1" step="1" label="Total uses" value={form.usageLimit} onChange={onInput('usageLimit')} placeholder="Unlimited" helpText={editing ? `Used ${coupon.usedCount} times so far.` : 'Across all customers.'} error={shown.usageLimit} />
-            <Input id="coupon-per-user" type="number" min="1" step="1" label="Uses per customer" value={form.perUserLimit} onChange={onInput('perUserLimit')} placeholder="Unlimited" error={shown.perUserLimit} />
-          </div>
-          <Toggle checked={form.firstOrderOnly} onChange={set('firstOrderOnly')} label="First order only" description="Only customers who have never completed a paid order can use it." />
-        </Section>
-
-        <Section icon={Target} title="Applies to">
-          <SegmentedTabs
-            tabs={[{ value: 'ALL', label: 'All paid series' }, { value: 'SPECIFIC', label: 'Specific series' }]}
-            value={form.scope}
-            onChange={set('scope')}
-          />
-          {form.scope === 'SPECIFIC' && <SeriesPicker selected={form.products} onChange={set('products')} error={shown.products} />}
-        </Section>
-
-        {serverError && <InlineAlert title={editing ? 'Coupon not saved' : 'Coupon not created'}>{serverError}</InlineAlert>}
-      </form>
-    </Drawer>
-  );
-}
 
 function RedemptionsDrawer({ coupon, onClose }) {
   const [page, setPage] = useState(0);
@@ -569,11 +171,11 @@ function UsageMeter({ used, limit }) {
 }
 
 export default function CouponsPage() {
+  const router = useRouter();
   const toast = useToast();
   const [search, setSearch] = useState('');
   const debounced = useDebounce(search);
   const [page, setPage] = useState(0);
-  const [editing, setEditing] = useState(null); // null | 'new' | coupon
   const [viewing, setViewing] = useState(null);
 
   const { currentData, isLoading, isFetching, isError, error, refetch } = useGetAdminCouponsQuery({ q: debounced.trim() || undefined, page, size: PAGE_SIZE });
@@ -594,7 +196,7 @@ export default function CouponsPage() {
         breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'Coupons' }]}
         title="Coupons"
         subtitle="Create discount codes, control when and how often they apply, and see who used them."
-        actions={<Button onClick={() => setEditing('new')}><Plus size={16} className="mr-1.5" /> New coupon</Button>}
+        actions={<Button onClick={() => router.push(NEW_PATH)}><Plus size={16} className="mr-1.5" /> New coupon</Button>}
       />
 
       <Card>
@@ -642,7 +244,7 @@ export default function CouponsPage() {
                       title={debounced ? 'No matching coupons' : 'No coupons yet'}
                       description={debounced ? `No code starts with “${debounced.toUpperCase()}”.` : 'Create your first discount code to run a promotion.'}
                       actionLabel={debounced ? undefined : 'New coupon'}
-                      onAction={debounced ? undefined : () => setEditing('new')}
+                      onAction={debounced ? undefined : () => router.push(NEW_PATH)}
                     />
                   </td>
                 </tr>
@@ -679,7 +281,7 @@ export default function CouponsPage() {
                       <div className="flex items-center justify-end gap-1">
                         <EnableSwitch coupon={c} />
                         <IconAction label={`View redemptions of ${c.code}`} onClick={() => setViewing(c)}><Eye size={15} /></IconAction>
-                        <IconAction label={`Edit ${c.code}`} onClick={() => setEditing(c)}><Pencil size={15} /></IconAction>
+                        <IconAction label={`Edit ${c.code}`} onClick={() => router.push(`/admin-dashboard/coupons/${c.id}/edit`)}><Pencil size={15} /></IconAction>
                       </div>
                     </td>
                   </tr>
@@ -698,7 +300,6 @@ export default function CouponsPage() {
         )}
       </Card>
 
-      {editing && <CouponFormDrawer key={editing === 'new' ? 'new' : editing.id} coupon={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
       {viewing && <RedemptionsDrawer coupon={viewing} onClose={() => setViewing(null)} />}
     </div>
   );

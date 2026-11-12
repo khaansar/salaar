@@ -253,6 +253,11 @@ export const adminApi = apiSlice.injectEndpoints({
       },
     }),
 
+    getAdminCoupon: builder.query({
+      query: (id) => ({ url: `${PAYMENT_BASE}/coupons/${id}` }),
+      providesTags: (result, error, id) => [{ type: "AdminCoupon", id }],
+    }),
+
     createAdminCoupon: builder.mutation({
       query: (body) => ({ url: `${PAYMENT_BASE}/coupons`, method: "POST", data: body }),
       invalidatesTags: [{ type: "AdminCoupon", id: "LIST" }],
@@ -298,6 +303,7 @@ export const {
   useGrantAdminEntitlementMutation,
   useRevokeAdminEntitlementMutation,
   useGetAdminCouponsQuery,
+  useGetAdminCouponQuery,
   useCreateAdminCouponMutation,
   useUpdateAdminCouponMutation,
   useSetAdminCouponEnabledMutation,
