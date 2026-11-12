@@ -388,8 +388,14 @@ function RevokeAccessModal({ entitlement, seriesName, onClose }) {
             Revoking does not refund the user. Issue a refund from the Payments page if one is owed.
           </InlineAlert>
         )}
-        <Textarea id="revoke-reason" label="Reason" rows={2} maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Granted by mistake, promotion ended…" autoFocus />
-        {error && <InlineAlert title="Access not revoked">{error}</InlineAlert>}
+        <div>
+          <Textarea id="revoke-reason" label="Reason" rows={2} maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. The promotional access period for this series has ended." autoFocus />
+          <p className="mt-1 flex items-start gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+            <Mail size={12} className="mt-px shrink-0" />
+            The user gets an email and in-app notice that includes this reason, unless the access had already expired.
+          </p>
+        </div>
+        {error &&<InlineAlert title="Access not revoked">{error}</InlineAlert>}
       </form>
     </Modal>
   );
