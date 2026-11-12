@@ -68,6 +68,10 @@ export const apiSlice = createApi({
     'AdminOrderTimeline',
     'AdminRefund',
     'AdminRefundableAmount',
+    'AdminProduct',
+    'AdminEntitlement',
+    'AdminCoupon',
+    'AdminCouponRedemption',
     // Admin review-moderation cache tags.
     'AdminReview',
     'AdminReviewStats',

@@ -200,6 +200,78 @@ export const adminApi = apiSlice.injectEndpoints({
         { type: "AdminRefundableAmount", id: "LIST" },
       ],
     }),
+
+    // ------------------------------------------------------------
+    // PRODUCT CATALOG, SERIES ACCESS AND COUPONS
+    // ------------------------------------------------------------
+
+    getAdminProducts: builder.query({
+      query: ({ type, q, ids, referenceIds, paidOnly, page = 0, size = 20 } = {}) => ({
+        url: `${PAYMENT_BASE}/products`,
+        params: {
+          type: type || undefined,
+          q: q || undefined,
+          // Spring binds comma-separated values to List<UUID>; axios would otherwise send ids[]=…
+          ids: ids?.length ? ids.join(",") : undefined,
+          referenceIds: referenceIds?.length ? referenceIds.join(",") : undefined,
+          paidOnly: paidOnly || undefined,
+          page,
+          size,
+        },
+      }),
+      providesTags: [{ type: "AdminProduct", id: "LIST" }],
+    }),
+
+    getAdminEntitlements: builder.query({
+      query: ({ userId, status, page = 0, size = 20 } = {}) => ({
+        url: `${PAYMENT_BASE}/entitlements`,
+        params: { userId: userId || undefined, status: status || undefined, page, size },
+      }),
+      providesTags: [{ type: "AdminEntitlement", id: "LIST" }],
+    }),
+
+    grantAdminEntitlement: builder.mutation({
+      query: (body) => ({ url: `${PAYMENT_BASE}/entitlements/grant`, method: "POST", data: body }),
+      invalidatesTags: [{ type: "AdminEntitlement", id: "LIST" }],
+    }),
+
+    revokeAdminEntitlement: builder.mutation({
+      query: ({ id, reason }) => ({ url: `${PAYMENT_BASE}/entitlements/${id}/revoke`, method: "POST", data: { reason } }),
+      invalidatesTags: [{ type: "AdminEntitlement", id: "LIST" }],
+    }),
+
+    getAdminCoupons: builder.query({
+      query: ({ q, page = 0, size = 20 } = {}) => ({
+        url: `${PAYMENT_BASE}/coupons`,
+        params: { q: q || undefined, page, size },
+      }),
+      providesTags: (result) => {
+        const coupons = result?.content;
+        return Array.isArray(coupons)
+          ? [...coupons.map(({ id }) => ({ type: "AdminCoupon", id })), { type: "AdminCoupon", id: "LIST" }]
+          : [{ type: "AdminCoupon", id: "LIST" }];
+      },
+    }),
+
+    createAdminCoupon: builder.mutation({
+      query: (body) => ({ url: `${PAYMENT_BASE}/coupons`, method: "POST", data: body }),
+      invalidatesTags: [{ type: "AdminCoupon", id: "LIST" }],
+    }),
+
+    updateAdminCoupon: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `${PAYMENT_BASE}/coupons/${id}`, method: "PUT", data: body }),
+      invalidatesTags: (result, error, { id }) => [{ type: "AdminCoupon", id }, { type: "AdminCoupon", id: "LIST" }],
+    }),
+
+    setAdminCouponEnabled: builder.mutation({
+      query: ({ id, enabled }) => ({ url: `${PAYMENT_BASE}/coupons/${id}/${enabled ? "enable" : "disable"}`, method: "POST" }),
+      invalidatesTags: (result, error, { id }) => [{ type: "AdminCoupon", id }, { type: "AdminCoupon", id: "LIST" }],
+    }),
+
+    getAdminCouponRedemptions: builder.query({
+      query: ({ id, page = 0, size = 20 }) => ({ url: `${PAYMENT_BASE}/coupons/${id}/redemptions`, params: { page, size } }),
+      providesTags: (result, error, { id }) => [{ type: "AdminCouponRedemption", id }],
+    }),
   }),
 });
 
@@ -221,4 +293,13 @@ export const {
   useGetAdminRefundsQuery,
   useGetAdminRefundableAmountQuery,
   useRequestAdminRefundMutation,
+  useGetAdminProductsQuery,
+  useGetAdminEntitlementsQuery,
+  useGrantAdminEntitlementMutation,
+  useRevokeAdminEntitlementMutation,
+  useGetAdminCouponsQuery,
+  useCreateAdminCouponMutation,
+  useUpdateAdminCouponMutation,
+  useSetAdminCouponEnabledMutation,
+  useGetAdminCouponRedemptionsQuery,
 } = adminApi;
