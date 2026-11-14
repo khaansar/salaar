@@ -105,6 +105,9 @@ export const usersApi = {
 
     return normalizeUserPage(response);
   },
+
+  setActive: (userId, active) =>
+    apiClient.patch(`/auth-api/admin/users/${encodeURIComponent(userId)}/status`, { active }),
 };
 
 export const userService = {

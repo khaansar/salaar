@@ -89,6 +89,9 @@ export function LoginForm() {
       case 'authentication_failed':
         return 'Authentication failed. Please try again.';
 
+      case 'account_disabled':
+        return 'This account has been deactivated. Contact support if you think this is a mistake.';
+
       case 'access_denied':
         return 'Authentication was cancelled.';
 

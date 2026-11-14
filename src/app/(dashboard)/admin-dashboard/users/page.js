@@ -15,9 +15,13 @@ import {
   LoaderCircle,
   Fingerprint,
   History,
+  UserX,
 } from 'lucide-react';
 
 import { usersApi } from '@/services/userService';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { useToast } from '@/components/common/ToastProvider';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -65,7 +69,11 @@ function RoleBadge({ role, label }) {
   );
 }
 
-function ActiveBadge({ active }) {
+function ActiveBadge({ active, deleted }) {
+  if (deleted) {
+    return <Badge tone="neutral">Deleted</Badge>;
+  }
+
   return (
     <Badge tone={active ? 'success' : 'danger'}>
       <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
@@ -99,6 +107,10 @@ export default function UsersPage() {
   // Selected user for drawer
   const [selectedUser, setSelectedUser] = useState(null);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
+  const currentUserId = useAppSelector((state) => state.auth.user?.id);
+  const toast = useToast();
 
   const pageSize = 20;
 
@@ -203,6 +215,26 @@ export default function UsersPage() {
       month: 'short',
       year: 'numeric',
     });
+  };
+
+  const handleStatusChange = async () => {
+    const nextActive = !selectedUser.isActive;
+    setStatusSaving(true);
+    try {
+      const updated = await usersApi.setActive(selectedUser.id, nextActive);
+      const merged = { ...selectedUser, ...updated };
+      setSelectedUser(merged);
+      setUsers((current) => current.map((u) => (u.id === merged.id ? merged : u)));
+      setUserStats((stats) => (stats.activeUsers == null
+        ? stats
+        : { ...stats, activeUsers: stats.activeUsers + (nextActive ? 1 : -1) }));
+      toast.success(nextActive ? 'User reactivated' : 'User deactivated');
+      setStatusConfirmOpen(false);
+    } catch (err) {
+      toast.error(err?.message || 'Failed to update user status');
+    } finally {
+      setStatusSaving(false);
+    }
   };
 
   const formatRole = (role) => {
@@ -459,7 +491,7 @@ export default function UsersPage() {
                     </td>
 
                     <td className={ADMIN_TABLE.td}>
-                      <ActiveBadge active={user.isActive} />
+                      <ActiveBadge active={user.isActive} deleted={Boolean(user.deletedAt)} />
                     </td>
 
                     <td className={`${ADMIN_TABLE.td} whitespace-nowrap text-xs text-slate-500 dark:text-slate-400`}>
@@ -502,7 +534,7 @@ export default function UsersPage() {
                 <p className="truncate text-xs text-slate-500 dark:text-slate-400">{selectedUser.email}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <RoleBadge role={selectedUser.role} label={formatRole(selectedUser.role)} />
-                  <ActiveBadge active={selectedUser.isActive} />
+                  <ActiveBadge active={selectedUser.isActive} deleted={Boolean(selectedUser.deletedAt)} />
                 </div>
               </div>
             </div>
@@ -522,16 +554,53 @@ export default function UsersPage() {
                   label="Account status"
                   value={
                     <span className={selectedUser.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                      {selectedUser.isActive ? 'Active' : 'Inactive'}
+                      {selectedUser.deletedAt ? 'Deleted' : selectedUser.isActive ? 'Active' : 'Inactive'}
                     </span>
                   }
                 />
                 <DetailRow label="Created" value={formatDate(selectedUser.createdAt)} />
                 {selectedUser.updatedAt && <DetailRow label="Last updated" value={formatDate(selectedUser.updatedAt)} />}
+                {selectedUser.deletedAt && <DetailRow label="Deleted" value={formatDate(selectedUser.deletedAt)} />}
               </div>
             </DetailSection>
+
+            {!selectedUser.deletedAt && selectedUser.id !== currentUserId && (
+              <DetailSection title="Account actions">
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {selectedUser.isActive
+                      ? 'Deactivating signs the user out everywhere and blocks future sign-ins.'
+                      : 'Reactivating lets the user sign in again.'}
+                  </p>
+                  <Button
+                    type="button"
+                    variant={selectedUser.isActive ? 'danger' : 'outline'}
+                    onClick={() => setStatusConfirmOpen(true)}
+                    className="shrink-0 gap-2"
+                  >
+                    {selectedUser.isActive ? <UserX size={15} /> : <UserCheck size={15} />}
+                    {selectedUser.isActive ? 'Deactivate' : 'Reactivate'}
+                  </Button>
+                </div>
+              </DetailSection>
+            )}
           </div>
         </Drawer>
+      )}
+
+      {selectedUser && (
+        <ConfirmDialog
+          open={statusConfirmOpen}
+          onClose={() => setStatusConfirmOpen(false)}
+          onConfirm={handleStatusChange}
+          isLoading={statusSaving}
+          tone={selectedUser.isActive ? 'danger' : 'primary'}
+          title={selectedUser.isActive ? 'Deactivate user?' : 'Reactivate user?'}
+          description={selectedUser.isActive
+            ? `${getFullName(selectedUser)} will be signed out immediately and won't be able to sign in until reactivated.`
+            : `${getFullName(selectedUser)} will be able to sign in again.`}
+          confirmLabel={selectedUser.isActive ? 'Deactivate' : 'Reactivate'}
+        />
       )}
     </div>
   );
