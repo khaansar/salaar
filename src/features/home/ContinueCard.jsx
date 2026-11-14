@@ -38,10 +38,7 @@ export default function ContinueCard() {
         }
         } catch (error) {
         if (!cancelled) {
-            console.error(
-            'Failed to load in-progress attempt',
-            error
-            );
+            // Without an in-progress attempt the card simply stays hidden.
             setAttempt(null);
         }
         } finally {

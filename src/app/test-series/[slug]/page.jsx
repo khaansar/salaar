@@ -134,7 +134,7 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    console.error(
+    console.warn(
       `Failed to generate metadata for series "${slug}":`,
       error
     );

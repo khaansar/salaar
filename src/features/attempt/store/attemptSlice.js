@@ -15,6 +15,8 @@ const initialState = {
     sectionSubmitModalOpen: false,
     connection: 'offline',
     isExpired: false,
+    // Inline exam-wide notice: { key, message } or null.
+    notice: null,
   },
 
   status: 'idle',
@@ -336,13 +338,41 @@ const attemptSlice = createSlice({
       state.ui.isExpired = true;
     },
 
+    showExamNotice(state, action) {
+      state.ui.notice = action.payload;
+    },
+
+    /** Clears the notice; with a key, only when that notice is the one showing. */
+    clearExamNotice(state, action) {
+      if (!action.payload || state.ui.notice?.key === action.payload) {
+        state.ui.notice = null;
+      }
+    },
+
     resetAttemptState() {
       return initialState;
     },
   },
 });
 
+export const EXAM_NOTICES = {
+  sectionSwitch: {
+    key: 'section-switch',
+    message: "Your section change couldn't be confirmed with the server. Check your connection; your answers are still being saved.",
+  },
+  autosave: {
+    key: 'autosave',
+    message: "Some answers haven't been saved yet. We'll keep retrying — please check your internet connection.",
+  },
+  autoSubmit: {
+    key: 'auto-submit',
+    message: "Time is up, but automatic submission couldn't be confirmed. Keep this page open — use Submit Test to retry.",
+  },
+};
+
 export const {
+  showExamNotice,
+  clearExamNotice,
   setAttemptData,
   setConnectionState,
   updateRemainingTime,

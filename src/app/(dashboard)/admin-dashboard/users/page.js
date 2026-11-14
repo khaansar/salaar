@@ -120,7 +120,6 @@ export default function UsersPage() {
         if (!cancelled) setUserStats(stats);
       })
       .catch((err) => {
-        console.error('Failed to fetch overall user statistics:', err);
         if (!cancelled) setUserStats({ totalUsers: null, activeUsers: null, adminUsers: null });
       });
     return () => { cancelled = true; };
@@ -168,7 +167,6 @@ export default function UsersPage() {
         setTotalUsers(response?.totalElements ?? response?.data?.totalElements ?? users.length);
       } catch (err) {
         if (cancelled) return;
-        console.error('Failed to fetch users:', err);
         setError(
           err?.message || 'Failed to load users. Please try again.'
         );

@@ -27,6 +27,7 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
   const isOpen = useAppSelector(state => state.attempt.ui.submitModalOpen);
   const sections = useAppSelector(state => state.attempt.sections);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const selectPaletteCounts = useMemo(() => makeSelectPaletteCounts(), []);
   const overallCounts = useAppSelector(state => selectPaletteCounts(state));
 
@@ -36,6 +37,7 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
+    setError('');
 
     try {
         // Do not submit while answers remain unsaved.
@@ -52,25 +54,21 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
 
         router.replace(getSafeAttemptReturnPath());
     } catch (err) {
-        console.error('Failed to submit attempt:', err);
-
         setIsSubmitting(false);
 
         if (
-        err.message === 'ATTEMPT_EXPIRED' ||
-        err.response?.status === 410
+        err?.message === 'ATTEMPT_EXPIRED' ||
+        err?.response?.status === 410
         ) {
-        alert('Your attempt has expired. Please refresh to check its final status.');
+        setError('Your attempt has expired. Refresh the page to see its final status.');
         } else if (
-        err.message === 'CONFLICT' ||
-        err.status === 409 ||
-        err.response?.status === 409
+        err?.message === 'CONFLICT' ||
+        err?.status === 409 ||
+        err?.response?.status === 409
         ) {
-        alert('Some answers could not be saved. Please retry before submitting.');
+        setError('Some answers could not be saved. Please retry before submitting.');
         } else {
-        alert(
-            'Submission failed. Your answers have not been confirmed as submitted. Please retry.'
-        );
+        setError('Submission failed. Your answers have not been confirmed as submitted. Please retry.');
         }
     }
     };
@@ -91,6 +89,11 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
             </table>
           </div>
         </div>
+        {error && (
+          <p role="alert" className="mx-6 mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {error}
+          </p>
+        )}
         <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
           <button type="button" onClick={() => dispatch(setSubmitModalOpen(false))} disabled={isSubmitting} className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded transition-colors disabled:opacity-50">Cancel</button>
           <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="px-6 py-2.5 bg-exam-accent hover:bg-exam-accent/90 text-white text-sm font-semibold rounded shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-exam-accent focus:ring-offset-2 flex items-center gap-2 disabled:opacity-70">

@@ -1,7 +1,7 @@
 'use client';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setCurrentSection, setSectionSubmitModalOpen, setTargetSectionId } from '../store/attemptSlice';
+import { setCurrentSection, setSectionSubmitModalOpen, setTargetSectionId, showExamNotice, EXAM_NOTICES } from '../store/attemptSlice';
 import { makeSelectPaletteCounts } from '../store/selectors';
 import { useMemo } from 'react';
 import { Menu } from 'lucide-react';
@@ -54,7 +54,7 @@ export default function SectionTabs() {
                              sectionTimeSpentSec: res.sectionTimeSpentSec,
                            }});
                          }
-                      }).catch(console.error);
+                      }).catch(() => dispatch(showExamNotice(EXAM_NOTICES.sectionSwitch)));
                   }
                 }
               }

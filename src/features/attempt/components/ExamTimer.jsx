@@ -5,6 +5,7 @@ import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { attemptService } from '../../../services/attemptService';
 
 import { useSwitchSectionMutation } from '../store/attemptApi';
+import { showExamNotice, EXAM_NOTICES } from '../store/attemptSlice';
 
 export default function ExamTimer() {
   const attempt = useAppSelector((state) => state.attempt.attempt);
@@ -83,7 +84,7 @@ export default function ExamTimer() {
                      sectionTimeSpentSec: res.sectionTimeSpentSec,
                    }});
                  }
-              }).catch(console.error);
+              }).catch(() => dispatch(showExamNotice(EXAM_NOTICES.sectionSwitch)));
           } else {
              dispatch({ type: 'attempt/markExpired' });
           }

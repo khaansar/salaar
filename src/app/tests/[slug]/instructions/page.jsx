@@ -134,7 +134,7 @@ export default async function InstructionsPage({ params, searchParams }) {
 
     testDetails = res;
   } catch (error) {
-    console.error('Failed to load test structure for instructions on server:', error.message);
+    console.warn('Failed to load test structure for instructions on server:', error.message);
     hasError = true;
   }
 

@@ -17,6 +17,7 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
   const attempt = useAppSelector(state => state.attempt.attempt);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   // Derive counts for current section only
   const selectPaletteCounts = useMemo(() => makeSelectPaletteCounts(), []);
@@ -28,6 +29,7 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError('');
     try {
       if (flushAutosave) {
          try {
@@ -49,14 +51,14 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
       dispatch(setSectionSubmitModalOpen(false));
       dispatch(setTargetSectionId(null));
     } catch (err) {
-      console.error(err);
-      alert(err?.message || 'Failed to switch section. Please check your connection and try again.');
+      setError(err?.message || "We couldn't move you to the next section. Check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
+    setError('');
     dispatch(setSectionSubmitModalOpen(false));
     dispatch(setTargetSectionId(null));
   };
@@ -110,6 +112,12 @@ export default function SectionSubmitModal({ attemptId, flushAutosave }) {
             </table>
           </div>
         </div>
+
+        {error && (
+          <p role="alert" className="mx-6 mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {error}
+          </p>
+        )}
 
         <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
           <button 

@@ -4,8 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import {
+  clearExamNotice,
+  EXAM_NOTICES,
   markExpired,
   markSyncedIfUnchanged,
+  showExamNotice,
   updateAttemptVersion,
 } from '../store/attemptSlice';
 import { useSaveResponsesMutation } from '../store/attemptApi';
@@ -266,15 +269,16 @@ export function useAutosave(attemptId) {
 
       if (failures.length === 0) {
         failureCountRef.current = 0;
+        dispatch(clearExamNotice(EXAM_NOTICES.autosave.key));
         return;
       }
-
-      failures.forEach((f) => console.error('Autosave failed:', f.reason));
 
       if (failures.some((f) => f.reason?.message === 'ATTEMPT_EXPIRED')) {
         dispatch(markExpired());
         return;
       }
+
+      dispatch(showExamNotice(EXAM_NOTICES.autosave));
 
       // A failed answer stays pending without changing `responses`, so
       // schedule a retry explicitly instead of waiting for the next edit.

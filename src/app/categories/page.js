@@ -29,7 +29,7 @@ export default async function CategoriesPage() {
     const data = await catalogService.getCategories();
     categories = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Failed to load categories:', error);
+    console.warn('Failed to load categories:', error);
     failed = true;
   }
 
