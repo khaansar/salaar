@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Mail,
   Lock,
@@ -35,7 +35,6 @@ export function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [targetExam, setTargetExam] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
   const [errors, setErrors] = useState({});
 
   const dispatch = useAppDispatch();
@@ -45,6 +44,7 @@ export function SignupForm() {
     error: serverError,
   } = useAppSelector((state) => state.auth);
 
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const nextParam = searchParams.get('next');
@@ -112,7 +112,10 @@ export function SignupForm() {
         })
       ).unwrap();
 
-      setRegistrationComplete(true);
+      // The verification code was emailed during registration.
+      const params = new URLSearchParams({ email: email.trim().toLowerCase() });
+      if (destination !== '/') params.set('next', destination);
+      router.push(`/verify-email?${params.toString()}`);
     } catch (err) {
       console.error('Registration failed:', err);
     }
@@ -121,71 +124,6 @@ export function SignupForm() {
   const handleOAuthSignup = (provider) => {
     startOAuth(provider, destination);
   };
-
-  if (registrationComplete) {
-    return (
-      <div className="w-full">
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-
-          <div className="p-8 sm:p-10 text-center">
-
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-500/10">
-              <Mail
-                size={30}
-                className="text-emerald-600 dark:text-emerald-400"
-              />
-            </div>
-
-            <h2 className="text-[28px] font-bold text-slate-900 dark:text-white tracking-tight mb-2">
-              Check your email
-            </h2>
-
-            <p className="text-[14px] leading-6 text-slate-500 dark:text-slate-400">
-              We&apos;ve sent a verification link to
-            </p>
-
-            <p className="mt-1 font-semibold text-slate-900 dark:text-white break-all">
-              {email}
-            </p>
-
-            <p className="mt-4 text-[14px] leading-6 text-slate-500 dark:text-slate-400">
-              Click the link in the email to verify your account. The link expires in 15 minutes.
-            </p>
-
-            <Link
-              href={
-                destination !== '/'
-                  ? `/login?next=${encodeURIComponent(destination)}`
-                  : '/login'
-              }
-              className="mt-7 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-            >
-              Continue to Login
-            </Link>
-
-          </div>
-
-          <div className="bg-slate-50 dark:bg-slate-800/40 p-5 sm:px-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-3">
-            <ShieldCheck
-              className="text-brand-500"
-              size={24}
-            />
-
-            <div className="text-left">
-              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                Your data is safe with us
-              </h3>
-
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                We use industry-standard security measures to protect your information.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">

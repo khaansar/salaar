@@ -12,7 +12,7 @@ import { isValidEmail } from '../../utils/validators';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 
-import { loginUser } from '../../store/slices/authSlice';
+import { loginUser, resendVerificationCode } from '../../store/slices/authSlice';
 import { startOAuth } from '../../lib/oauth';
 
 export function LoginForm() {
@@ -76,6 +76,14 @@ export function LoginForm() {
       router.push(destination);
       router.refresh();
     } catch (err) {
+      if (err?.code === 'EMAIL_NOT_VERIFIED') {
+        // Send a fresh code and continue on the verification screen.
+        dispatch(resendVerificationCode(email.trim()));
+        const params = new URLSearchParams({ email: email.trim() });
+        if (destination !== '/') params.set('next', destination);
+        router.push(`/verify-email?${params.toString()}`);
+        return;
+      }
       console.error('Login failed:', err);
     }
   };
