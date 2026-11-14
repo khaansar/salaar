@@ -148,6 +148,10 @@ export const userService = {
     }
   },
 
+  requestAccountDeletionCode: () => apiClient.post('/auth-api/users/me/deletion-code'),
+
+  deleteAccount: (code) => apiClient.post('/auth-api/users/me/delete', { code }),
+
   removeAvatar: async () => {
     try {
       return await apiClient.delete('/auth-api/users/me/avatar');

@@ -43,6 +43,7 @@ import { Avatar } from '../ui/Avatar';
 import { useRef, useState } from 'react';
 import { fetchCurrentUser } from '../../store/slices/authSlice';
 import { uploadAvatar } from '../../lib/avatarUpload';
+import { DeleteAccountSection } from './DeleteAccountSection';
 
 export default function ProfilePage() {
   const { user } = useAppSelector((state) => state.auth);
@@ -707,6 +708,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {user?.role !== 'ADMIN' && <DeleteAccountSection email={user?.email} />}
 
     </div>
   );
