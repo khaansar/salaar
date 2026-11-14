@@ -28,7 +28,6 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
         shuffleSections: Boolean(test.shuffleSections),
         negativeMarkingEnabled: Boolean(test.negativeMarkingEnabled),
         instructions: test.instructions || '',
-        isFree: Boolean(test.isFree),
       });
       setErrors({});
     }
@@ -79,7 +78,6 @@ export function TestSettingsModal({ open, onClose, test, onSaved }) {
           <Checkbox id="settings-strict-order" label="Strict section order" checked={form.isSectionOrderStrict} onChange={(e) => setForm((f) => ({ ...f, isSectionOrderStrict: e.target.checked }))} />
           <Checkbox id="settings-shuffle-sections" label="Shuffle sections" checked={form.shuffleSections} onChange={(e) => setForm((f) => ({ ...f, shuffleSections: e.target.checked }))} />
           <Checkbox id="settings-negative-marking" label="Negative marking" checked={form.negativeMarkingEnabled} onChange={(e) => setForm((f) => ({ ...f, negativeMarkingEnabled: e.target.checked }))} />
-          <Checkbox id="settings-free" label="Free test" checked={form.isFree} onChange={(e) => setForm((f) => ({ ...f, isFree: e.target.checked }))} />
         </div>
       </form>
     </Modal>

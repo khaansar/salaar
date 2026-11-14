@@ -17,7 +17,6 @@ const emptyForm = {
   shuffleSections: false,
   negativeMarkingEnabled: true,
   instructions: '',
-  isFree: false,
 };
 
 function Toggle({ checked, onChange, label, description }) {
@@ -70,7 +69,6 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
         shuffleSections: form.shuffleSections,
         negativeMarkingEnabled: form.negativeMarkingEnabled,
         instructions: form.instructions.trim(),
-        isFree: form.isFree,
       };
       const created = await mockTestsApi.create(seriesId, payload);
       toast.success('Mock test created');
@@ -135,12 +133,6 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
             bodyClassName="divide-y divide-slate-100 py-1 dark:divide-slate-800"
           >
             <Toggle
-              checked={form.isFree}
-              onChange={(v) => setForm((f) => ({ ...f, isFree: v }))}
-              label="Free Test"
-              description="Can be attempted without payment"
-            />
-            <Toggle
               checked={form.negativeMarkingEnabled}
               onChange={(v) => setForm((f) => ({ ...f, negativeMarkingEnabled: v }))}
               label="Negative Marking"
@@ -179,7 +171,6 @@ export function MockTestForm({ seriesId, seriesTitle, categoryName }) {
                 ['Category', categoryName || '—'],
                 ['Duration', `${form.durationMinutes || 0} minutes`],
                 ['Negative marking', form.negativeMarkingEnabled ? 'Enabled' : 'Disabled'],
-                ['Free test', form.isFree ? 'Yes' : 'No'],
                 ['Shuffle sections', form.shuffleSections ? 'Yes' : 'No'],
               ]}
             />
