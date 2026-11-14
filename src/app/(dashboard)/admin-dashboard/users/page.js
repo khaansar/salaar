@@ -20,7 +20,6 @@ import {
 
 import { usersApi } from '@/services/userService';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { useToast } from '@/components/common/ToastProvider';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -109,8 +108,8 @@ export default function UsersPage() {
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [statusError, setStatusError] = useState('');
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
-  const toast = useToast();
 
   const pageSize = 20;
 
@@ -220,6 +219,7 @@ export default function UsersPage() {
   const handleStatusChange = async () => {
     const nextActive = !selectedUser.isActive;
     setStatusSaving(true);
+    setStatusError('');
     try {
       const updated = await usersApi.setActive(selectedUser.id, nextActive);
       const merged = { ...selectedUser, ...updated };
@@ -228,10 +228,10 @@ export default function UsersPage() {
       setUserStats((stats) => (stats.activeUsers == null
         ? stats
         : { ...stats, activeUsers: stats.activeUsers + (nextActive ? 1 : -1) }));
-      toast.success(nextActive ? 'User reactivated' : 'User deactivated');
       setStatusConfirmOpen(false);
     } catch (err) {
-      toast.error(err?.message || 'Failed to update user status');
+      setStatusError(err?.message || 'Failed to update user status. Please try again.');
+      setStatusConfirmOpen(false);
     } finally {
       setStatusSaving(false);
     }
@@ -525,7 +525,7 @@ export default function UsersPage() {
 
       {/* User drawer */}
       {selectedUser && (
-        <Drawer open onClose={() => setSelectedUser(null)} title="User details" description="Profile and account information" width="md">
+        <Drawer open onClose={() => { setSelectedUser(null); setStatusError(''); }} title="User details" description="Profile and account information" width="md">
           <div className="space-y-6">
             <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
               <Avatar name={getFullName(selectedUser)} avatarUrl={selectedUser.avatarUrl} size="lg" />
@@ -582,6 +582,11 @@ export default function UsersPage() {
                     {selectedUser.isActive ? 'Deactivate' : 'Reactivate'}
                   </Button>
                 </div>
+                {statusError && (
+                  <p role="alert" className="mt-2 text-xs font-medium text-rose-600 dark:text-rose-400">
+                    {statusError}
+                  </p>
+                )}
               </DetailSection>
             )}
           </div>

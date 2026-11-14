@@ -67,6 +67,8 @@ export const loginUser = createAsyncThunk(
       return rejectWithValue({
         message: getErrorMessage(err, 'Login failed'),
         code: err?.code,
+        status: err?.status,
+        errors: err?.errors,
       });
     }
   }
@@ -80,9 +82,12 @@ export const registerUser = createAsyncThunk(
 
       return data;
     } catch (err) {
-      return rejectWithValue(
-        getErrorMessage(err, 'Registration failed')
-      );
+      return rejectWithValue({
+        message: getErrorMessage(err, 'Registration failed'),
+        code: err?.code,
+        status: err?.status,
+        errors: err?.errors,
+      });
     }
   }
 );
@@ -119,8 +124,7 @@ export const logoutUser = createAsyncThunk(
     try {
       await apiClient.post('/auth-api/logout');
     } catch (err) {
-      console.error('Logout failed on server', err);
-
+      // The local session is cleared either way (see logoutUser.rejected).
       return rejectWithValue(
         getErrorMessage(err, 'Logout failed')
       );
@@ -303,9 +307,7 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.registrationStatus = 'failed';
         state.error =
-          typeof action.payload === 'string'
-            ? action.payload
-            : 'Registration failed';
+          action.payload?.message || 'Registration failed';
       })
 
       // --------------------------------------------------

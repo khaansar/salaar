@@ -10,20 +10,16 @@ const SUPPORTED_PROVIDERS = new Set([
  * The frontend never receives or stores the provider access token.
  * IAM owns the complete OAuth/OIDC flow and establishes the normal
  * ClearIt ACCESS_TOKEN / REFRESH_TOKEN session.
+ *
+ * Returns false when sign-in could not be started (unsupported provider,
+ * missing NEXT_PUBLIC_API_BASE_URL or an invalid URL) so the caller can
+ * show a message.
  */
 export function startOAuth(provider, next = '/') {
-  if (!SUPPORTED_PROVIDERS.has(provider)) {
-    console.error(`Unsupported OAuth provider: ${provider}`);
-    return;
-  }
-
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  if (!apiBaseUrl) {
-    console.error(
-      'NEXT_PUBLIC_API_BASE_URL is not configured. OAuth cannot be started.'
-    );
-    return;
+  if (!SUPPORTED_PROVIDERS.has(provider) || !apiBaseUrl) {
+    return false;
   }
 
   const safeDestination = safeNextPath(next, '/');
@@ -37,7 +33,8 @@ export function startOAuth(provider, next = '/') {
     authorizationUrl.searchParams.set('next', safeDestination);
 
     window.location.assign(authorizationUrl.toString());
-  } catch (error) {
-    console.error('Unable to start OAuth authentication:', error);
+    return true;
+  } catch {
+    return false;
   }
 }

@@ -7,7 +7,6 @@ import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { useToast } from '../common/ToastProvider';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { clearAuth } from '../../store/slices/authSlice';
 import { apiSlice } from '../../store/apiSlice';
@@ -19,7 +18,6 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export function DeleteAccountSection({ email }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const toast = useToast();
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState('confirm'); // confirm | code
@@ -74,7 +72,6 @@ export function DeleteAccountSection({ email }) {
       await userService.deleteAccount(code);
       dispatch(clearAuth());
       dispatch(apiSlice.util.resetApiState());
-      toast.success('Your account has been deleted');
       router.replace('/');
     } catch (err) {
       setError(err?.message || 'Could not delete your account. Please try again.');

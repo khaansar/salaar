@@ -26,6 +26,8 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 
 import { registerUser } from '../../store/slices/authSlice';
 import { startOAuth } from '../../lib/oauth';
+import { parseFormError } from '../../lib/formErrors';
+import { FormAlert } from './FormAlert';
 
 export function SignupForm() {
   const [fullName, setFullName] = useState('');
@@ -36,13 +38,11 @@ export function SignupForm() {
   const [targetExam, setTargetExam] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState(null);
 
   const dispatch = useAppDispatch();
 
-  const {
-    registrationStatus,
-    error: serverError,
-  } = useAppSelector((state) => state.auth);
+  const { registrationStatus } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,6 +90,7 @@ export function SignupForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError(null);
 
     if (!validate()) {
       return;
@@ -117,12 +118,21 @@ export function SignupForm() {
       if (destination !== '/') params.set('next', destination);
       router.push(`/verify-email?${params.toString()}`);
     } catch (err) {
-      console.error('Registration failed:', err);
+      const parsed = parseFormError(err, {
+        fallback: 'Registration failed. Please try again.',
+        codeFields: { EMAIL_ALREADY_EXISTS: 'email' },
+        fieldMap: { firstName: 'fullName', lastName: 'fullName' },
+      });
+      setErrors(parsed.fieldErrors);
+      setFormError(parsed.formError);
     }
   };
 
   const handleOAuthSignup = (provider) => {
-    startOAuth(provider, destination);
+    setFormError(null);
+    if (!startOAuth(provider, destination)) {
+      setFormError("Google sign-in isn't available right now. Please use your email and password.");
+    }
   };
 
   return (
@@ -221,15 +231,7 @@ export function SignupForm() {
           {/* Registration errors */}
           <form onSubmit={handleSubmit} className="space-y-3">
 
-            {serverError && (
-              <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm rounded-lg border border-red-100 dark:border-red-900/40 flex items-start gap-3">
-                <span className="font-medium">
-                  {typeof serverError === 'string'
-                    ? serverError
-                    : 'Registration failed. Please try again.'}
-                </span>
-              </div>
-            )}
+            <FormAlert>{formError}</FormAlert>
 
             <Input
               id="fullName"
@@ -263,6 +265,7 @@ export function SignupForm() {
                 placeholder="Phone number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                error={errors.phone}
                 className="h-11"
                 leftIcon={<Phone size={18} />}
               />

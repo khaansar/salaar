@@ -14,18 +14,18 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 
 import { loginUser, resendVerificationCode } from '../../store/slices/authSlice';
 import { startOAuth } from '../../lib/oauth';
+import { parseFormError } from '../../lib/formErrors';
+import { FormAlert } from './FormAlert';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState(null);
 
   const dispatch = useAppDispatch();
 
-  const {
-    loginStatus,
-    error: serverError,
-  } = useAppSelector((state) => state.auth);
+  const { loginStatus } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,6 +61,8 @@ export function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setFormError(null);
+
     if (!validate()) {
       return;
     }
@@ -84,12 +86,19 @@ export function LoginForm() {
         router.push(`/verify-email?${params.toString()}`);
         return;
       }
-      console.error('Login failed:', err);
+
+      // Wrong credentials stay a form-level message so we don't reveal which field was wrong.
+      const parsed = parseFormError(err, { fallback: 'Login failed. Please try again.' });
+      setErrors(parsed.fieldErrors);
+      setFormError(parsed.formError);
     }
   };
 
   const handleOAuthLogin = (provider) => {
-    startOAuth(provider, destination);
+    setFormError(null);
+    if (!startOAuth(provider, destination)) {
+      setFormError("Google sign-in isn't available right now. Please use your email and password.");
+    }
   };
 
   const getOAuthErrorMessage = () => {
@@ -151,16 +160,7 @@ export function LoginForm() {
           </div>
 
           {/* Authentication errors */}
-          {(serverError || oauthErrorMessage) && (
-            <div className="mb-5 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm rounded-lg border border-red-100 dark:border-red-900/40 flex items-start gap-3">
-              <span className="font-medium">
-                {oauthErrorMessage ||
-                  (typeof serverError === 'string'
-                    ? serverError
-                    : 'Login failed. Please try again.')}
-              </span>
-            </div>
-          )}
+          <FormAlert className="mb-5">{formError || oauthErrorMessage}</FormAlert>
 
           {/* OAuth providers */}
           <div className="mb-5">
@@ -224,7 +224,10 @@ export function LoginForm() {
                 type="email"
                 placeholder="Enter your email or phone number"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((current) => ({ ...current, email: undefined }));
+                }}
                 error={errors.email}
                 className="h-12"
                 leftIcon={<Mail size={18} />}
@@ -235,7 +238,10 @@ export function LoginForm() {
                 label="Password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((current) => ({ ...current, password: undefined }));
+                }}
                 error={errors.password}
                 className="h-12"
                 leftIcon={<Lock size={18} />}
