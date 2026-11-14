@@ -29,13 +29,16 @@ function newBlock() {
     options: [{ id: newOptionId(), text: '' }, { id: newOptionId(), text: '' }],
     correctAnswerJson: {},
     explanation: '',
+    topic: '',
   };
 }
 
+const TOPIC_MAX_LENGTH = 100;
+
 // Client-side convenience only — the API has no bulk/CSV import endpoint.
 // Expected format, one question per line, pipe-separated:
-//   Question text | Option A | Option B | Option C | Option D | CorrectLetter | Marks
-// "Marks" is optional (defaults to 1). Only produces MCQ questions.
+//   Question text | Option A | Option B | Option C | Option D | CorrectLetter | Marks | Topic
+// "Marks" (defaults to 1) and "Topic" are optional. Only produces MCQ questions.
 function parsePastedRows(raw) {
   const blocks = [];
   const skipped = [];
@@ -49,7 +52,7 @@ function parsePastedRows(raw) {
         skipped.push(line);
         return;
       }
-      const [text, a, b, c, d, correctLetter, marks] = parts;
+      const [text, a, b, c, d, correctLetter, marks, topic] = parts;
       const options = [
         { id: newOptionId(), text: a || '' },
         { id: newOptionId(), text: b || '' },
@@ -71,6 +74,7 @@ function parsePastedRows(raw) {
         options,
         correctAnswerJson: { key: options[correctIndex].id, correctOptionId: options[correctIndex].id },
         explanation: '',
+        topic: topic || '',
       });
     });
   return { blocks, skipped };
@@ -81,12 +85,13 @@ function parsePastedRows(raw) {
 const AI_FORMAT_PROMPT = `Convert the questions below into plain text for bulk upload.
 
 Output ONLY the converted lines: one question per line, in exactly this format:
-Question text | Option A | Option B | Option C | Option D | Correct letter | Marks
+Question text | Option A | Option B | Option C | Option D | Correct letter | Marks | Topic
 
 Rules:
 - Exactly 4 options per question.
 - Correct letter is a single letter: A, B, C or D.
 - Marks is a number; use 1 if not given.
+- Topic is the short concept the question tests (e.g. Algebra, Thermodynamics), at most 100 characters; leave it empty if unclear.
 - Never use the | character or line breaks inside a question or option.
 - Write math in LaTeX between $...$, e.g. $x^2 + 1$.
 - No numbering, headings, blank lines, code blocks or explanations.
@@ -179,6 +184,8 @@ export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
       }
       if (b.questionType === 'NUMERICAL' && (b.correctAnswerJson.value === undefined || b.correctAnswerJson.value === ''))
         next[`answer_${b.key}`] = 'Enter correct value';
+      if ((b.topic || '').trim().length > TOPIC_MAX_LENGTH)
+        next[`topic_${b.key}`] = `Topic must be ${TOPIC_MAX_LENGTH} characters or fewer`;
     });
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -199,6 +206,7 @@ export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
       positiveMarks: Number(b.positiveMarks) || 0,
       negativeMarks: Number(b.negativeMarks) || 0,
       explanation: b.explanation,
+      topic: b.topic?.trim() || null,
       translations: [
         {
           language: 'en',
@@ -278,11 +286,11 @@ export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
               <CopyPromptCard />
               <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">One question per line, pipe-separated:</p>
               <code className="mb-3 block overflow-x-auto whitespace-nowrap rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                Question text | Option A | Option B | Option C | Option D | Correct letter (A–D) | Marks (optional)
+                Question text | Option A | Option B | Option C | Option D | Correct letter (A–D) | Marks (optional) | Topic (optional)
               </code>
               <Textarea
                 rows={5}
-                placeholder={'Capital of France? | Paris | London | Rome | Berlin | A | 1\nWhich planet is red? | Mercury | Venus | Mars | Jupiter | C'}
+                placeholder={'Capital of France? | Paris | London | Rome | Berlin | A | 1 | World Capitals\nWhich planet is red? | Mercury | Venus | Mars | Jupiter | C | | Solar System'}
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
               />
@@ -358,6 +366,17 @@ export function BulkQuestionsForm({ testId, sectionId, sectionTitle }) {
                 onChange={(e) => updateBlock(b.key, { positiveMarks: e.target.value })}
               />
             </div>
+
+            <Input
+              id={`bulk-topic-${b.key}`}
+              label="Topic / Concept (optional)"
+              placeholder="e.g. Algebra, Thermodynamics"
+              maxLength={TOPIC_MAX_LENGTH}
+              value={b.topic}
+              onChange={(e) => updateBlock(b.key, { topic: e.target.value })}
+              error={errors[`topic_${b.key}`]}
+              helpText="Used for topic-level analytics and student weakness diagnosis."
+            />
 
             <MathTextarea
               id={`bulk-text-${b.key}`}
