@@ -1,6 +1,46 @@
 import { NextResponse } from 'next/server';
 import { safeNextPath } from './utils/redirect';
 
+/*
+ * Reads the role claim from the access token without verifying its signature.
+ * This only decides which page to show; every admin API call is still
+ * authorized by the backend, so a forged token gains nothing.
+ */
+function readTokenRole(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))?.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/*
+ * The same-site page the request came from (the Referer header), or the home
+ * page when there is none or it would lead straight back here or to auth.
+ */
+function previousPagePath(request) {
+  const referer = request.headers.get('referer');
+
+  try {
+    const previous = new URL(referer);
+    const path = `${previous.pathname}${previous.search}`;
+
+    if (
+      previous.origin !== request.nextUrl.origin ||
+      previous.pathname.startsWith('/admin-dashboard') ||
+      previous.pathname === '/login' ||
+      previous.pathname === '/signup'
+    ) {
+      return '/';
+    }
+
+    return safeNextPath(path, '/');
+  } catch {
+    return '/';
+  }
+}
+
 export function proxy(request) {
   const { pathname, searchParams } = request.nextUrl;
 
@@ -33,6 +73,13 @@ export function proxy(request) {
           `/login?next=${encodeURIComponent(pathname)}`,
           request.url
         )
+      );
+    }
+
+    // Signed-in non-admins go back to the page they came from.
+    if (readTokenRole(accessToken) !== 'ADMIN') {
+      return NextResponse.redirect(
+        new URL(previousPagePath(request), request.url)
       );
     }
 
