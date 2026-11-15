@@ -311,6 +311,11 @@ export function LoginForm() {
                 </>
               )}
             </button>
+
+            {/* Only one session per account: a new login ends the others. */}
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+              Taking a test on another device? Logging in here signs you out there. Your saved answers are kept, and you can continue the test here.
+            </p>
           </form>
         </div>
       </div>
