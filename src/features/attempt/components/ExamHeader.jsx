@@ -26,7 +26,9 @@ export default function ExamHeader() {
         <div className="h-6 w-px bg-exam-border hidden sm:block"></div>
         <div className="hidden sm:flex flex-col">
           <span className="text-[13px] font-semibold text-exam-text line-clamp-1">{attempt?.title || 'Loading Test...'}</span>
-          <span className="text-[11px] text-exam-text-muted px-1.5 py-0.5 bg-exam-bg rounded inline-block w-fit mt-0.5 uppercase tracking-wider">{attempt?.type || 'Test'}</span>
+          <span className="text-[11px] text-exam-text-muted px-1.5 py-0.5 bg-exam-bg rounded inline-block w-fit mt-0.5 uppercase tracking-wider line-clamp-1">
+            {[attempt?.categoryName, attempt?.seriesTitle].filter(Boolean).join(' · ') || attempt?.type || 'Test'}
+          </span>
         </div>
       </div>
       

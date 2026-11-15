@@ -97,6 +97,25 @@ const attemptSlice = createSlice({
         }
       }
 
+      // The question on screen counts as visited, like any question opened later.
+      const shownQId = state.ui.currentQuestionId;
+      // state.responses was just set to the API's frozen object, which Immer
+      // does not draft in this call, so add the entry on a new object.
+      if (
+        attempt?.status === 'IN_PROGRESS' &&
+        shownQId &&
+        !state.responses[shownQId]
+      ) {
+        state.responses = {
+          ...state.responses,
+          [shownQId]: {
+            visited: true,
+            marked: false,
+            saveState: 'pending',
+          },
+        };
+      }
+
       state.status = 'succeeded';
       state.error = null;
     },
@@ -125,11 +144,12 @@ const attemptSlice = createSlice({
         state.ui.currentSectionId = section.id;
       }
 
+      // A first visit is saved too, so "not answered" survives a reload.
       if (!state.responses[qId]) {
         state.responses[qId] = {
           visited: true,
           marked: false,
-          saveState: 'synced',
+          saveState: 'pending',
         };
       } else {
         state.responses[qId].visited = true;
@@ -155,7 +175,7 @@ const attemptSlice = createSlice({
           state.responses[qId] = {
             visited: true,
             marked: false,
-            saveState: 'synced',
+            saveState: 'pending',
           };
         } else {
           state.responses[qId].visited = true;
@@ -250,6 +270,7 @@ const attemptSlice = createSlice({
       if (!state.responses[qId]) {
         state.responses[qId] = {
           visited: true,
+          marked: false,
         };
       }
 

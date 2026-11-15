@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Star,
   MessageSquareText,
@@ -26,7 +26,6 @@ import {
   useGetAdminReviewStatsQuery,
   useModerateReviewMutation,
 } from '@/store/adminApi';
-import { homepageReviewService } from '@/services/homepageReviewService';
 import { useToast } from '@/components/common/ToastProvider';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -184,8 +183,6 @@ export default function ReviewModerationPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
 
-  // Homepage reviews state (set of review IDs active on homepage)
-  const [homepageReviewIds, setHomepageReviewIds] = useState(() => new Set());
 
   // Drawer & modal states
   const [selectedReview, setSelectedReview] = useState(null);
@@ -193,30 +190,27 @@ export default function ReviewModerationPage() {
   const [rejectionModalReview, setRejectionModalReview] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  // Sync homepage review selections from storage/cookies
-  useEffect(() => {
-    const sync = () => {
-      const list = homepageReviewService.getHomepageReviews();
-      setHomepageReviewIds(new Set(list.map((r) => String(r.reviewId || r.id))));
-    };
-
-    sync();
-    return homepageReviewService.subscribeHomepageReviews(sync);
-  }, []);
-
-  const handleToggleHomepage = (review, shouldBeOnHome) => {
+  // Homepage display is stored on the review itself (show_on_homepage), so it applies to every visitor.
+  const handleToggleHomepage = async (review, shouldBeOnHome) => {
     if (shouldBeOnHome && review.status !== 'APPROVED') {
       toast.error(`Review #${review.reviewId} must be approved before adding to the home page.`);
       return;
     }
 
-    const updatedList = homepageReviewService.setReviewOnHomepage(review, shouldBeOnHome);
-    setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
+    try {
+      await setReviewHomepage({ reviewId: review.reviewId, showOnHomepage: shouldBeOnHome }).unwrap();
 
-    if (shouldBeOnHome) {
-      toast.success(`Review #${review.reviewId} has been added to the home page.`);
-    } else {
-      toast.info(`Review #${review.reviewId} removed from the home page.`);
+      if (selectedReview?.reviewId === review.reviewId) {
+        setSelectedReview((prev) => (prev ? { ...prev, showOnHomepage: shouldBeOnHome } : null));
+      }
+
+      if (shouldBeOnHome) {
+        toast.success(`Review #${review.reviewId} has been added to the home page.`);
+      } else {
+        toast.info(`Review #${review.reviewId} removed from the home page.`);
+      }
+    } catch (err) {
+      toast.error(err?.message || `Could not update the home page setting for review #${review.reviewId}.`);
     }
   };
 
@@ -235,6 +229,9 @@ export default function ReviewModerationPage() {
   const { data: pageData, isLoading, isFetching, error, refetch } = useGetAdminReviewsQuery(queryArgs);
   const { data: stats, isLoading: statsLoading } = useGetAdminReviewStatsQuery();
   const [moderateReview, { isLoading: isModerating }] = useModerateReviewMutation();
+  const [setReviewHomepage] = useSetReviewHomepageMutation();
+  const { data: featuredPage } = useGetAdminReviewsQuery({ showOnHomepage: true, page: 0, size: 1 });
+  const featuredCount = featuredPage?.totalElements ?? 0;
 
   const reviews = pageData?.content || [];
   const totalPages = pageData?.totalPages ?? 0;
@@ -297,13 +294,9 @@ export default function ReviewModerationPage() {
         reviewId: rejectionModalReview.reviewId,
         status: 'REJECTED',
         moderationReason: reasonTrimmed || undefined,
+        // A rejected review must not stay on the home page.
+        showOnHomepage: false,
       }).unwrap();
-
-      // If this review was featured on the homepage, automatically remove it
-      if (homepageReviewIds.has(String(rejectionModalReview.reviewId))) {
-        const updatedList = homepageReviewService.setReviewOnHomepage(rejectionModalReview, false);
-        setHomepageReviewIds(new Set(updatedList.map((r) => String(r.reviewId || r.id))));
-      }
 
       toast.success(`Review #${rejectionModalReview.reviewId} has been rejected.`);
 
@@ -360,7 +353,7 @@ export default function ReviewModerationPage() {
         <StatCard
           label="Approved"
           value={statValue(displayStats?.approvedReviews)}
-          hint={homepageReviewIds.size > 0 ? `${homepageReviewIds.size} featured on homepage` : 'Visible to students'}
+          hint={featuredCount > 0 ? `${featuredCount} featured on homepage` : 'Visible to students'}
           icon={CheckCircle2}
           tone="emerald"
         />
@@ -486,7 +479,7 @@ export default function ReviewModerationPage() {
               <tbody className={ADMIN_TABLE.body}>
                 {reviews.map((review) => {
                   const approved = review.status === 'APPROVED';
-                  const featured = homepageReviewIds.has(String(review.reviewId));
+                  const featured = Boolean(review.showOnHomepage);
 
                   return (
                     <tr key={review.reviewId} className={`${ADMIN_TABLE.row} align-top`}>
@@ -622,7 +615,7 @@ export default function ReviewModerationPage() {
                 {selectedReview.rating} / 5
               </Badge>
               <TargetBadge type={selectedReview.targetType} />
-              {homepageReviewIds.has(String(selectedReview.reviewId)) && (
+              {selectedReview.showOnHomepage && (
                 <Badge tone="info">
                   <Home size={12} /> On homepage
                 </Badge>
@@ -648,11 +641,11 @@ export default function ReviewModerationPage() {
                 </div>
                 <select
                   disabled={selectedReview.status !== 'APPROVED'}
-                  value={homepageReviewIds.has(String(selectedReview.reviewId)) ? 'YES' : 'NO'}
+                  value={Boolean(selectedReview.showOnHomepage) ? 'YES' : 'NO'}
                   onChange={(e) => handleToggleHomepage(selectedReview, e.target.value === 'YES')}
                   aria-label="Homepage display"
                   title={selectedReview.status !== 'APPROVED' ? 'Review must be approved first' : undefined}
-                  className={homepageSelectClass(selectedReview.status === 'APPROVED', homepageReviewIds.has(String(selectedReview.reviewId)))}
+                  className={homepageSelectClass(selectedReview.status === 'APPROVED', Boolean(selectedReview.showOnHomepage))}
                 >
                   <option value="NO">Do not show</option>
                   <option value="YES" disabled={selectedReview.status !== 'APPROVED'}>

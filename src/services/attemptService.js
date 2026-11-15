@@ -214,11 +214,25 @@ export const attemptService = {
       );
     }
 
+    // Restore review marks, including on questions that have no answer.
+    if (Array.isArray(attemptRes.markedQuestionIds)) {
+      attemptRes.markedQuestionIds.forEach((questionId) => {
+        if (!questions[questionId]) return;
+
+        responses[questionId] = {
+          ...(responses[questionId] || { visited: true, saveState: 'synced' }),
+          marked: true,
+        };
+      });
+    }
+
     return {
       attempt: {
         id: attemptRes.attemptId || attemptId,
         testId,
         title: structureRes.title,
+        seriesTitle: structureRes.seriesTitle || '',
+        categoryName: structureRes.categoryName || '',
         type: 'Mock Test',
         status: attemptRes.status,
         expiresAt: attemptRes.expiresAt,

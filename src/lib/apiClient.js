@@ -97,14 +97,62 @@ const notifySessionExpired = () => {
   return true;
 };
 
-const refreshSession = async () => {
+// Only an explicit rejection of the refresh token means the session is over.
+// Network errors, timeouts and gateway/server errors are transient: the caller
+// (for example exam autosave) retries later, and the session stays intact.
+const isSessionRejected = (error) =>
+  [401, 403].includes(error?.response?.status);
+
+// Refresh tokens rotate on every use, and every tab shares the same cookies.
+// Tabs therefore take turns through a Web Lock, and a tab skips its own
+// refresh when another tab already refreshed after its request was sent.
+const REFRESH_LOCK_NAME = 'salaar:auth-refresh';
+const LAST_REFRESH_KEY = 'salaar:auth-last-refresh-at';
+
+const readLastRefreshAt = () => {
+  try {
+    return Number(window.localStorage.getItem(LAST_REFRESH_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const writeLastRefreshAt = (timestamp) => {
+  try {
+    window.localStorage.setItem(LAST_REFRESH_KEY, String(timestamp));
+  } catch {
+    // Without storage, tabs still serialize through the lock.
+  }
+};
+
+const refreshUnlessDoneElsewhere = async (requestStartedAt) => {
+  if (requestStartedAt && readLastRefreshAt() > requestStartedAt) {
+    return;
+  }
+
+  await refreshClient.post('/auth-api/refresh');
+  writeLastRefreshAt(Date.now());
+};
+
+const runWithRefreshLock = (task) => {
+  if (typeof navigator !== 'undefined' && navigator.locks?.request) {
+    return navigator.locks.request(REFRESH_LOCK_NAME, task);
+  }
+
+  return task();
+};
+
+export const refreshSession = async (requestStartedAt) => {
   if (!refreshPromise) {
-    refreshPromise = refreshClient
-      .post('/auth-api/refresh')
+    refreshPromise = runWithRefreshLock(() =>
+      refreshUnlessDoneElsewhere(requestStartedAt)
+    )
       .then(() => true)
       .catch((error) => {
         const normalizedError = normalizeErrorObject(error);
-        normalizedError.isAuthRedirect = notifySessionExpired();
+        normalizedError.isAuthRedirect = isSessionRejected(error)
+          ? notifySessionExpired()
+          : false;
         throw normalizedError;
       })
       .finally(() => {
@@ -115,6 +163,60 @@ const refreshSession = async () => {
   return refreshPromise;
 };
 
+// Refreshes the session once on a 401 and replays the request through the
+// same client, so its success interceptor shapes the retried response too.
+const createAuthErrorHandler = (client) => async (error) => {
+  const originalRequest = error.config;
+
+  if (error?.response?.status !== 401 || !originalRequest) {
+    return normalizeError(error);
+  }
+
+  if (shouldSkipRefresh(originalRequest)) {
+    if (!isCredentialSubmission(originalRequest)) {
+      if (notifySessionExpired()) {
+        // Navigation is in progress. Keep the request pending so feature
+        // components cannot render a transient 401 error state first.
+        return new Promise(() => {});
+      }
+    }
+
+    return normalizeError(error);
+  }
+
+  // A retry that is still unauthorized means the refreshed session cannot
+  // access the resource. Clear the local session and require login again.
+  if (originalRequest._retry) {
+    if (notifySessionExpired()) {
+      return new Promise(() => {});
+    }
+
+    return normalizeError(error);
+  }
+
+  originalRequest._retry = true;
+
+  try {
+    await refreshSession(originalRequest.requestStartedAt);
+    return client(originalRequest);
+  } catch (refreshError) {
+    if (refreshError?.isAuthRedirect) {
+      return new Promise(() => {});
+    }
+
+    return Promise.reject(refreshError);
+  }
+};
+
+// Records when a request was sent so the refresh step can tell whether
+// another tab has refreshed the session since then.
+const stampRequestStart = (config) => {
+  config.requestStartedAt = Date.now();
+  return config;
+};
+
+apiClient.interceptors.request.use(stampRequestStart);
+
 apiClient.interceptors.response.use(
   (response) => {
     if (response.config?.preserveResponseEnvelope) {
@@ -123,49 +225,7 @@ apiClient.interceptors.response.use(
 
     return response.data?.data !== undefined ? response.data.data : response.data;
   },
-
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error?.response?.status !== 401 || !originalRequest) {
-      return normalizeError(error);
-    }
-
-    if (shouldSkipRefresh(originalRequest)) {
-      if (!isCredentialSubmission(originalRequest)) {
-        if (notifySessionExpired()) {
-          // Navigation is in progress. Keep the request pending so feature
-          // components cannot render a transient 401 error state first.
-          return new Promise(() => {});
-        }
-      }
-
-      return normalizeError(error);
-    }
-
-    // A retry that is still unauthorized means the refreshed session cannot
-    // access the resource. Clear the local session and require login again.
-    if (originalRequest._retry) {
-      if (notifySessionExpired()) {
-        return new Promise(() => {});
-      }
-
-      return normalizeError(error);
-    }
-
-    originalRequest._retry = true;
-
-    try {
-      await refreshSession();
-      return apiClient(originalRequest);
-    } catch (refreshError) {
-      if (refreshError?.isAuthRedirect) {
-        return new Promise(() => {});
-      }
-
-      return Promise.reject(refreshError);
-    }
-  }
+  createAuthErrorHandler(apiClient)
 );
 
 export const apiClientRaw = axios.create({
@@ -177,9 +237,11 @@ export const apiClientRaw = axios.create({
   withCredentials: true,
 });
 
+apiClientRaw.interceptors.request.use(stampRequestStart);
+
 apiClientRaw.interceptors.response.use(
   (response) => response.data,
-  normalizeError
+  createAuthErrorHandler(apiClientRaw)
 );
 
 export default apiClient;

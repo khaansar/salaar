@@ -99,6 +99,7 @@ export default function StartPracticing({ tests = [] }) {
                 <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
                   <StartTestButton
                     testId={test.id}
+                    seriesId={test.seriesId}
                     variant="home"
                     isFree={test.isFree === true}
                     hasAttempted={hasAttempted}

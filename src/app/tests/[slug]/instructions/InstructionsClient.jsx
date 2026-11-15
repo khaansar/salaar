@@ -60,19 +60,24 @@ export default function InstructionsClient({ testId, durationMinutes, disabled }
   if (disabled) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <label className="flex items-center gap-3 cursor-pointer group">
-        <div className="relative flex items-center justify-center">
-          <input type="checkbox" className="peer sr-only" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} disabled={starting} />
-          <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-colors"></div>
-          <svg className="absolute w-3 h-3 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-        </div>
-        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 select-none group-hover:text-slate-900 dark:group-hover:text-white transition-colors">I have read and understood the instructions.</span>
-      </label>
+    <div className="space-y-4">
+      <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+        Stay logged in on this device only. Logging in on another device or browser during the test signs you out here. Your saved answers are kept, and you can log back in to continue.
+      </p>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <div className="relative flex items-center justify-center">
+            <input type="checkbox" className="peer sr-only" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} disabled={starting} />
+            <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-colors"></div>
+            <svg className="absolute w-3 h-3 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 select-none group-hover:text-slate-900 dark:group-hover:text-white transition-colors">I have read and understood the instructions.</span>
+        </label>
 
-      <button type="button" disabled={!agreed || starting} onClick={handleBegin} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-        {starting ? <><Loader2 size={16} className="animate-spin" />Starting Exam...</> : 'Ready to Begin'}
-      </button>
+        <button type="button" disabled={!agreed || starting} onClick={handleBegin} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+          {starting ? <><Loader2 size={16} className="animate-spin" />Starting Exam...</> : 'Ready to Begin'}
+        </button>
+      </div>
     </div>
   );
 }

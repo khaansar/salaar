@@ -17,6 +17,8 @@ import SectionSubmitModal from './SectionSubmitModal';
 import DynamicWatermark from './DynamicWatermark';
 import { useAttemptStream } from '../hooks/useAttemptStream';
 import { useAutosave } from '../hooks/useAutosave';
+import { useAnswerBackup } from '../hooks/useAnswerBackup';
+import { markAnswerBackupSubmitted, mergeUnsavedAnswers, readAnswerBackup } from '../lib/answerBackup';
 
 const RETURN_TO_KEY = 'salaar:attempt-return-to';
 
@@ -40,12 +42,15 @@ export default function ExamShell({ attemptId }) {
   const [isFocusBlocked, setIsFocusBlocked] = useState(false);
 
   useEffect(() => {
-    if (data) dispatch(setAttemptData(data));
-  }, [data, dispatch]);
+    // Answers the server never confirmed come back from the local copy as
+    // pending, so autosave sends them again.
+    if (data) dispatch(setAttemptData(mergeUnsavedAnswers(data, readAnswerBackup(attemptId))));
+  }, [data, dispatch, attemptId]);
 
   const isExpired = useAppSelector(state => state.attempt.ui.isExpired);
   useAttemptStream(attemptId, !!data);
   const { flush } = useAutosave(attemptId);
+  useAnswerBackup(attemptId);
   const [submitAttempt] = useSubmitAttemptMutation();
 
   // Tracks unmount only. A per-effect cancel flag would be set as soon as
@@ -74,6 +79,7 @@ export default function ExamShell({ attemptId }) {
         }
 
         await submitAttempt(attemptId).unwrap();
+        markAnswerBackupSubmitted(attemptId);
 
         if (isMountedRef.current) {
             window.location.replace(getSafeAttemptReturnPath());
@@ -157,16 +163,23 @@ export default function ExamShell({ attemptId }) {
     }
 
     const blockExam = () => setIsFocusBlocked(true);
+    // Coming back to the exam window lifts the cover again.
+    const unblockExam = () => {
+      if (!document.hidden) setIsFocusBlocked(false);
+    };
     const handleVisibilityChange = () => {
       if (document.hidden) blockExam();
+      else if (document.hasFocus()) unblockExam();
     };
 
     window.addEventListener('blur', blockExam);
+    window.addEventListener('focus', unblockExam);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeprint', blockExam);
 
     return () => {
       window.removeEventListener('blur', blockExam);
+      window.removeEventListener('focus', unblockExam);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeprint', blockExam);
     };
@@ -206,8 +219,20 @@ export default function ExamShell({ attemptId }) {
         </div>
       )}
       {isActiveAttempt && isFocusBlocked && (
-        <div className="fixed inset-0 z-[60] bg-black" role="alert" aria-label="Exam content blocked">
-          <span className="sr-only">Exam content is blocked.</span>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black p-6" role="alert">
+          <div className="max-w-md text-center text-white">
+            <h2 className="text-xl font-bold">Test hidden</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Questions are hidden while you are away from the test window. Your timer is still running and your answers are saved.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsFocusBlocked(false)}
+              className="mt-6 w-full rounded-xl bg-exam-accent px-6 py-3 font-bold text-white transition-colors hover:bg-exam-accent/90"
+            >
+              Continue test
+            </button>
+          </div>
         </div>
       )}
       <ExamHeader />

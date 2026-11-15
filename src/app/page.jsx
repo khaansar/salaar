@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import StudentShell from '../components/student/StudentShell';
 import HeroSection from '../features/home/HeroSection';
 import ValueStrip from '../features/home/ValueStrip';
@@ -13,7 +12,6 @@ import Testimonials from '../features/home/Testimonials';
 import JoinBanner from '../features/home/JoinBanner';
 import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
-import { isDemoReview } from '../services/homepageReviewService';
 
 import { siteConfig } from '../config/site';
 import StudentBanner from '@/features/home/StudentBanner';
@@ -31,18 +29,6 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 async function loadCatalog() {
-  let cookieReviews = [];
-  try {
-    const cookieStore = await cookies();
-    const raw = cookieStore.get('HOMEPAGE_REVIEWS')?.value;
-    if (raw) {
-      const parsed = JSON.parse(decodeURIComponent(raw));
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        cookieReviews = parsed.filter((review) => !isDemoReview(review));
-      }
-    }
-  } catch {}
-
   const results = await Promise.allSettled([
     catalogService.getCategories(),
     catalogService.getPopularSeries(),
@@ -56,7 +42,8 @@ async function loadCatalog() {
       ? results[3].value
       : [];
 
-  const testimonials = cookieReviews.length > 0 ? cookieReviews : apiTestimonials;
+  // Only reviews from the API are shown; the section hides itself when there are none.
+  const testimonials = apiTestimonials;
 
   const categories = results[0].status === 'fulfilled' ? results[0].value : [];
   const platformCounts = results[4].status === 'fulfilled' ? results[4].value : {};

@@ -6,6 +6,7 @@ import { makeSelectPaletteCounts } from '../store/selectors';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { attemptService } from '../../../services/attemptService';
+import { markAnswerBackupSubmitted } from '../lib/answerBackup';
 
 const RETURN_TO_KEY = 'salaar:attempt-return-to';
 
@@ -51,6 +52,8 @@ export default function SubmitSummaryModal({ attemptId, flushAutosave }) {
         if (!result) {
         throw new Error('Submission returned an empty response.');
         }
+
+        markAnswerBackupSubmitted(attemptId);
 
         router.replace(getSafeAttemptReturnPath());
     } catch (err) {

@@ -108,6 +108,7 @@ export function useAutosave(attemptId) {
     const payload = {
       questionId: qId,
       selectedOption: serializeAnswer(snapshot),
+      markedForReview: Boolean(snapshot.marked),
       currentQuestionIndex: currentIndex,
     };
 

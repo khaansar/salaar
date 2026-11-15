@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
@@ -14,6 +14,7 @@ import { useAppSelector } from '../../hooks/useAppSelector';
 
 import { loginUser, resendVerificationCode } from '../../store/slices/authSlice';
 import { startOAuth } from '../../lib/oauth';
+import { refreshSession } from '../../lib/apiClient';
 import { parseFormError } from '../../lib/formErrors';
 import { FormAlert } from './FormAlert';
 
@@ -39,6 +40,35 @@ export function LoginForm() {
     !nextParam.startsWith('/\\')
       ? nextParam
       : '/';
+
+  // A protected page sends visitors here when its short-lived access cookie
+  // has expired, even if the refresh token is still valid (for example after
+  // reloading an exam). Try a silent refresh first and go straight back.
+  const [restoringSession, setRestoringSession] = useState(
+    () => Boolean(nextParam) && !oauthError
+  );
+
+  useEffect(() => {
+    if (!restoringSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    refreshSession()
+      .then(() => {
+        window.location.replace(destination);
+      })
+      .catch(() => {
+        if (active) {
+          setRestoringSession(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [restoringSession, destination]);
 
   const validate = () => {
     const newErrors = {};
@@ -123,6 +153,16 @@ export function LoginForm() {
   };
 
   const oauthErrorMessage = getOAuthErrorMessage();
+
+  if (restoringSession) {
+    return (
+      <div className="w-full">
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 sm:p-8 text-center text-sm text-slate-500 dark:text-slate-400" role="status">
+          Restoring your session...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -271,6 +311,11 @@ export function LoginForm() {
                 </>
               )}
             </button>
+
+            {/* Only one session per account: a new login ends the others. */}
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+              Taking a test on another device? Logging in here signs you out there. Your saved answers are kept, and you can continue the test here.
+            </p>
           </form>
         </div>
       </div>
