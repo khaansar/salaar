@@ -54,6 +54,10 @@ NEXT_PUBLIC_API_GATEWAY_URL=http://localhost:8080/api
 # Server-Side Rendering (SSR) & Server Actions internal Gateway URL
 INTERNAL_API_GATEWAY_URL=http://localhost:8080/api
 
+# Optional: days the browser keeps its local copy of a test attempt's answers
+# after submission (positive whole number, default 30). See src/config/exam.js.
+NEXT_PUBLIC_EXAM_ANSWER_BACKUP_RETENTION_DAYS=30
+
 ```
 
 > **Note:** Do not commit `.env.local` to version control.

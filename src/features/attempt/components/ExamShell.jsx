@@ -17,6 +17,8 @@ import SectionSubmitModal from './SectionSubmitModal';
 import DynamicWatermark from './DynamicWatermark';
 import { useAttemptStream } from '../hooks/useAttemptStream';
 import { useAutosave } from '../hooks/useAutosave';
+import { useAnswerBackup } from '../hooks/useAnswerBackup';
+import { markAnswerBackupSubmitted, mergeUnsavedAnswers, readAnswerBackup } from '../lib/answerBackup';
 
 const RETURN_TO_KEY = 'salaar:attempt-return-to';
 
@@ -40,12 +42,15 @@ export default function ExamShell({ attemptId }) {
   const [isFocusBlocked, setIsFocusBlocked] = useState(false);
 
   useEffect(() => {
-    if (data) dispatch(setAttemptData(data));
-  }, [data, dispatch]);
+    // Answers the server never confirmed come back from the local copy as
+    // pending, so autosave sends them again.
+    if (data) dispatch(setAttemptData(mergeUnsavedAnswers(data, readAnswerBackup(attemptId))));
+  }, [data, dispatch, attemptId]);
 
   const isExpired = useAppSelector(state => state.attempt.ui.isExpired);
   useAttemptStream(attemptId, !!data);
   const { flush } = useAutosave(attemptId);
+  useAnswerBackup(attemptId);
   const [submitAttempt] = useSubmitAttemptMutation();
 
   // Tracks unmount only. A per-effect cancel flag would be set as soon as
@@ -74,6 +79,7 @@ export default function ExamShell({ attemptId }) {
         }
 
         await submitAttempt(attemptId).unwrap();
+        markAnswerBackupSubmitted(attemptId);
 
         if (isMountedRef.current) {
             window.location.replace(getSafeAttemptReturnPath());
