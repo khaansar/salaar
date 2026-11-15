@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Star, CheckCircle2 } from 'lucide-react';
 import { siteConfig } from '../../config/site';
-import { homepageReviewService, isDemoReview } from '../../services/homepageReviewService';
 
 const ROTATIONS = [
   '-rotate-1 sm:-rotate-1.5',
@@ -74,29 +73,9 @@ function useMarqueeLoop(count) {
 }
 
 export default function Testimonials({ testimonials = [] }) {
-  const [activeReviews, setActiveReviews] = useState(() => {
-    return Array.isArray(testimonials) && testimonials.length > 0 ? testimonials : [];
-  });
-
-  useEffect(() => {
-    const sync = () => {
-      const stored = homepageReviewService.getHomepageReviews();
-      if (stored && stored.length > 0) {
-        setActiveReviews(stored);
-      } else if (Array.isArray(testimonials) && testimonials.length > 0) {
-        setActiveReviews(testimonials);
-      } else {
-        setActiveReviews([]);
-      }
-    };
-
-    sync();
-    return homepageReviewService.subscribeHomepageReviews(sync);
-  }, [testimonials]);
-
-  // Approved dynamic reviews
-  const approvedReviews = (activeReviews || []).filter(
-    (t) => (!t.status || t.status === 'APPROVED') && !isDemoReview(t)
+  // Approved reviews from the API
+  const approvedReviews = (Array.isArray(testimonials) ? testimonials : []).filter(
+    (t) => !t.status || t.status === 'APPROVED'
   );
 
   const rawItems = approvedReviews.map((t) => ({

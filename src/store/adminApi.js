@@ -72,13 +72,14 @@ export const adminApi = apiSlice.injectEndpoints({
     // ------------------------------------------------------------
 
     getAdminReviews: builder.query({
-      query: ({ status, targetType, rating, search, page = 0, size = 20 } = {}) => ({
+      query: ({ status, targetType, rating, search, showOnHomepage, page = 0, size = 20 } = {}) => ({
         url: REVIEW_BASE,
         params: {
           status: status || undefined,
           targetType: targetType || undefined,
           rating: rating === "" || rating == null ? undefined : rating,
           search: search || undefined,
+          showOnHomepage: showOnHomepage ?? undefined,
           page,
           size,
         },
@@ -112,6 +113,18 @@ export const adminApi = apiSlice.injectEndpoints({
         { type: "AdminReview", id: reviewId },
         { type: "AdminReview", id: "LIST" },
         { type: "AdminReviewStats", id: "SUMMARY" },
+      ],
+    }),
+
+    setReviewHomepage: builder.mutation({
+      query: ({ reviewId, showOnHomepage }) => ({
+        url: `${REVIEW_BASE}/${reviewId}/homepage`,
+        method: "PATCH",
+        data: { showOnHomepage },
+      }),
+      invalidatesTags: (result, error, { reviewId }) => [
+        { type: "AdminReview", id: reviewId },
+        { type: "AdminReview", id: "LIST" },
       ],
     }),
 
@@ -291,6 +304,7 @@ export const {
   useGetAdminReviewsQuery,
   useGetAdminReviewStatsQuery,
   useModerateReviewMutation,
+  useSetReviewHomepageMutation,
   useGetAdminPaymentsQuery,
   useGetAdminOrdersQuery,
   useGetAdminOrderDetailQuery,
