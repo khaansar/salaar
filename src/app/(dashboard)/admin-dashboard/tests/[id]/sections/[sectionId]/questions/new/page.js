@@ -17,8 +17,10 @@ export default function NewSectionQuestionsPage({ params }) {
     setLoading(true);
     setError(null);
     try {
-      const testData = await mockTestsApi.get(id);
-      const sectionData = (testData.sections || []).find((s) => s.id === sectionId);
+      // Same sources as the test builder: sections come from the blueprint,
+      // keyed by `sectionId`.
+      const [testData, blueprintData] = await Promise.all([mockTestsApi.get(id), mockTestsApi.answerKey(id)]);
+      const sectionData = (blueprintData?.sections || []).find((s) => String(s.sectionId) === String(sectionId));
       if (!sectionData) throw new Error('Section not found');
       setTest(testData);
       setSection(sectionData);
@@ -34,15 +36,16 @@ export default function NewSectionQuestionsPage({ params }) {
   }, [load]);
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="mx-auto max-w-5xl">
       <PageHeader
         breadcrumbs={[
           { label: 'Admin', href: '/admin-dashboard' },
           { label: test?.title || '...', href: `/admin-dashboard/tests/${id}` },
-          { label: 'Create Questions' },
+          { label: section?.title || 'Section' },
+          { label: 'Create questions' },
         ]}
-        title="Create Questions"
-        subtitle={section ? `Add new questions to ${section.title}` : undefined}
+        title="Create questions"
+        subtitle={section ? `Write new questions for “${section.title}”. They are saved to your question bank and added to this section.` : undefined}
       />
       {loading && <TableSkeleton rows={4} cols={1} />}
       {!loading && error && <ErrorState message={error} onRetry={load} />}

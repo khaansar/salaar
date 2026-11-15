@@ -31,7 +31,7 @@ const axiosBaseQuery = () => async ({
   } catch (error) {
     return {
       error: {
-        status: error.response?.status,
+        status: error.response?.status ?? error.status,
         data: error.response?.data || error.message,
       },
     };
@@ -68,6 +68,10 @@ export const apiSlice = createApi({
     'AdminOrderTimeline',
     'AdminRefund',
     'AdminRefundableAmount',
+    'AdminProduct',
+    'AdminEntitlement',
+    'AdminCoupon',
+    'AdminCouponRedemption',
     // Admin review-moderation cache tags.
     'AdminReview',
     'AdminReviewStats',

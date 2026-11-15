@@ -21,7 +21,6 @@ const linkGroups = [
     title: 'Your space',
     links: [
       { label: 'My learning', href: '/my-learning' },
-      { label: 'Analytics', href: '/analytics' },
       { label: 'Test history', href: '/history' },
       { label: 'Profile', href: '/profile' },
       { label: 'Settings', href: '/settings' },

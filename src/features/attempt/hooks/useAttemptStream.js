@@ -59,13 +59,12 @@ export function useAttemptStream(
         if (data.remainingSeconds <= 0) {
            dispatch(markExpired());
         }
-      } catch (error) {
-        console.error('Invalid time_warning payload', error);
+      } catch {
+        // Ignore a malformed warning; the timer keeps counting locally.
       }
     });
 
-    es.onerror = (error) => {
-      console.error('Attempt SSE error', error);
+    es.onerror = () => {
       dispatch(setConnectionState('offline'));
     };
 

@@ -5,9 +5,9 @@ import BrandLogo from '@/components/common/BrandLogo';
 
 export default function LoginPage() {
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="relative flex h-dvh w-full flex-col items-center overflow-y-auto overflow-x-hidden bg-slate-50 px-4 py-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:bg-slate-950 sm:px-6 lg:px-8">
       {/* Decorative Ambient Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         {/* Subtle dot grid */}
         <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 dark:opacity-20"></div>
         
@@ -64,7 +64,7 @@ export default function LoginPage() {
       </div>
 
       {/* Form Container */}
-      <div className="relative z-10 w-full max-w-[500px]">
+      <div className="relative z-10 my-auto w-full max-w-[500px]">
         <Suspense fallback={<div className="text-center p-4">Loading form...</div>}>
           <LoginForm />
         </Suspense>

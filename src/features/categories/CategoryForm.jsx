@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Plus, FolderTree, Languages, Info } from 'lucide-react';
-import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { X, Plus, FolderTree, Languages, Save } from 'lucide-react';
+import { FormSection, FormActionBar, InlineAlert } from '@/components/admin/AdminUi';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -77,19 +77,10 @@ export function CategoryForm({ category }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <FolderTree size={18} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900">Basic Information</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Enter the main details of the category.</p>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <FormSection icon={FolderTree} tone="indigo" title="Basic information" description="Enter the main details of the category.">
             {!isEdit && (
               <Input
                 id="cat-id"
@@ -116,51 +107,59 @@ export function CategoryForm({ category }) {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Languages size={18} />
-            </div>
+          <FormSection
+            icon={Languages}
+            tone="emerald"
+            title="Required languages"
+            description="Translations must be provided in these languages for every series under this category."
+          >
             <div>
-              <h2 className="font-semibold text-slate-900">Required Languages</h2>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Translations must be provided in these languages for every series under this category.
-              </p>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Selected</p>
+              <div className="flex flex-wrap gap-2">
+                {form.requiredLanguages.map((code) => (
+                  <span
+                    key={code}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold uppercase text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-300"
+                  >
+                    {code}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${code}`}
+                      onClick={() => removeLanguage(code)}
+                      className="rounded-full hover:text-indigo-900 dark:hover:text-white"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+                {form.requiredLanguages.length === 0 && (
+                  <span className="text-xs text-slate-400 dark:text-slate-500">No languages selected</span>
+                )}
+              </div>
             </div>
-          </CardHeader>
-          <CardBody>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {form.requiredLanguages.map((code) => (
-                <span
-                  key={code}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-medium px-2.5 py-1 uppercase"
-                >
-                  {code}
-                  <button type="button" onClick={() => removeLanguage(code)} className="hover:text-indigo-900">
-                    <X size={12} />
+
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Add a language</p>
+              <div className="flex flex-wrap gap-2">
+                {COMMON_LANGUAGES.filter((l) => !form.requiredLanguages.includes(l.value)).map((l) => (
+                  <button
+                    type="button"
+                    key={l.value}
+                    onClick={() => addLanguage(l.value)}
+                    className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-500/50 dark:hover:text-indigo-300"
+                  >
+                    <Plus size={11} /> {l.label}
                   </button>
-                </span>
-              ))}
-              {form.requiredLanguages.length === 0 && <span className="text-xs text-slate-400">No languages selected</span>}
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {COMMON_LANGUAGES.filter((l) => !form.requiredLanguages.includes(l.value)).map((l) => (
-                <button
-                  type="button"
-                  key={l.value}
-                  onClick={() => addLanguage(l.value)}
-                  className="text-xs px-2 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
-                >
-                  + {l.label}
-                </button>
-              ))}
-            </div>
+
             <div className="flex gap-2">
               <Input
                 id="lang-code"
+                aria-label="Custom language code"
                 placeholder="Custom language code, e.g. gu"
                 value={langInput}
                 onChange={(e) => setLangInput(e.target.value)}
@@ -171,61 +170,51 @@ export function CategoryForm({ category }) {
                   }
                 }}
               />
-              <Button type="button" variant="outline" onClick={() => addLanguage(langInput)}>
+              <Button type="button" variant="outline" onClick={() => addLanguage(langInput)} aria-label="Add custom language">
                 <Plus size={16} />
               </Button>
             </div>
-          </CardBody>
-        </Card>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => router.push('/admin-dashboard/categories')} disabled={saving}>
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={saving}>
-            {isEdit ? 'Save changes' : 'Create Category'}
-          </Button>
+          </FormSection>
         </div>
-      </div>
 
-      {/* Live preview sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-slate-900">Preview</h2>
-            <p className="text-sm text-slate-500 mt-0.5">This is how the category will appear in the platform.</p>
-          </CardHeader>
-          <CardBody>
-            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 p-5">
-              <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-600 mb-3">
+        {/* Live preview sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-4">
+          <FormSection title="Preview" description="How the category appears on the platform.">
+            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 p-5 dark:from-indigo-500/10 dark:to-violet-500/10">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm dark:bg-slate-900 dark:text-indigo-300">
                 <FolderTree size={22} />
               </div>
-              <h3 className="font-semibold text-slate-900">{form.name || 'Category name'}</h3>
-              <p className="text-sm text-slate-600 mt-1 line-clamp-3">
+              <h3 className="font-semibold text-slate-900 dark:text-white">{form.name || 'Category name'}</h3>
+              <p className="mt-1 line-clamp-3 text-sm text-slate-600 dark:text-slate-400">
                 {form.description || 'A short description of this category will appear here.'}
               </p>
-              <div className="flex flex-wrap gap-1.5 mt-3">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {form.requiredLanguages.map((l) => (
-                  <span key={l} className="text-[10px] font-semibold uppercase bg-white/70 text-indigo-700 px-1.5 py-0.5 rounded">
+                  <span key={l} className="rounded bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-indigo-700 dark:bg-slate-900/70 dark:text-indigo-300">
                     {l}
                   </span>
                 ))}
               </div>
             </div>
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardBody className="flex items-start gap-3">
-            <Info size={18} className="text-indigo-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-slate-600">
-              {isEdit
-                ? 'Changes here apply immediately to every series under this category.'
-                : 'You can create test series under this category as soon as it is saved.'}
-            </p>
-          </CardBody>
-        </Card>
+          <InlineAlert tone="info">
+            {isEdit
+              ? 'Changes here apply immediately to every series under this category.'
+              : 'You can create test series under this category as soon as it is saved.'}
+          </InlineAlert>
+        </div>
       </div>
+
+      <FormActionBar hint={isEdit ? 'Editing an existing category.' : 'The category is created as soon as you save.'}>
+        <Button type="button" variant="outline" onClick={() => router.push('/admin-dashboard/categories')} disabled={saving}>
+          Cancel
+        </Button>
+        <Button type="submit" isLoading={saving}>
+          <Save size={16} className="mr-2" />
+          {isEdit ? 'Save changes' : 'Create Category'}
+        </Button>
+      </FormActionBar>
     </form>
   );
 }

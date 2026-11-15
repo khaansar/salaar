@@ -72,11 +72,13 @@ async function readErrorBody(response) {
  *
  * @param {string} url API path beginning with "/".
  * @param {object} options Fetch options plus Next.js revalidate/tags.
+ *   Pass `preserveEnvelope: true` to get `{ data, meta }` instead of `data`.
  */
 export async function fetchWithCache(url, options = {}) {
   const {
     revalidate = 300,
     tags = [],
+    preserveEnvelope = false,
     next: suppliedNext = {},
     ...fetchOptions
   } = options;
@@ -122,6 +124,8 @@ export async function fetchWithCache(url, options = {}) {
   }
 
   const json = await response.json();
+
+  if (preserveEnvelope) return json;
 
   // Preserve the API-envelope behavior expected by existing services.
   return json?.data !== undefined ? json.data : json;

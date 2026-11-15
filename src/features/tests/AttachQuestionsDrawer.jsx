@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Search, CheckSquare, Square, Lock } from 'lucide-react';
 import { Drawer } from '@/components/ui/Drawer';
+import { Pagination } from '@/components/ui/Pagination';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -93,11 +94,11 @@ export function AttachQuestionsDrawer({ open, onClose, sectionId, existingQuesti
       </>
     }>
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[200px]">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="min-w-0 flex-1">
             <Input placeholder="Search questions..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} leftIcon={<Search size={16} />} />
           </div>
-          <div className="w-48">
+          <div className="sm:w-48">
             <Select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }} placeholder="All types">
               {QUESTION_TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -105,11 +106,11 @@ export function AttachQuestionsDrawer({ open, onClose, sectionId, existingQuesti
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 rounded-lg bg-slate-50 border border-slate-200 p-3">
+        <div className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/40 sm:grid-cols-2">
           <Input label="Marks override (optional)" type="number" step="0.5" placeholder="Use question default" value={posOverride} onChange={(e) => setPosOverride(e.target.value)} />
           <Input label="Negative marks override (optional)" type="number" step="0.5" placeholder="Use question default" value={negOverride} onChange={(e) => setNegOverride(e.target.value)} />
         </div>
-        <div className="border border-slate-200 rounded-lg overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
           {loading && <TableSkeleton rows={5} cols={1} />}
           {!loading && error && <ErrorState message={error} onRetry={loadQuestions} />}
           {!loading && !error && items.length === 0 && <EmptyState title="No questions found" description="Try a different search." />}
@@ -117,14 +118,14 @@ export function AttachQuestionsDrawer({ open, onClose, sectionId, existingQuesti
             const attached = alreadyAttached.has(q.id);
             const isSelected = selected.includes(q.id);
             return (
-              <button type="button" key={q.id} disabled={attached} onClick={() => toggle(q.id)} className={`w-full flex items-start gap-3 px-4 py-3 text-left border-b border-slate-100 last:border-0 transition-colors ${attached ? 'bg-slate-50 opacity-60 cursor-not-allowed' : isSelected ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}>
-                {isSelected ? <CheckSquare size={18} className="text-indigo-600 shrink-0 mt-0.5" /> : <Square size={18} className="text-slate-300 shrink-0 mt-0.5" />}
+              <button type="button" key={q.id} disabled={attached} onClick={() => toggle(q.id)} className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-0 dark:border-slate-800 ${attached ? 'cursor-not-allowed bg-slate-50 opacity-60 dark:bg-slate-800/40' : isSelected ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}>
+                {isSelected ? <CheckSquare size={18} className="text-indigo-600 shrink-0 mt-0.5" /> : <Square size={18} className="mt-0.5 shrink-0 text-slate-300 dark:text-slate-600" />}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-slate-900 truncate">{q.shortText}</p>
+                  <p className="truncate text-sm text-slate-900 dark:text-white">{q.shortText}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{q.questionType}</Badge>
+                    <Badge className={QUESTION_TYPE_BADGE_STYLES[q.questionType]}>{String(q.questionType || '').replaceAll('_', ' ')}</Badge>
                     <Badge className={DIFFICULTY_BADGE_STYLES[q.difficulty]}>{q.difficulty}</Badge>
-                    {attached && <span className="text-xs text-slate-400 inline-flex items-center gap-1"><Lock size={11} /> Already in section</span>}
+                    {attached && <span className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"><Lock size={11} /> Already in section</span>}
                   </div>
                 </div>
               </button>
@@ -132,10 +133,8 @@ export function AttachQuestionsDrawer({ open, onClose, sectionId, existingQuesti
           })}
         </div>
         {meta?.pagination && (
-          <div className="flex items-center justify-center gap-3 text-sm text-slate-500">
-            <button disabled={!meta.pagination.has_previous} onClick={() => setPage((p) => p - 1)} className="disabled:opacity-30 hover:text-indigo-600">Previous</button>
-            <span>Page {meta.pagination.current_page} of {meta.pagination.total_pages || 1}</span>
-            <button disabled={!meta.pagination.has_next} onClick={() => setPage((p) => p + 1)} className="disabled:opacity-30 hover:text-indigo-600">Next</button>
+          <div className="-mx-6">
+            <Pagination meta={meta} onPageChange={setPage} disabled={loading} />
           </div>
         )}
       </div>

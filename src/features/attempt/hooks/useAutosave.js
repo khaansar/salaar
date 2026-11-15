@@ -1,16 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import {
+  clearExamNotice,
+  EXAM_NOTICES,
+  markExpired,
   markSyncedIfUnchanged,
+  showExamNotice,
   updateAttemptVersion,
 } from '../store/attemptSlice';
 import { useSaveResponsesMutation } from '../store/attemptApi';
 import { attemptService } from '../../../services/attemptService';
 
 const MAX_CONFLICT_RETRIES = 3;
+// Backoff for retrying a failed autosave: 2s, 4s, 8s ... capped at 30s.
+const RETRY_BASE_DELAY_MS = 2000;
+const RETRY_MAX_DELAY_MS = 30000;
 
 function serializeAnswer(response) {
   if (response?.numeric !== undefined && response.numeric !== null) {
@@ -32,9 +39,6 @@ export function useAutosave(attemptId) {
 
   const responses = useAppSelector(
     (state) => state.attempt.responses
-  );
-  const connection = useAppSelector(
-    (state) => state.attempt.ui.connection
   );
   const sections = useAppSelector(
     (state) => state.attempt.sections
@@ -60,6 +64,11 @@ export function useAutosave(attemptId) {
   const versionRef = useRef(attemptVersion);
   const queueRef = useRef(Promise.resolve());
   const inFlightRef = useRef(new Map());
+  const failureCountRef = useRef(0);
+  const retryTimerRef = useRef(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  useEffect(() => () => clearTimeout(retryTimerRef.current), []);
 
   useEffect(() => {
     stateRef.current = {
@@ -238,29 +247,61 @@ export function useAutosave(attemptId) {
   }, [enqueueSave]);
 
   useEffect(() => {
-    if (!attemptId || connection === 'offline') return;
+    // Saves use the REST API, so they must not depend on the SSE stream's
+    // connection state; a dropped stream would otherwise block all saves.
+    if (!attemptId) return;
     if (status && status !== 'IN_PROGRESS') return;
     if (isExpired) return;
 
-    const pendingId = Object.keys(responses).find(
+    const pendingIds = Object.keys(responses).filter(
       (qId) => responses[qId]?.saveState === 'pending'
     );
 
-    if (!pendingId) return;
+    if (pendingIds.length === 0) return;
 
-    const timer = setTimeout(() => {
-      enqueueSave(pendingId).catch((error) => {
-        console.error('Autosave failed:', error);
-      });
+    const timer = setTimeout(async () => {
+      // Queue every pending answer so one failing question cannot
+      // starve the others; the queue still sends them one at a time.
+      const results = await Promise.allSettled(
+        pendingIds.map((qId) => enqueueSave(qId))
+      );
+      const failures = results.filter((r) => r.status === 'rejected');
+
+      if (failures.length === 0) {
+        failureCountRef.current = 0;
+        dispatch(clearExamNotice(EXAM_NOTICES.autosave.key));
+        return;
+      }
+
+      if (failures.some((f) => f.reason?.message === 'ATTEMPT_EXPIRED')) {
+        dispatch(markExpired());
+        return;
+      }
+
+      dispatch(showExamNotice(EXAM_NOTICES.autosave));
+
+      // A failed answer stays pending without changing `responses`, so
+      // schedule a retry explicitly instead of waiting for the next edit.
+      const delay = Math.min(
+        RETRY_MAX_DELAY_MS,
+        RETRY_BASE_DELAY_MS * 2 ** failureCountRef.current
+      );
+      failureCountRef.current += 1;
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = setTimeout(
+        () => setRetryNonce((n) => n + 1),
+        delay
+      );
     }, 1000);
 
     return () => clearTimeout(timer);
   }, [
     attemptId,
-    connection,
+    dispatch,
     enqueueSave,
     isExpired,
     responses,
+    retryNonce,
     status,
   ]);
 

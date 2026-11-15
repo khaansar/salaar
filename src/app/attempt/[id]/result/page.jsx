@@ -302,7 +302,7 @@ function ReportContent({ report, userName, userEmail, attemptId }) {
                     ? `${formatNumber(summary.percentile, 1)}%ile`
                     : '—'
                 }
-                subtext={summary?.rank ? `Class Rank #${summary.rank}` : 'Competitive Standing'}
+                subtext="Competitive Standing"
                 color="blue"
               />
 

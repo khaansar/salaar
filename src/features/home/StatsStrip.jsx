@@ -1,70 +1,51 @@
-import { Users, FileText, ThumbsUp, Star } from 'lucide-react';
+import { FileText, Library, FolderTree, Star } from 'lucide-react';
 
-const stats = [
-  { icon: Users, value: '100K+', label: 'Students Trust Us' },
-  { icon: FileText, value: '5K+', label: 'Mock Tests' },
-  { icon: ThumbsUp, value: '95%', label: 'Recommend Us' },
-  { icon: Star, value: '4.8/5', label: 'Average Rating', fill: true },
-];
+const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
-/**
- * 2D Volumetric Up Arrow (White in Dark mode, Black/Slate-900 in Light mode)
- */
-function VolumetricArrowUp({ className = '' }) {
-  return (
-    <svg
-      viewBox="0 0 32 28"
-      className={`w-8 sm:w-9 h-7 shrink-0 drop-shadow-xs ${className}`}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M16 2L2 12H10V26H22V12H30L16 2Z"
-        className="fill-slate-900 stroke-slate-900 dark:fill-white dark:stroke-white"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+function formatCount(value) {
+  return value >= 1000 ? compact.format(value) : String(value);
 }
 
-/**
- * 2D Volumetric Down Arrow (White in Dark mode, Black/Slate-900 in Light mode)
- */
-function VolumetricArrowDown({ className = '' }) {
-  return (
-    <svg
-      viewBox="0 0 32 28"
-      className={`w-8 sm:w-9 h-7 shrink-0 drop-shadow-xs ${className}`}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M10 2H22V16H30L16 26L2 16H10V2Z"
-        className="fill-slate-900 stroke-slate-900 dark:fill-white dark:stroke-white"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+function isCount(value) {
+  return Number.isFinite(value) && value > 0;
 }
 
-export default function StatsStrip() {
+// Keeps the strip evenly spread for however many live stats are available.
+const MD_COLUMNS = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+};
+
+/**
+ * Platform numbers shown on the homepage. Every value comes from live data;
+ * a stat is hidden when its source is unavailable or empty, never faked.
+ */
+export default function StatsStrip({ mockTests, testSeries, categories, ratingAverage, ratingCount }) {
+  const stats = [
+    isCount(mockTests) && { icon: FileText, value: formatCount(mockTests), label: mockTests === 1 ? 'Mock Test' : 'Mock Tests' },
+    isCount(testSeries) && { icon: Library, value: formatCount(testSeries), label: 'Test Series' },
+    isCount(categories) && { icon: FolderTree, value: formatCount(categories), label: categories === 1 ? 'Exam Category' : 'Exam Categories' },
+    isCount(ratingCount) &&
+      Number.isFinite(ratingAverage) && {
+        icon: Star,
+        value: `${ratingAverage.toFixed(1)}/5`,
+        label: 'Average Rating',
+        fill: true,
+      },
+  ].filter(Boolean);
+
+  if (stats.length === 0) return null;
+
   return (
     <section aria-label="Platform Statistics" className="py-2 px-2 sm:px-6 my-1">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <div className={`grid grid-cols-2 ${MD_COLUMNS[stats.length]} gap-4 sm:gap-6`}>
         {stats.map((s) => (
           <div
             key={s.label}
             className="flex flex-col items-center justify-between text-center select-none"
           >
-            {/* 2D Volumetric Up Arrow touching Steps above */}
-            <div>
-              <VolumetricArrowUp />
-            </div>
-
             {/* Stat Item Content (No background box) */}
             <div className="my-2 flex items-center justify-center gap-2.5 py-1 px-2">
               <s.icon
@@ -81,11 +62,6 @@ export default function StatsStrip() {
                   {s.label}
                 </p>
               </div>
-            </div>
-
-            {/* 2D Volumetric Down Arrow touching Reviews below */}
-            <div>
-              <VolumetricArrowDown />
             </div>
           </div>
         ))}

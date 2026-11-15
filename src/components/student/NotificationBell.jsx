@@ -202,8 +202,8 @@ export default function NotificationBell({ userId }) {
         if (!incoming.read) {
           setUnreadCount((count) => count + 1);
         }
-      } catch (error) {
-        console.error('Unable to parse SSE notification:', error);
+      } catch {
+        // Skip a malformed event; the list refreshes the next time it opens.
       }
     });
 
@@ -282,7 +282,6 @@ export default function NotificationBell({ userId }) {
           )
         );
         setUnreadCount((count) => count + 1);
-        console.error('Unable to mark notification as read:', error);
       }
     }
 

@@ -40,7 +40,7 @@ export default async function Page() {
 
     series = toList(response);
   } catch (error) {
-    console.error('Failed to load popular test series:', error);
+    console.warn('Failed to load popular test series:', error);
   }
 
   return (

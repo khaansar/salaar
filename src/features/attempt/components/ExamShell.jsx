@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LayoutGrid, X } from 'lucide-react';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { useAppSelector } from '../../../hooks/useAppSelector';
-import { setAttemptData } from '../store/attemptSlice';
+import { setAttemptData, showExamNotice, EXAM_NOTICES } from '../store/attemptSlice';
 import { useGetAttemptStateQuery, useSubmitAttemptMutation } from '../store/attemptApi';
 import ExamHeader from './ExamHeader';
+import ExamNotice from './ExamNotice';
 import SectionTabs from './SectionTabs';
 import QuestionPanel from './QuestionPanel';
 import Palette from './Palette';
@@ -47,49 +48,46 @@ export default function ExamShell({ attemptId }) {
   const { flush } = useAutosave(attemptId);
   const [submitAttempt] = useSubmitAttemptMutation();
 
+  // Tracks unmount only. A per-effect cancel flag would be set as soon as
+  // hasAutoSubmitted changes, which used to suppress the redirect.
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!isExpired || hasAutoSubmitted) return;
 
     setHasAutoSubmitted(true);
-
-    let cancelled = false;
 
     const autoSubmit = async () => {
         try {
         if (flush) {
             try {
             await flush();
-            } catch (autosaveError) {
-            console.error(
-                'Some frontend autosaves failed before expiry submission:',
-                autosaveError
-            );
+            } catch {
+            // Submit anyway: the server keeps every answer it already received.
             }
         }
 
         await submitAttempt(attemptId).unwrap();
 
-        if (!cancelled) {
+        if (isMountedRef.current) {
             window.location.replace(getSafeAttemptReturnPath());
         }
-        } catch (error) {
-        console.error('Automatic submission failed:', error);
-
-        if (!cancelled) {
+        } catch {
+        if (isMountedRef.current) {
             setHasAutoSubmitted(false);
-            alert(
-            'Automatic submission could not be confirmed. Please keep this page open and retry.'
-            );
+            dispatch(showExamNotice(EXAM_NOTICES.autoSubmit));
         }
         }
     };
 
     autoSubmit();
-
-    return () => {
-        cancelled = true;
-    };
-    }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt]);
+    }, [isExpired, hasAutoSubmitted, attemptId, flush, submitAttempt, dispatch]);
 
   const isActiveAttempt = data?.attempt?.status === 'IN_PROGRESS';
   const [isFullscreen, setIsFullscreen] = useState(true);
@@ -213,6 +211,7 @@ export default function ExamShell({ attemptId }) {
         </div>
       )}
       <ExamHeader />
+      <ExamNotice />
       <SectionTabs />
       <div className="flex-1 flex overflow-hidden">
         <main className="flex-1 overflow-y-auto flex flex-col bg-exam-bg relative">

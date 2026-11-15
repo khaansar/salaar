@@ -105,6 +105,9 @@ export const usersApi = {
 
     return normalizeUserPage(response);
   },
+
+  setActive: (userId, active) =>
+    apiClient.patch(`/auth-api/admin/users/${encodeURIComponent(userId)}/status`, { active }),
 };
 
 export const userService = {
@@ -144,6 +147,10 @@ export const userService = {
       throw err;
     }
   },
+
+  requestAccountDeletionCode: () => apiClient.post('/auth-api/users/me/deletion-code'),
+
+  deleteAccount: (code) => apiClient.post('/auth-api/users/me/delete', { code }),
 
   removeAvatar: async () => {
     try {

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Library, Save } from 'lucide-react';
-import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { FormSection, FormActionBar, InlineAlert } from '@/components/admin/AdminUi';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -64,21 +64,15 @@ export function SeriesForm({ series, categories = [] }) {
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <Library size={18} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-slate-900 dark:text-white">Basic Information</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                A test series is a collection of mock tests (e.g. a full course or exam pack).
-              </p>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <FormSection
+            icon={Library}
+            tone="emerald"
+            title="Basic information"
+            description="A test series is a collection of mock tests (e.g. a full course or exam pack)."
+          >
             <Input
               id="series-title"
               label="Title"
@@ -87,79 +81,74 @@ export function SeriesForm({ series, categories = [] }) {
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               error={errors.title}
             />
-            <Select
-              id="series-category"
-              label="Category"
-              placeholder="Select a category"
-              value={form.categoryId}
-              onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-              error={errors.categoryId}
-            >
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-            <Input
-              id="series-price"
-              label="Base price"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={form.basePrice}
-              onChange={(e) => setForm((f) => ({ ...f, basePrice: e.target.value }))}
-              error={errors.basePrice}
-              helpText="Set to 0 for a free series."
-            />
-          </CardBody>
-        </Card>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(isEdit ? `/admin-dashboard/series/${series.id}` : '/admin-dashboard/series')}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={saving}>
-            <Save size={16} className="mr-2" />
-            {isEdit ? 'Save changes' : 'Create series'}
-          </Button>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select
+                id="series-category"
+                label="Category"
+                placeholder="Select a category"
+                value={form.categoryId}
+                onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
+                error={errors.categoryId}
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                id="series-price"
+                label="Base price (₹)"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={form.basePrice}
+                onChange={(e) => setForm((f) => ({ ...f, basePrice: e.target.value }))}
+                error={errors.basePrice}
+                helpText="Set to 0 for a free series."
+              />
+            </div>
+          </FormSection>
         </div>
-      </div>
 
-      {/* Live preview sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-slate-900 dark:text-white">Preview</h2>
-          </CardHeader>
-          <CardBody>
-            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-5">
-              <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
+        {/* Live preview sidebar */}
+        <div className="space-y-6 lg:sticky lg:top-4">
+          <FormSection title="Preview" description="How the series appears on the platform.">
+            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5 dark:from-emerald-500/10 dark:to-teal-500/10">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-slate-900 dark:text-emerald-300">
                 <Library size={22} />
               </div>
               <h3 className="font-semibold text-slate-900 dark:text-white">{form.title || 'Series title'}</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{selectedCategory?.name || 'No category selected'}</p>
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-3">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{selectedCategory?.name || 'No category selected'}</p>
+              <p className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
                 {form.basePrice ? `₹${Number(form.basePrice).toFixed(2)}` : 'Free'}
               </p>
             </div>
-          </CardBody>
-        </Card>
+          </FormSection>
 
-        <Card>
-          <CardBody className="text-sm text-slate-600 dark:text-slate-400">
+          <InlineAlert tone="info">
             {isEdit
               ? 'Changing the category moves this series (and its mock tests) into the new category immediately.'
               : 'You can add mock tests to this series as soon as it is saved.'}
-          </CardBody>
-        </Card>
+          </InlineAlert>
+        </div>
       </div>
+
+      <FormActionBar hint={isEdit ? 'Editing an existing test series.' : 'You will be taken to the series once it is created.'}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push(isEdit ? `/admin-dashboard/series/${series.id}` : '/admin-dashboard/series')}
+          disabled={saving}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" isLoading={saving}>
+          <Save size={16} className="mr-2" />
+          {isEdit ? 'Save changes' : 'Create series'}
+        </Button>
+      </FormActionBar>
     </form>
   );
 }

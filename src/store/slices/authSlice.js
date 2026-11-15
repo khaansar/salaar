@@ -64,9 +64,12 @@ export const loginUser = createAsyncThunk(
 
       return data;
     } catch (err) {
-      return rejectWithValue(
-        getErrorMessage(err, 'Login failed')
-      );
+      return rejectWithValue({
+        message: getErrorMessage(err, 'Login failed'),
+        code: err?.code,
+        status: err?.status,
+        errors: err?.errors,
+      });
     }
   }
 );
@@ -79,53 +82,37 @@ export const registerUser = createAsyncThunk(
 
       return data;
     } catch (err) {
-      return rejectWithValue(
-        getErrorMessage(err, 'Registration failed')
-      );
-    }
-  }
-);
-
-export const validateEmailVerificationToken = createAsyncThunk(
-  'auth/validateEmailVerificationToken',
-  async (token, { rejectWithValue }) => {
-    try {
-      const data = await apiClient.get(
-        '/auth-api/verify-email/validate',
-        {
-          params: {
-            token,
-          },
-        }
-      );
-
-      return data;
-    } catch (err) {
-      return rejectWithValue(
-        getErrorMessage(
-          err,
-          'This verification link is invalid or has expired.'
-        )
-      );
+      return rejectWithValue({
+        message: getErrorMessage(err, 'Registration failed'),
+        code: err?.code,
+        status: err?.status,
+        errors: err?.errors,
+      });
     }
   }
 );
 
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
-  async (token, { rejectWithValue }) => {
+  async ({ email, code }, { rejectWithValue }) => {
     try {
-      const data = await apiClient.post('/auth-api/verify-email', {
-        token,
-      });
-
-      return data;
+      return await apiClient.post('/auth-api/verify-email', { email, code });
     } catch (err) {
       return rejectWithValue(
-        getErrorMessage(
-          err,
-          'The verification link is invalid or has expired'
-        )
+        getErrorMessage(err, 'The code is invalid or has expired.')
+      );
+    }
+  }
+);
+
+export const resendVerificationCode = createAsyncThunk(
+  'auth/resendVerificationCode',
+  async (email, { rejectWithValue }) => {
+    try {
+      return await apiClient.post('/auth-api/resend-verification', { email });
+    } catch (err) {
+      return rejectWithValue(
+        getErrorMessage(err, 'Could not send a new code. Please try again.')
       );
     }
   }
@@ -137,8 +124,7 @@ export const logoutUser = createAsyncThunk(
     try {
       await apiClient.post('/auth-api/logout');
     } catch (err) {
-      console.error('Logout failed on server', err);
-
+      // The local session is cleared either way (see logoutUser.rejected).
       return rejectWithValue(
         getErrorMessage(err, 'Logout failed')
       );
@@ -237,9 +223,6 @@ export const initialAuthState = {
   forgotPasswordStatus: 'idle',
   resetPasswordStatus: 'idle',
 
-  emailVerificationValidationStatus: 'idle',
-  emailVerificationValidationError: null,
-
   passwordResetValidationStatus: 'idle',
   passwordResetValidationError: null,
 
@@ -295,9 +278,7 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.loginStatus = 'failed';
         state.error =
-          typeof action.payload === 'string'
-            ? action.payload
-            : 'Login failed';
+          action.payload?.message || 'Login failed';
       })
 
       // --------------------------------------------------
@@ -326,41 +307,8 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.registrationStatus = 'failed';
         state.error =
-          typeof action.payload === 'string'
-            ? action.payload
-            : 'Registration failed';
+          action.payload?.message || 'Registration failed';
       })
-
-      // --------------------------------------------------
-      // VALIDATE EMAIL VERIFICATION TOKEN
-      // --------------------------------------------------
-
-      .addCase(
-        validateEmailVerificationToken.pending,
-        (state) => {
-          state.emailVerificationValidationStatus = 'loading';
-          state.emailVerificationValidationError = null;
-        }
-      )
-
-      .addCase(
-        validateEmailVerificationToken.fulfilled,
-        (state) => {
-          state.emailVerificationValidationStatus = 'succeeded';
-          state.emailVerificationValidationError = null;
-        }
-      )
-
-      .addCase(
-        validateEmailVerificationToken.rejected,
-        (state, action) => {
-          state.emailVerificationValidationStatus = 'failed';
-          state.emailVerificationValidationError =
-            typeof action.payload === 'string'
-              ? action.payload
-              : 'This verification link is invalid or has expired.';
-        }
-      )
 
       // --------------------------------------------------
       // VERIFY EMAIL

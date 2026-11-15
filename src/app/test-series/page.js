@@ -60,7 +60,7 @@ export default async function TestSeriesIndexPage({ searchParams }) {
     series = toList(seriesData);
     categories = Array.isArray(categoryData) ? categoryData : [];
   } catch (error) {
-    console.error('Failed to load test series:', error);
+    console.warn('Failed to load test series:', error);
     failed = true;
   }
 

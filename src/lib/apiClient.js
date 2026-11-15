@@ -26,6 +26,7 @@ const normalizeErrorObject = (error) => {
 
   const message =
     responseBody?.message ||
+    responseBody?.error?.message ||
     error?.message ||
     'An unexpected network error occurred';
 
@@ -53,7 +54,6 @@ const NO_REFRESH_PATHS = new Set([
   '/auth-api/refresh',
   '/auth-api/logout',
   '/auth-api/verify-email',
-  '/auth-api/verify-email/validate',
   '/auth-api/resend-verification',
   '/auth-api/forgot-password',
   '/auth-api/reset-password',

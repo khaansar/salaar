@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, ChevronRight } from 'lucide-react';
 
 import StudentShell from '../../../components/student/StudentShell';
 import SeriesTestsTable from '../../../features/test-series/SeriesTestsTable';
-import SeriesCheckoutButton from '../../../features/payments/SeriesCheckoutButton';
+import SeriesPurchasePanel from '../../../features/test-series/SeriesPurchasePanel';
 import SeriesReviews from '../../../features/test-series/SeriesReviews';
 import HomeFaq from '../../../features/home/HomeFaq';
 import { testService } from '../../../services/testService';
@@ -134,7 +134,7 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    console.error(
+    console.warn(
       `Failed to generate metadata for series "${slug}":`,
       error
     );
@@ -280,18 +280,19 @@ export default async function TestSeriesPage({ params }) {
           {/* =========================== Sidebar =========================== */}
           <aside className="space-y-6 lg:sticky lg:top-20">
             <div id="purchase" className={`${PANEL} scroll-mt-24 p-5 sm:p-6`}>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{isFree ? 'Free access' : 'One-time payment'}</p>
-              <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">{formatPrice(series.basePrice)}</p>
-
-              <div className="mt-5">
-                {isFree ? (
-                  <Link href="#tests" className={`${BTN_PRIMARY} w-full py-3`}>
-                    Start practicing <ArrowRight size={15} />
-                  </Link>
-                ) : (
-                  <SeriesCheckoutButton seriesId={series.id} seriesTitle={series.title} />
-                )}
-              </div>
+              {isFree ? (
+                <>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Free access</p>
+                  <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">{formatPrice(series.basePrice)}</p>
+                  <div className="mt-5">
+                    <Link href="#tests" className={`${BTN_PRIMARY} w-full py-3`}>
+                      Start practicing <ArrowRight size={15} />
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <SeriesPurchasePanel seriesId={series.id} seriesTitle={series.title} priceLabel={formatPrice(series.basePrice)} />
+              )}
 
               <ul className="mt-5 space-y-2.5 border-t border-slate-200 pt-5 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                 {[`Full access to all ${mockTests.length} tests`, 'Detailed solutions & analytics', 'Access on web, mobile and tablet', 'No hidden charges'].map((item) => (

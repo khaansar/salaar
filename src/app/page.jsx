@@ -13,6 +13,7 @@ import Testimonials from '../features/home/Testimonials';
 import JoinBanner from '../features/home/JoinBanner';
 import HomeFaq from '../features/home/HomeFaq';
 import { catalogService } from '../services/catalogService';
+import { isDemoReview } from '../services/homepageReviewService';
 
 import { siteConfig } from '../config/site';
 import StudentBanner from '@/features/home/StudentBanner';
@@ -37,7 +38,7 @@ async function loadCatalog() {
     if (raw) {
       const parsed = JSON.parse(decodeURIComponent(raw));
       if (Array.isArray(parsed) && parsed.length > 0) {
-        cookieReviews = parsed;
+        cookieReviews = parsed.filter((review) => !isDemoReview(review));
       }
     }
   } catch {}
@@ -47,6 +48,7 @@ async function loadCatalog() {
     catalogService.getPopularSeries(),
     catalogService.getFeaturedTests(),
     catalogService.getTestimonials().catch(() => []),
+    catalogService.getPlatformStats(),
   ]);
 
   const apiTestimonials =
@@ -56,8 +58,25 @@ async function loadCatalog() {
 
   const testimonials = cookieReviews.length > 0 ? cookieReviews : apiTestimonials;
 
+  const categories = results[0].status === 'fulfilled' ? results[0].value : [];
+  const platformCounts = results[4].status === 'fulfilled' ? results[4].value : {};
+
+  // Rating comes from the approved public platform reviews.
+  const ratings = apiTestimonials
+    .map((review) => Number(review?.rating))
+    .filter((rating) => Number.isFinite(rating) && rating > 0);
+
+  const stats = {
+    mockTests: platformCounts.mockTests ?? null,
+    testSeries: platformCounts.testSeries ?? null,
+    categories: Array.isArray(categories) ? categories.length : null,
+    ratingCount: ratings.length,
+    ratingAverage: ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null,
+  };
+
   return {
-    categories: results[0].status === 'fulfilled' ? results[0].value : [],
+    stats,
+    categories,
     popularSeries: results[1].status === 'fulfilled' ? results[1].value : [],
     featuredTests: results[2].status === 'fulfilled' ? results[2].value : [],
     testimonials,
@@ -65,7 +84,7 @@ async function loadCatalog() {
 }
 
 export default async function HomePage() {
-  const { categories, popularSeries, featuredTests, testimonials } = await loadCatalog();
+  const { categories, popularSeries, featuredTests, testimonials, stats } = await loadCatalog();
 
   return (
     <StudentShell>
@@ -87,7 +106,7 @@ export default async function HomePage() {
         <StartPracticing tests={featuredTests} />
 
         <HowItWorks />
-        <StatsStrip />
+        <StatsStrip {...stats} />
         <Testimonials testimonials={testimonials} />
         <JoinBanner />
         <HomeFaq />

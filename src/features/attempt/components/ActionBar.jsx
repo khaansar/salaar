@@ -1,7 +1,7 @@
 'use client';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { setCurrentQuestion, clearAnswer, toggleMarkForReview, setSubmitModalOpen, setTargetSectionId, setSectionSubmitModalOpen, setCurrentSection } from '../store/attemptSlice';
+import { setCurrentQuestion, clearAnswer, toggleMarkForReview, setSubmitModalOpen, setTargetSectionId, setSectionSubmitModalOpen, setCurrentSection, showExamNotice, EXAM_NOTICES } from '../store/attemptSlice';
 import { ChevronLeft, ChevronRight, Bookmark, XCircle } from 'lucide-react';
 import { useSwitchSectionMutation } from '../store/attemptApi';
 
@@ -59,7 +59,7 @@ export default function ActionBar() {
                      sectionTimeSpentSec: res.sectionTimeSpentSec,
                    }});
                  }
-              }).catch(console.error);
+              }).catch(() => dispatch(showExamNotice(EXAM_NOTICES.sectionSwitch)));
           }
         }
       } else {

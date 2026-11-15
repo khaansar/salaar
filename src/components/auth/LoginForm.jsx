@@ -7,27 +7,25 @@ import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 import { Input } from '../ui/Input';
 import { PasswordInput } from '../ui/PasswordInput';
-import { Checkbox } from '../ui/Checkbox';
 
 import { isValidEmail } from '../../utils/validators';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 
-import { loginUser } from '../../store/slices/authSlice';
+import { loginUser, resendVerificationCode } from '../../store/slices/authSlice';
 import { startOAuth } from '../../lib/oauth';
+import { parseFormError } from '../../lib/formErrors';
+import { FormAlert } from './FormAlert';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState(null);
 
   const dispatch = useAppDispatch();
 
-  const {
-    loginStatus,
-    error: serverError,
-  } = useAppSelector((state) => state.auth);
+  const { loginStatus } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,6 +61,8 @@ export function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setFormError(null);
+
     if (!validate()) {
       return;
     }
@@ -72,25 +72,42 @@ export function LoginForm() {
         loginUser({
           email,
           password,
-          rememberMe,
         })
       ).unwrap();
 
       router.push(destination);
       router.refresh();
     } catch (err) {
-      console.error('Login failed:', err);
+      if (err?.code === 'EMAIL_NOT_VERIFIED') {
+        // Send a fresh code and continue on the verification screen.
+        dispatch(resendVerificationCode(email.trim()));
+        const params = new URLSearchParams({ email: email.trim() });
+        if (destination !== '/') params.set('next', destination);
+        router.push(`/verify-email?${params.toString()}`);
+        return;
+      }
+
+      // Wrong credentials stay a form-level message so we don't reveal which field was wrong.
+      const parsed = parseFormError(err, { fallback: 'Login failed. Please try again.' });
+      setErrors(parsed.fieldErrors);
+      setFormError(parsed.formError);
     }
   };
 
   const handleOAuthLogin = (provider) => {
-    startOAuth(provider, destination);
+    setFormError(null);
+    if (!startOAuth(provider, destination)) {
+      setFormError("Google sign-in isn't available right now. Please use your email and password.");
+    }
   };
 
   const getOAuthErrorMessage = () => {
     switch (oauthError) {
       case 'authentication_failed':
         return 'Authentication failed. Please try again.';
+
+      case 'account_disabled':
+        return 'This account has been deactivated. Contact support if you think this is a mistake.';
 
       case 'access_denied':
         return 'Authentication was cancelled.';
@@ -143,95 +160,10 @@ export function LoginForm() {
           </div>
 
           {/* Authentication errors */}
-          {(serverError || oauthErrorMessage) && (
-            <div className="mb-5 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm rounded-lg border border-red-100 dark:border-red-900/40 flex items-start gap-3">
-              <span className="font-medium">
-                {oauthErrorMessage ||
-                  (typeof serverError === 'string'
-                    ? serverError
-                    : 'Login failed. Please try again.')}
-              </span>
-            </div>
-          )}
-
-          {/* Email/password login */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <Input
-                id="email"
-                label="Email or Phone Number"
-                type="email"
-                placeholder="Enter your email or phone number"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={errors.email}
-                className="h-12"
-                leftIcon={<Mail size={18} />}
-              />
-
-              <PasswordInput
-                id="password"
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                error={errors.password}
-                className="h-12"
-                leftIcon={<Lock size={18} />}
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <Checkbox
-                id="remember-me"
-                label={
-                  <span className="text-[13px] font-medium text-slate-600 dark:text-slate-400">
-                    Remember me
-                  </span>
-                }
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-
-              <Link
-                href="/forgot-password"
-                className="text-[13px] font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loginStatus === 'loading'}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-[15px] font-medium text-white transition-all hover:bg-brand-700 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loginStatus === 'loading' ? (
-                'Signing in...'
-              ) : (
-                <>
-                  Login
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100 dark:border-slate-800" />
-            </div>
-
-            <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">
-                OR
-              </span>
-            </div>
-          </div>
+          <FormAlert className="mb-5">{formError || oauthErrorMessage}</FormAlert>
 
           {/* OAuth providers */}
-          <div className="mt-6">
+          <div className="mb-5">
 
             {/* Google */}
             <button
@@ -269,6 +201,77 @@ export function LoginForm() {
             </button>
 
           </div>
+
+          {/* Divider */}
+          <div className="relative mb-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100 dark:border-slate-800" />
+            </div>
+
+            <div className="relative flex justify-center text-xs">
+              <span className="px-4 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">
+                OR
+              </span>
+            </div>
+          </div>
+
+          {/* Email/password login */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-4">
+              <Input
+                id="email"
+                label="Email or Phone Number"
+                type="email"
+                placeholder="Enter your email or phone number"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((current) => ({ ...current, email: undefined }));
+                }}
+                error={errors.email}
+                className="h-12"
+                leftIcon={<Mail size={18} />}
+              />
+
+              <PasswordInput
+                id="password"
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((current) => ({ ...current, password: undefined }));
+                }}
+                error={errors.password}
+                className="h-12"
+                leftIcon={<Lock size={18} />}
+              />
+            </div>
+
+            <div className="flex items-center justify-end pt-1">
+              <Link
+                href="/forgot-password"
+                className="text-[13px] font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loginStatus === 'loading'}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-[15px] font-medium text-white transition-all hover:bg-brand-700 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loginStatus === 'loading' ? (
+                'Signing in...'
+              ) : (
+                <>
+                  Login
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>

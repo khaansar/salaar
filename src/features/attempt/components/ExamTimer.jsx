@@ -5,6 +5,7 @@ import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { attemptService } from '../../../services/attemptService';
 
 import { useSwitchSectionMutation } from '../store/attemptApi';
+import { showExamNotice, EXAM_NOTICES } from '../store/attemptSlice';
 
 export default function ExamTimer() {
   const attempt = useAppSelector((state) => state.attempt.attempt);
@@ -29,7 +30,8 @@ export default function ExamTimer() {
       let isSectionTimer = false;
 
       const currentSection = sections.find(s => s.id === currentSectionId);
-      
+      const globalRemainingSecs = Math.floor(Math.max(0, globalExpiresAt - Date.now()) / 1000);
+
       if (currentSection?.durationMinutes) {
         isSectionTimer = true;
         const durationSecs = currentSection.durationMinutes * 60;
@@ -41,22 +43,29 @@ export default function ExamTimer() {
           elapsedSecs = Math.floor(Math.max(0, Date.now() - startedAtMs) / 1000);
         }
         
-        remainingSecs = Math.max(0, durationSecs - spentSecs - elapsedSecs);
+        const sectionRemainingSecs = Math.max(0, durationSecs - spentSecs - elapsedSecs);
+        // The overall exam deadline still applies inside a timed section.
+        remainingSecs = Math.min(sectionRemainingSecs, globalRemainingSecs);
       } else {
-        const remainingMs = globalExpiresAt - Date.now();
-        remainingSecs = Math.floor(Math.max(0, remainingMs) / 1000);
+        remainingSecs = globalRemainingSecs;
       }
 
       setSafeRemainingSeconds(remainingSecs);
-      
+
       if (remainingSecs <= 0) {
         if (interval) clearInterval(interval);
         // Stop at zero and notify attempt flow
-        if (attempt?.id && !isSectionTimer) {
+        if (attempt?.id && (!isSectionTimer || globalRemainingSecs <= 0)) {
           dispatch({ type: 'attempt/markExpired' });
         } else if (attempt?.id && isSectionTimer) {
+          // Record the expired section as fully used so a later timeout
+          // cannot select it again, even if the switch API call fails.
+          const updatedSpentSec = {
+            ...attempt.sectionTimeSpentSec,
+            [currentSectionId]: currentSection.durationMinutes * 60,
+          };
           const nextSection = sections.find(s => {
-             const spent = attempt.sectionTimeSpentSec?.[s.id] || 0;
+             const spent = updatedSpentSec[s.id] || 0;
              return (!s.durationMinutes || spent < s.durationMinutes * 60) && s.id !== currentSectionId;
           });
           if (nextSection) {
@@ -64,7 +73,7 @@ export default function ExamTimer() {
             // Optimistically update timing to break the render loop in case the API call fails
             dispatch({ type: 'attempt/updateSectionTiming', payload: {
               currentSectionStartedAt: Date.now(),
-              sectionTimeSpentSec: attempt.sectionTimeSpentSec,
+              sectionTimeSpentSec: updatedSpentSec,
             }});
             switchSection({ attemptId: attempt.id, sectionId: nextSection.id, submitCurrent: true })
               .unwrap()
@@ -75,7 +84,7 @@ export default function ExamTimer() {
                      sectionTimeSpentSec: res.sectionTimeSpentSec,
                    }});
                  }
-              }).catch(console.error);
+              }).catch(() => dispatch(showExamNotice(EXAM_NOTICES.sectionSwitch)));
           } else {
              dispatch({ type: 'attempt/markExpired' });
           }

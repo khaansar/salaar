@@ -111,7 +111,7 @@ export function SectionSettingsModal({ open, onClose, section, onSaved }) {
           checked={form.shuffleQuestions}
           onChange={(e) => setForm((f) => ({ ...f, shuffleQuestions: e.target.checked }))}
         />
-        <div className="pt-2 border-t border-slate-100">
+        <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
           <Checkbox
             id="settings-enable-negative"
             label="Enable default negative marking"

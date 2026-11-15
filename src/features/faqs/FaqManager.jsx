@@ -12,8 +12,11 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Modal } from '@/components/ui/Modal';
+import { Badge } from '@/components/ui/Badge';
+import { IconAction, InlineAlert } from '@/components/admin/AdminUi';
 import { DataTable } from '@/components/ui/DataTable';
-import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/common/ToastProvider';
 
 const ALL = '__all__';
@@ -242,7 +245,7 @@ export function FaqManager({ adminOnly = false }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         breadcrumbs={[{ label: 'Admin', href: '/admin-dashboard' }, { label: 'FAQs' }]}
         title="Frequently Asked Questions"
@@ -251,7 +254,7 @@ export function FaqManager({ adminOnly = false }) {
       />
 
       <Card>
-        <div className="grid gap-4 border-b border-slate-100 p-4 dark:border-slate-800 sm:grid-cols-2">
+        <div className="grid gap-3 border-b border-slate-100 p-4 dark:border-slate-800 sm:grid-cols-2">
           <Select label="Filter by category" id="faq-category-filter" value={categoryFilter} disabled={categoriesLoading} onChange={(event) => { setCategoryFilter(event.target.value); setTestFilter(''); }}>
             <option value={ALL}>All categories</option>
             <option value={GENERAL}>Homepage FAQs</option>
@@ -261,14 +264,52 @@ export function FaqManager({ adminOnly = false }) {
             {seriesForFilter.map((series) => <option key={series.id} value={String(series.id)}>{series.title}</option>)}
           </Select>
         </div>
-        {(categoriesError || testsError) && <p className="px-4 pt-3 text-sm text-rose-600">{categoriesError ? getMessage(categoriesError, 'Unable to load categories.') : ''}{testsError ? ` ${testsError}` : ''}</p>}
+        {(categoriesError || testsError) && (
+          <div className="px-4 pt-4">
+            <InlineAlert tone="danger">
+              {categoriesError ? getMessage(categoriesError, 'Unable to load categories.') : ''}{testsError ? ` ${testsError}` : ''}
+            </InlineAlert>
+          </div>
+        )}
+        {!faqError && !(loadingFaqs || categoriesLoading || testsLoading) && (
+          <div className="px-5 pt-3 text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{filteredFaqs.length}</span> of {allFaqs.length} FAQs
+          </div>
+        )}
         {faqError ? <ErrorState message={faqError} onRetry={reloadFaqs} /> : (
           <DataTable
             columns={[
-              { key: 'question', header: 'Question', render: (faq) => <div className="max-w-xl"><p className="h-10 overflow-hidden break-words font-medium leading-5 text-slate-900 line-clamp-2 dark:text-white">{faq.question}</p><p className="mt-1 h-10 overflow-y-auto whitespace-pre-wrap break-words text-xs leading-4 text-slate-500">{faq.answer}</p></div> },
-              { key: 'category', header: 'Category', render: (faq) => targetDetails(faq).categoryName },
-              { key: 'test', header: 'Test series', render: (faq) => targetDetails(faq).testName },
-              { key: 'actions', header: '', headerClassName: 'text-right', className: 'text-right', render: (faq) => <div className="flex justify-end gap-2"><button type="button" onClick={() => openEdit(faq)} aria-label="Edit FAQ" className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"><Pencil size={16} /></button><button type="button" onClick={() => setDeleteTarget(faq)} aria-label="Delete FAQ" className="rounded-md p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={16} /></button></div> },
+              {
+                key: 'question',
+                header: 'Question',
+                render: (faq) => (
+                  <div className="max-w-xl">
+                    <p className="line-clamp-2 break-words font-medium leading-5 text-slate-900 dark:text-white">{faq.question}</p>
+                    <p className="mt-1 line-clamp-2 whitespace-pre-wrap break-words text-xs leading-4 text-slate-500 dark:text-slate-400">{faq.answer}</p>
+                  </div>
+                ),
+              },
+              {
+                key: 'category',
+                header: 'Category',
+                render: (faq) => {
+                  const name = targetDetails(faq).categoryName;
+                  return name === 'General' ? <Badge tone="info">Homepage</Badge> : <span className="text-sm">{name}</span>;
+                },
+              },
+              { key: 'test', header: 'Test series', render: (faq) => <span className="text-sm">{targetDetails(faq).testName}</span> },
+              {
+                key: 'actions',
+                header: <span className="sr-only">Actions</span>,
+                headerClassName: 'text-right',
+                className: 'text-right',
+                render: (faq) => (
+                  <div className="flex justify-end gap-1">
+                    <IconAction label="Edit FAQ" onClick={() => openEdit(faq)}><Pencil size={15} /></IconAction>
+                    <IconAction label="Delete FAQ" tone="danger" onClick={() => setDeleteTarget(faq)}><Trash2 size={15} /></IconAction>
+                  </div>
+                ),
+              },
             ]}
             rows={filteredFaqs}
             rowKey="id"
@@ -282,29 +323,37 @@ export function FaqManager({ adminOnly = false }) {
         )}
       </Card>
 
-      {form && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setForm(null); }}>
-          <div role="dialog" aria-modal="true" aria-labelledby="faq-form-title" className="w-full max-w-xl rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-            <form onSubmit={saveFaq}>
-              <div className="border-b border-slate-100 px-6 py-5 dark:border-slate-800"><h2 id="faq-form-title" className="text-lg font-semibold text-slate-900 dark:text-white">{form.id ? 'Edit FAQ' : 'Add FAQ'}</h2><p className="mt-1 text-sm text-slate-500">{form.id ? 'Update the FAQ details.' : form.targetId ? 'This FAQ will be added to the selected test series.' : 'Add a General FAQ for the homepage.'}</p></div>
-              <div className="space-y-4 px-6 py-5">
-                {!form.id && <>
-                  <Select label="Category" id="faq-form-category" value={formCategory} disabled={categoriesLoading} placeholder="Select a category" onChange={(event) => { setFormCategory(event.target.value); setFormTest(''); }}>
-                    <option value={GENERAL}>Homepage FAQs</option>
-                    {categories.map((category) => <option key={category.id} value={String(category.id)}>{category.name}</option>)}
-                  </Select>
-                  <Select label="Test series" id="faq-form-test" value={formTest} disabled={!formCategory || formCategory === GENERAL || formSeriesLoading} placeholder={!formCategory ? 'Choose a category first' : formCategory === GENERAL ? 'Not available for Homepage FAQs' : formSeriesLoading ? 'Loading test series…' : 'Select a test series'} required={Boolean(formCategory && formCategory !== GENERAL)} onChange={(event) => setFormTest(event.target.value)}>
-                    {formSeriesOptions.map((series) => <option key={series.id} value={String(series.id)}>{series.title}</option>)}
-                  </Select>
-                </>}
-                <Input label="Question" id="faq-question" maxLength={2000} value={form.question} onChange={(event) => setForm({ ...form, question: event.target.value })} required />
-                <Textarea label="Answer" id="faq-answer" rows={6} maxLength={10000} value={form.answer} onChange={(event) => setForm({ ...form, answer: event.target.value })} required />
+      <Modal
+        open={Boolean(form)}
+        onClose={() => { if (!saving) setForm(null); }}
+        title={form?.id ? 'Edit FAQ' : 'Add FAQ'}
+        description={form?.id ? 'Update the FAQ details.' : form?.targetId ? 'This FAQ will be added to the selected test series.' : 'Add a FAQ for the homepage or a test series.'}
+        width="xl"
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={() => setForm(null)} disabled={saving}>Cancel</Button>
+            <Button type="submit" form="faq-form" isLoading={saving}>{form?.id ? 'Save changes' : 'Add FAQ'}</Button>
+          </>
+        }
+      >
+        {form && (
+          <form id="faq-form" onSubmit={saveFaq} className="space-y-4">
+            {!form.id && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Select label="Category" id="faq-form-category" value={formCategory} disabled={categoriesLoading} placeholder="Select a category" onChange={(event) => { setFormCategory(event.target.value); setFormTest(''); }}>
+                  <option value={GENERAL}>Homepage FAQs</option>
+                  {categories.map((category) => <option key={category.id} value={String(category.id)}>{category.name}</option>)}
+                </Select>
+                <Select label="Test series" id="faq-form-test" value={formTest} disabled={!formCategory || formCategory === GENERAL || formSeriesLoading} placeholder={!formCategory ? 'Choose a category first' : formCategory === GENERAL ? 'Not available for Homepage FAQs' : formSeriesLoading ? 'Loading test series…' : 'Select a test series'} required={Boolean(formCategory && formCategory !== GENERAL)} onChange={(event) => setFormTest(event.target.value)}>
+                  {formSeriesOptions.map((series) => <option key={series.id} value={String(series.id)}>{series.title}</option>)}
+                </Select>
               </div>
-              <div className="flex justify-end gap-3 border-t border-slate-100 px-6 py-4 dark:border-slate-800"><Button type="button" variant="outline" onClick={() => setForm(null)} disabled={saving}>Cancel</Button><Button type="submit" isLoading={saving}>{form.id ? 'Save changes' : 'Add FAQ'}</Button></div>
-            </form>
-          </div>
-        </div>
-      )}
+            )}
+            <Input label="Question" id="faq-question" maxLength={2000} value={form.question} onChange={(event) => setForm({ ...form, question: event.target.value })} required />
+            <Textarea label="Answer" id="faq-answer" rows={6} maxLength={10000} value={form.answer} onChange={(event) => setForm({ ...form, answer: event.target.value })} required />
+          </form>
+        )}
+      </Modal>
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={confirmDelete} isLoading={deleting} title="Delete FAQ?" description={`Delete “${deleteTarget?.question || ''}”? This cannot be undone.`} confirmLabel="Delete" />
     </div>
   );

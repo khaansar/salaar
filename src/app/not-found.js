@@ -30,7 +30,7 @@ async function getSuggestions() {
       href: `/test-series/${item.slug}`,
     }));
   } catch (error) {
-    console.error('Failed to load 404 suggestions:', error);
+    console.warn('Failed to load 404 suggestions:', error);
     return [];
   }
 }

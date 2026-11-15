@@ -28,7 +28,7 @@ export default async function sitemap() {
   const baseUrl = siteConfig.url;
 
   if (!baseUrl) {
-    console.error(
+    console.warn(
       'NEXT_PUBLIC_SITE_URL is not configured; sitemap is empty.'
     );
     return [];
@@ -91,7 +91,7 @@ export default async function sitemap() {
       page += 1;
     }
   } catch (error) {
-    console.error(
+    console.warn(
       'Failed to load published series for sitemap:',
       error
     );

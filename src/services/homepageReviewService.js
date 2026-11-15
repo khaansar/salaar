@@ -21,6 +21,23 @@ function setCookie(name, value, days = 30) {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
 }
 
+// Demo reviews the admin moderation page used to show when the API was
+// unreachable. They were never real, so drop any that were featured earlier.
+const DEMO_REVIEWS = new Set([
+  '101:pooja hegde',
+  '102:rahul sharma',
+  '103:sneha patel',
+  '104:arjun mehta',
+  '105:vikram singh',
+]);
+
+export function isDemoReview(review) {
+  if (!review) return false;
+  const id = String(review.reviewId ?? review.id ?? '');
+  const name = String(review.userName || review.authorName || review.name || '').trim().toLowerCase();
+  return DEMO_REVIEWS.has(`${id}:${name}`);
+}
+
 /**
  * Normalizes a review object for display on the home page.
  */
@@ -61,6 +78,7 @@ export const homepageReviewService = {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           return parsed
+            .filter((r) => !isDemoReview(r))
             .map(normalizeReviewForHomepage)
             .filter((r) => r && r.status === 'APPROVED');
         }
@@ -72,6 +90,7 @@ export const homepageReviewService = {
         const parsed = JSON.parse(cookieVal);
         if (Array.isArray(parsed)) {
           return parsed
+            .filter((r) => !isDemoReview(r))
             .map(normalizeReviewForHomepage)
             .filter((r) => r && r.status === 'APPROVED');
         }
