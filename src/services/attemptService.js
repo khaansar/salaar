@@ -231,6 +231,8 @@ export const attemptService = {
         id: attemptRes.attemptId || attemptId,
         testId,
         title: structureRes.title,
+        seriesTitle: structureRes.seriesTitle || '',
+        categoryName: structureRes.categoryName || '',
         type: 'Mock Test',
         status: attemptRes.status,
         expiresAt: attemptRes.expiresAt,
