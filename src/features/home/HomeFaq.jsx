@@ -2,41 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { siteConfig } from '../../config/site';
 import { faqApi } from '../../services/faqService';
-
-const FALLBACK_FAQS = [
-  {
-    id: 'f1',
-    question: `What is ${siteConfig.name}?`,
-    answer: `${siteConfig.name} is a comprehensive mock test and exam prep platform offering realistic computer-based tests, official previous year papers, AI-driven performance insights, and sectional practice for competitive examinations.`,
-  },
-  {
-    id: 'f2',
-    question: 'How do the mock tests work?',
-    answer: 'Our mock tests emulate the exact exam pattern, interface, countdown timers, and negative marking rules of actual examinations. After submission, you receive instant scorecards, topic-level proficiency breakdowns, and detailed step-by-step solutions.',
-  },
-  {
-    id: 'f3',
-    question: 'Are previous year question papers included?',
-    answer: 'Yes! We provide extensive collections of official past year papers solved with verified answer keys and detailed explanations to help you understand question patterns.',
-  },
-  {
-    id: 'f4',
-    question: 'How does AI-powered performance analysis help me?',
-    answer: 'Our analytics engine highlights your accuracy trends, time spent per question, question palette behavior, and subject weaknesses, giving you clear recommendations on where to focus your revision.',
-  },
-  {
-    id: 'f5',
-    question: 'Can I practice on mobile or tablet?',
-    answer: 'Yes, the platform is fully responsive across desktops, laptops, tablets, and mobile devices. Your test progress and streak sync seamlessly across all your devices.',
-  },
-  {
-    id: 'f6',
-    question: 'How do I start practicing?',
-    answer: 'Browse the test series catalog on the home page, select your target exam category, and start attempting free mock tests right away. You can track your daily streak and test history on your dashboard.',
-  },
-];
 
 export default function HomeFaq({ targetId = null, title = 'Frequently Asked Questions', subtitle }) {
   const [faqs, setFaqs] = useState([]);
@@ -52,11 +18,11 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
         if (!active) return;
         const orderedFaqs = (Array.isArray(items) ? items : [])
           .sort((a, b) => (Number(a.displayOrder) || 0) - (Number(b.displayOrder) || 0));
-        setFaqs(orderedFaqs.length ? orderedFaqs : (targetId == null ? FALLBACK_FAQS : []));
+        setFaqs(orderedFaqs);
       })
       .catch(() => {
         if (active) {
-          setFaqs(targetId == null ? FALLBACK_FAQS : []);
+          setFaqs([]);
         }
       })
       .finally(() => {
@@ -66,13 +32,11 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
     return () => { active = false; };
   }, [targetId]);
 
-  const displayFaqs = faqs.length ? faqs : (!loading && targetId == null ? FALLBACK_FAQS : []);
-
   const toggleFaq = (index) => {
     setOpenIndex((prev) => (prev === index ? null : index));
   };
 
-  if (!loading && !displayFaqs.length) {
+  if (!loading && !faqs.length) {
     return null;
   }
 
@@ -90,7 +54,7 @@ export default function HomeFaq({ targetId = null, title = 'Frequently Asked Que
       </div>
 
       <div className="w-full space-y-1.5 sm:space-y-2">
-        {displayFaqs.map((faq, i) => {
+        {faqs.map((faq, i) => {
           const isOpen = openIndex === i;
           return (
             <div
