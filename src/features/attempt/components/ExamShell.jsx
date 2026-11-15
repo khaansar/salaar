@@ -163,16 +163,23 @@ export default function ExamShell({ attemptId }) {
     }
 
     const blockExam = () => setIsFocusBlocked(true);
+    // Coming back to the exam window lifts the cover again.
+    const unblockExam = () => {
+      if (!document.hidden) setIsFocusBlocked(false);
+    };
     const handleVisibilityChange = () => {
       if (document.hidden) blockExam();
+      else if (document.hasFocus()) unblockExam();
     };
 
     window.addEventListener('blur', blockExam);
+    window.addEventListener('focus', unblockExam);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeprint', blockExam);
 
     return () => {
       window.removeEventListener('blur', blockExam);
+      window.removeEventListener('focus', unblockExam);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeprint', blockExam);
     };
@@ -212,8 +219,20 @@ export default function ExamShell({ attemptId }) {
         </div>
       )}
       {isActiveAttempt && isFocusBlocked && (
-        <div className="fixed inset-0 z-[60] bg-black" role="alert" aria-label="Exam content blocked">
-          <span className="sr-only">Exam content is blocked.</span>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black p-6" role="alert">
+          <div className="max-w-md text-center text-white">
+            <h2 className="text-xl font-bold">Test hidden</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Questions are hidden while you are away from the test window. Your timer is still running and your answers are saved.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsFocusBlocked(false)}
+              className="mt-6 w-full rounded-xl bg-exam-accent px-6 py-3 font-bold text-white transition-colors hover:bg-exam-accent/90"
+            >
+              Continue test
+            </button>
+          </div>
         </div>
       )}
       <ExamHeader />
