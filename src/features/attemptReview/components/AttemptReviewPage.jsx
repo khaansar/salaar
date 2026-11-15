@@ -9,6 +9,7 @@ import {
 import StudentShell from '@/components/student/StudentShell';
 import attemptReviewService from '@/services/attemptReviewService';
 import BackButton from '@/components/common/BackButton';
+import { MathText } from '@/components/common/MathText';
 
 /* ------------------------------------------------------------------ */
 /* Theme tokens                                                        */
@@ -126,16 +127,21 @@ function normalizeOptions(options) {
   return entries.map(([id, text], index) => ({ id, label: String.fromCharCode(65 + (index % 26)), text }));
 }
 
+/* Same order and fields as the exam screen: sorted by sequence, with captions. */
 function normalizeImages(images) {
   if (!Array.isArray(images)) return [];
-  return images.map((image) => {
-    if (typeof image === 'string') return { url: image, altText: '' };
+  return images.map((image, index) => {
+    if (typeof image === 'string') return { url: image, altText: '', caption: '', sequence: index };
     if (!image || typeof image !== 'object') return null;
     return {
       url: image.url ?? image.imageUrl ?? image.src ?? '',
-      altText: image.altText ?? image.alt_text ?? image.caption ?? '',
+      altText: image.altText ?? image.alt_text ?? '',
+      caption: image.caption ?? '',
+      sequence: Number.isInteger(image.sequence) ? image.sequence : index,
     };
-  }).filter((image) => typeof image?.url === 'string' && image.url.trim());
+  })
+    .filter((image) => typeof image?.url === 'string' && image.url.trim())
+    .sort((a, b) => a.sequence - b.sequence);
 }
 
 function formatDate(value) {
@@ -158,7 +164,7 @@ function ImageList({ images }) {
           {/* Images sit on a light plate so diagrams with transparent/black backgrounds stay legible in dark mode */}
           <img src={image.url} alt={image.altText || `Question image ${index + 1}`} loading="lazy"
             className={`max-h-72 max-w-full rounded-lg border bg-white object-contain ${T.borderStrong}`} />
-          {image.altText && <span className={`mt-1 block text-xs ${T.muted}`}>{image.altText}</span>}
+          {image.caption && <span className={`mt-1 block text-xs ${T.muted}`}>{image.caption}</span>}
         </a>
       ))}
     </div>
@@ -177,7 +183,7 @@ function AnswerText({ answer, options }) {
           <span key={id}>
             {i > 0 && ', '}
             <strong className={T.text}>{option?.label ?? id}</strong>
-            {option?.text ? <span className={T.body}> {option.text}</span> : null}
+            {option?.text ? <> <MathText text={option.text} className={`inline ${T.body}`} /></> : null}
           </span>
         );
       })}
@@ -349,9 +355,10 @@ function QuestionCard({ question, index }) {
 
       <div className="space-y-4 px-5 pb-5 pt-3">
         <div>
-          <div className={`whitespace-pre-wrap break-words text-[15px] leading-7 ${T.text}`}>
-            {question.questionText || 'Question text unavailable'}
-          </div>
+          <MathText
+            text={question.questionText || 'Question text unavailable'}
+            className={`break-words text-[15px] leading-7 ${T.text}`}
+          />
           <ImageList images={question.questionImages} />
         </div>
 
@@ -368,7 +375,7 @@ function QuestionCard({ question, index }) {
                     {option.label}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className={`whitespace-pre-wrap break-words text-sm leading-6 ${T.text}`}>{option.text || '—'}</p>
+                    <MathText text={option.text || '—'} className={`break-words text-sm leading-6 ${T.text}`} />
                     {(isCorrect || isSelected) && (
                       <p className="mt-1 flex flex-wrap gap-x-3 text-xs font-semibold">
                         {isCorrect && <span className={STATUS.CORRECT.text}>Correct answer</span>}
@@ -384,8 +391,8 @@ function QuestionCard({ question, index }) {
         )}
 
         <div className={`grid gap-x-6 gap-y-1 rounded-xl p-3.5 text-sm sm:grid-cols-2 ${T.raised}`}>
-          <p><span className={T.muted}>Your answer: </span><AnswerText answer={question.selectedOption} options={options} /></p>
-          <p><span className={T.muted}>Correct answer: </span><AnswerText answer={question.correctOption} options={options} /></p>
+          <div><span className={T.muted}>Your answer: </span><AnswerText answer={question.selectedOption} options={options} /></div>
+          <div><span className={T.muted}>Correct answer: </span><AnswerText answer={question.correctOption} options={options} /></div>
         </div>
 
         <p className={`text-xs ${T.muted}`}>
@@ -398,7 +405,7 @@ function QuestionCard({ question, index }) {
               <BookOpenCheck size={16} aria-hidden />Explanation
             </h4>
             {question.explanation && (
-              <p className={`mt-2 max-w-[75ch] whitespace-pre-wrap break-words text-sm leading-6 ${T.body}`}>{question.explanation}</p>
+              <MathText text={question.explanation} className={`mt-2 max-w-[75ch] break-words text-sm leading-6 ${T.body}`} />
             )}
             <ImageList images={question.explanationImages} />
           </section>
