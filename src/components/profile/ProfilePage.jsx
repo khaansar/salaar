@@ -45,7 +45,7 @@ import { fetchCurrentUser } from '../../store/slices/authSlice';
 import { uploadAvatar } from '../../lib/avatarUpload';
 import { DeleteAccountSection } from './DeleteAccountSection';
 
-// Topic rows shown before "Show all"; the full list can run to 150+ topics.
+// Topic rows shown; the full list can run to 150+ topics.
 const TOPIC_PREVIEW_COUNT = 8;
 
 export default function ProfilePage() {
@@ -54,7 +54,6 @@ export default function ProfilePage() {
     const avatarInputRef = useRef(null);
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [avatarError, setAvatarError] = useState('');
-    const [showAllTopics, setShowAllTopics] = useState(false);
 
     const handleAvatarChange = async (event) => {
     const file = event.target.files?.[0];
@@ -551,7 +550,7 @@ export default function ProfilePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {(showAllTopics ? topicAnalysis : topicAnalysis.slice(0, TOPIC_PREVIEW_COUNT)).map((topic, i) => (
+                {topicAnalysis.slice(0, TOPIC_PREVIEW_COUNT).map((topic, i) => (
                   <tr key={i}>
                     <td className="py-3.5 text-slate-800 dark:text-slate-200 font-medium">{topic.topic}</td>
                     <td className="py-3.5 text-slate-600 dark:text-slate-400">{topic.attempted}</td>
@@ -563,16 +562,6 @@ export default function ProfilePage() {
             </table>
             )}
           </div>
-          {topicAnalysis.length > TOPIC_PREVIEW_COUNT && (
-            <button
-              type="button"
-              onClick={() => setShowAllTopics((value) => !value)}
-              aria-expanded={showAllTopics}
-              className="mt-3 self-start text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-            >
-              {showAllTopics ? 'Show fewer' : `Show all ${topicAnalysis.length} topics`}
-            </button>
-          )}
         </div>
 
         {/* Strengths & Weaknesses */}
