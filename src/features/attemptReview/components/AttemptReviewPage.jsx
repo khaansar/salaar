@@ -3,13 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  BookOpenCheck, CheckCircle2, CircleHelp, LoaderCircle,
+  BookOpenCheck, CheckCircle2, CircleHelp, LoaderCircle, Printer,
   RefreshCw, Search, SlidersHorizontal, X, XCircle,
 } from 'lucide-react';
 import StudentShell from '@/components/student/StudentShell';
 import attemptReviewService from '@/services/attemptReviewService';
 import BackButton from '@/components/common/BackButton';
 import { MathText } from '@/components/common/MathText';
+import {
+  asNumber, formatDate, formatNumber, normalizeImages, normalizeOptions, parseAnswerKeys, statusOf,
+} from '../lib/reviewFormat';
+import ReviewPrintSheet, { useReviewPrint } from './ReviewPrintSheet';
 
 /* ------------------------------------------------------------------ */
 /* Theme tokens                                                        */
@@ -67,89 +71,6 @@ const STATUS = {
     chip: '',
   },
 };
-
-const statusOf = (q) => {
-  const key = String(q?.status || 'UNANSWERED').toUpperCase();
-  return STATUS[key] ? key : 'UNANSWERED';
-};
-
-/* ------------------------------------------------------------------ */
-/* Data helpers                                                        */
-/* ------------------------------------------------------------------ */
-function asNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function formatNumber(value) {
-  const number = asNumber(value);
-  if (number === null) return '—';
-  return Number.isInteger(number) ? String(number) : number.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-}
-
-function parseAnswerKeys(value) {
-  if (value === null || value === undefined || value === '') return [];
-  if (Array.isArray(value)) return value.map(String).map((v) => v.trim()).filter(Boolean);
-  const raw = String(value).trim();
-  if (!raw) return [];
-  if (raw.startsWith('[') && raw.endsWith(']')) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.map(String).map((v) => v.trim()).filter(Boolean);
-    } catch {
-      return raw.slice(1, -1).split(',').map((v) => v.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-    }
-  }
-  return raw.includes(',') ? raw.split(',').map((v) => v.trim()).filter(Boolean) : [raw];
-}
-
-/* Backend options are { optionId: optionText }. Keep the real ID for matching, show A/B/C/D. */
-function normalizeOptions(options) {
-  let entries = [];
-  if (Array.isArray(options)) {
-    entries = options.map((option, index) => {
-      if (option && typeof option === 'object') {
-        const id = option.optionId ?? option.id ?? option.key ?? option.optionKey ?? String(index);
-        const text = option.text ?? option.label ?? option.value ?? option.content ?? '';
-        return [String(id), typeof text === 'string' ? text : JSON.stringify(text)];
-      }
-      return [String(index), String(option ?? '')];
-    });
-  } else if (options && typeof options === 'object') {
-    entries = Object.entries(options).map(([id, text]) => [
-      id,
-      typeof text === 'string' ? text : text == null ? '' : String(text.text ?? text.label ?? text.value ?? JSON.stringify(text)),
-    ]);
-  } else if (typeof options === 'string') {
-    try { return normalizeOptions(JSON.parse(options)); } catch { return []; }
-  }
-  return entries.map(([id, text], index) => ({ id, label: String.fromCharCode(65 + (index % 26)), text }));
-}
-
-/* Same order and fields as the exam screen: sorted by sequence, with captions. */
-function normalizeImages(images) {
-  if (!Array.isArray(images)) return [];
-  return images.map((image, index) => {
-    if (typeof image === 'string') return { url: image, altText: '', caption: '', sequence: index };
-    if (!image || typeof image !== 'object') return null;
-    return {
-      url: image.url ?? image.imageUrl ?? image.src ?? '',
-      altText: image.altText ?? image.alt_text ?? '',
-      caption: image.caption ?? '',
-      sequence: Number.isInteger(image.sequence) ? image.sequence : index,
-    };
-  })
-    .filter((image) => typeof image?.url === 'string' && image.url.trim())
-    .sort((a, b) => a.sequence - b.sequence);
-}
-
-function formatDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
 
 /* ------------------------------------------------------------------ */
 /* Small pieces                                                        */
@@ -458,6 +379,7 @@ export default function AttemptReviewPage({ attemptId }) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { isPreparing, startPrint, sheetRef } = useReviewPrint();
 
   const loadReview = useCallback(async () => {
     if (!attemptId) {
@@ -557,10 +479,17 @@ export default function AttemptReviewPage({ attemptId }) {
                 <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Attempt review</h1>
                 <p className={`mt-1 text-sm ${T.muted}`}>Submitted {formatDate(review.updatedAt || review.createdAt)}</p>
               </div>
-              <Link href="/my-learning"
-                className={`inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-slate-950 dark:hover:bg-indigo-400 ${T.focus}`}>
-                My Learning
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={startPrint} disabled={isPreparing}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold ${T.borderStrong} ${T.surface} ${T.body} hover:bg-slate-100 disabled:opacity-70 dark:hover:bg-slate-800 ${T.focus}`}>
+                  {isPreparing ? <LoaderCircle size={15} className="animate-spin" aria-hidden /> : <Printer size={15} aria-hidden />}
+                  {isPreparing ? 'Preparing…' : 'Print'}
+                </button>
+                <Link href="/my-learning"
+                  className={`inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-slate-950 dark:hover:bg-indigo-400 ${T.focus}`}>
+                  My Learning
+                </Link>
+              </div>
             </div>
           </header>
 
@@ -603,6 +532,10 @@ export default function AttemptReviewPage({ attemptId }) {
           </div>
         </div>
       </main>
+
+      {isPreparing && (
+        <ReviewPrintSheet review={review} questions={questions} sections={sections} counts={counts} sheetRef={sheetRef} />
+      )}
 
       {/* Mobile bottom sheet */}
       {drawerOpen && (
