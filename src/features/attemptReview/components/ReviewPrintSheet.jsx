@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { MathText } from '@/components/common/MathText';
 import { BrandIcon } from '@/components/common/BrandLogo';
 import { siteConfig } from '@/config/site';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import {
   formatDate, formatNumber, normalizeImages, normalizeOptions, parseAnswerKeys, statusOf,
 } from '../lib/reviewFormat';
@@ -163,7 +164,14 @@ function PrintQuestion({ question, number }) {
   );
 }
 
+/* Same rule as the result report: full name, falling back to the email. */
+function studentName(user) {
+  const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
+  return name || user?.email || 'Student';
+}
+
 export default function ReviewPrintSheet({ review, questions, sections, counts, sheetRef }) {
+  const user = useAppSelector((state) => state.auth.user);
   if (typeof document === 'undefined') return null;
   const groups = groupBySection(questions, sections);
 
@@ -175,7 +183,7 @@ export default function ReviewPrintSheet({ review, questions, sections, counts, 
           <span className="text-2xl font-black tracking-tight text-slate-900">{siteConfig.name || 'ClearIt'}</span>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold">Attempt review</p>
+          <p className="text-base font-bold text-slate-900">{studentName(user)}</p>
           <p className="text-slate-600">
             Score {formatNumber(review.finalScore)} · {counts.CORRECT} correct · {counts.WRONG} incorrect · {counts.UNANSWERED} unanswered
           </p>
