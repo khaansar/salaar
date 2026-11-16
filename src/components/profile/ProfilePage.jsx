@@ -124,17 +124,25 @@ export default function ProfilePage() {
   const historyItems = Array.isArray(historyResponse) ? historyResponse : (historyResponse?.items || historyResponse?.data || []);
   let realRecentTests = [];
 
+  // finalScore is in marks; analytics knows each attempt's maximum and percentage.
+  const attemptPerformanceById = new Map((performance?.attempts || []).map((p) => [p.attemptId, p]));
+
   if (historyItems.length > 0) {
     realRecentTests = historyItems.slice(0, 5).map(a => {
       const isSubmitted = String(a.status || '').toUpperCase() === 'SUBMITTED';
+      const analytics = attemptPerformanceById.get(a.attemptId);
+      const maxScore = analytics?.maxScore != null ? Math.round(Number(analytics.maxScore)) : null;
+      const percentage = analytics?.scorePercentage != null ? Number(analytics.scorePercentage) : null;
       return {
         id: a.attemptId,
         name: a.testName || 'Test Attempt',
         category: a.categoryName || '',
         date: new Date(a.startedAt || a.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-        score: a.finalScore != null ? `${Math.round(a.finalScore)}%` : (isSubmitted ? 'Done' : a.status || '—'),
-        color: isSubmitted
-          ? (a.finalScore != null && a.finalScore >= 70 ? 'text-emerald-500' : 'text-orange-500')
+        score: a.finalScore != null
+          ? (maxScore ? `${Math.round(a.finalScore)} / ${maxScore}` : String(Math.round(a.finalScore)))
+          : (isSubmitted ? 'Done' : a.status || '—'),
+        color: isSubmitted && percentage != null
+          ? (percentage >= 70 ? 'text-emerald-500' : 'text-orange-500')
           : 'text-slate-500'
       };
     });
